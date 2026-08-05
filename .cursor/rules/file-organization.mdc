@@ -1,0 +1,87 @@
+---
+description: When to split Java files and nest packages deeply by responsibility
+globs: src/**/java/**/*.java
+alwaysApply: false
+---
+
+# Split when responsibility diverges
+
+Split a file when it mixes jobs, not when it crosses an arbitrary line count.
+
+**Split signals**
+
+- Hard to name the class in one phrase
+- Imports span unrelated layers (domain + Adventure + Bukkit in one handler)
+- Multiple subcommands, event types, or use cases in one class
+- Formatting/output logic mixed with orchestration or domain rules
+- Tests cover unrelated behaviors in one file
+
+**Do not split**
+
+- A small, cohesive class that is easy to navigate
+- Purely to hit a line target
+- Into generic `util`, `helper`, or `manager` packages
+
+See `.cursor/rules/architecture.mdc` for dependency direction.
+
+# Size heuristics by file type
+
+Line counts are guides, not limits. Split earlier if responsibilities are mixed.
+
+| File type | Comfortable range | Strong split signal |
+|---|---:|---|
+| Plugin entry (`EventLens`) | ≤ 100 | Wiring plus business logic |
+| Command router | ≤ 150 | More than one subcommand family |
+| Command handler / formatter | ≤ 200 | Parsing, service calls, and chat output together |
+| Application service | ≤ 250 | Multiple use cases or workflows |
+| Domain type / engine | ≤ 300 | Multiple policies or algorithms |
+| Paper adapter / listener | ≤ 250 | Multiple event families or capture paths |
+| Test class | ≤ 400 | Unrelated scenarios; prefer separate test classes |
+
+# Deep package nesting is fine
+
+Prefer `folder/in/folder/` when each level names a real boundary. Depth is a feature when it reduces clutter at each level.
+
+**Good nesting examples**
+
+```
+command/
+  trace/
+    TraceStartHandler.java
+    TraceViewFormatter.java
+paper/
+  snapshot/
+    capture/
+      PlayerJoinSnapshotAdapter.java
+domain/
+  diff/
+    SnapshotDiffEngine.java
+  trace/
+    session/
+      TraceSessionLimits.java
+```
+
+**Rules**
+
+- Name packages after capabilities (`trace`, `snapshot`, `capture`), not patterns (`impl`, `misc`)
+- Colocate handlers, formatters, and package-private helpers in the same folder
+- Move tests to mirror production layout (`.../command/trace/TraceStartHandlerTest.java`)
+- Keep cross-package APIs small; hide internals as package-private when possible
+
+**Avoid**
+
+- Flattening everything into `command/` or `paper/` to reduce folder depth
+- Deep trees with meaningless segments (`a/b/c/X.java` for a single class)
+- Circular or sideways dependencies between sibling packages
+
+# EventLens-specific split points
+
+- `EventLensCommand`: router + tab complete only; extract `trace`, `listeners`, and diff output formatters
+- Trace flow: session lifecycle in `application`/`domain`; dispatch capture in `paper`; chat output in `command`
+- Snapshot/diff: domain models and engines stay in `domain`; Bukkit field reads stay in `paper`
+
+When splitting, update `plugin.yml`, tests, and docs only if registration paths or behavior change.
+
+# Automated enforcement
+
+`.\gradlew.bat checkFileLengths` (included in `check`) fails the build when a Java file exceeds the limits above. The task prints each offending path, line count, limit, and category.

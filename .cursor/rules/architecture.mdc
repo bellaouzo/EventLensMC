@@ -1,0 +1,58 @@
+---
+description: EventLens production Java architecture and Paper adapter rules
+globs: src/main/java/**/*.java
+alwaysApply: false
+---
+
+# Dependency direction
+
+Dependencies point inward:
+
+- Plugin entry point and commands may depend on application and domain code.
+- Application services coordinate domain interfaces and records.
+- Domain code must not depend on Paper, Bukkit, JavaPlugin, commands, files, databases, JSON libraries, or instrumentation implementations.
+
+Only `EventLens.java` should extend `JavaPlugin`.
+
+The plugin class is a composition root. It may construct services, register commands, and clean up on disable. It must not contain tracing algorithms or act as a global service locator.
+
+# Suggested logical areas (create when real code exists)
+
+Under the existing base package `dev.bellaouzo.eventlens`:
+
+- `command` — command parsing, permissions, administrator output
+- `trace` — session lifecycle and bounded state (partially started)
+- `application` — use-case orchestration (started: `StatusQueryService`)
+- `domain` — immutable records, limits, sampling, diff policies (started: `EventLensStatus`)
+- `paper` — listener discovery, scheduler, lifecycle adapters (planned)
+- `snapshot`, `diff`, `filter`, `report`, `observability`, `instrumentation` — planned adapters
+
+Do not create generic `util` or `manager` dumping grounds.
+
+# Paper lifecycle
+
+`onEnable`: validate config, construct graph, register commands, log capabilities accurately.
+
+`onDisable`: stop new sessions, cancel owned tasks, close executors/files, clear references, log one shutdown summary.
+
+Do not use `/reload` as a supported workflow.
+
+# Threading in event paths
+
+Synchronous phase may read supported fields and copy immutable values.
+
+Forbidden on the main thread in hot paths: disk/network I/O, large JSON, blocking on futures, recursive reflection, sleep.
+
+# Observation integrity
+
+Preserve listener order, arguments, thread, cancellation, return behavior, and exceptions.
+
+When preservation cannot be proven, disable the capability and report unsupported.
+
+# Code conventions
+
+Prefer immutable records, constructor injection, final fields, small interfaces, and the plugin logger.
+
+Avoid static mutable state, field injection, broad `catch (Exception)`, `System.out`, and reflection spread across packages.
+
+Add Javadocs to public APIs and non-obvious invariants.

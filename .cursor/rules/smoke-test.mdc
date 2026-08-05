@@ -1,0 +1,18 @@
+---
+description: Always provide manual Paper smoke-test steps at the end of implementation work
+alwaysApply: true
+---
+
+# End-of-task smoke test
+
+When implementation work touches plugin behavior, commands, lifecycle, or Paper integration:
+
+1. Run `.\gradlew.bat check --warning-mode all` (or the smallest relevant test subset first, then `check`).
+2. End the final response with a **Manual smoke test** section the user can run on a live server.
+3. Include exact console and in-game commands, expected output, and how to stop cleanly (`stop`, not `/reload`).
+
+Optional helper for the user: `.\scripts\smoke-test.ps1` builds the JAR, prints the checklist, and starts `runServer`.
+
+Do not automate Minecraft console input on Windows (Gradle/`gradlew.bat` does not reliably forward stdin). Do not leave background `runServer` processes running without telling the user.
+
+If automated tests fail, fix or report before finishing.

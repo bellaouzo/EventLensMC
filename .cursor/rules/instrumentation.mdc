@@ -1,0 +1,43 @@
+---
+description: EventLens reflection, NMS, and optional Java agent policy
+globs: "{**/instrumentation/**,**/agent/**,docs/INSTRUMENTATION.md,docs/adr/**}"
+alwaysApply: false
+---
+
+# Supported APIs first
+
+Exhaust supported Paper APIs before reflection, NMS, or bytecode transformation.
+
+# Reflection / NMS
+
+Requires an architecture decision record with:
+
+- Capability enabled
+- Why public APIs are insufficient
+- Version assumptions and failure mode
+- Test plan
+
+Do not spread reflection across hot event paths.
+
+# Java agent (future, optional)
+
+The standard plugin must remain useful without an agent.
+
+A future agent must:
+
+- Be a separate artifact (`eventlens-agent` subproject when justified)
+- Load only with `-javaagent` at JVM startup
+- Never self-attach by default
+- Transform only exact allowlisted targets with signature verification
+- Perform additive observation-only changes
+- Fail closed on mismatch
+- Expose a narrow versioned protocol to the plugin
+- Stop producing data when no trace session requires it
+
+Agent tests must run in forked JVMs.
+
+# Current status
+
+No agent, no instrumentation SPI implementation, and no NMS usage in the repository.
+
+Do not implement agent or NMS code without an approved ADR and preservation tests.

@@ -1,0 +1,173 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bellaouzo.dev/eventlens/schemas/trace-report-v2.schema.json",
+  "title": "EventLens Trace Report v2",
+  "type": "object",
+  "required": [
+    "reportVersion",
+    "redactionMode",
+    "environment",
+    "instrumentation",
+    "session",
+    "warnings",
+    "dispatches"
+  ],
+  "properties": {
+    "reportVersion": {
+      "type": "string"
+    },
+    "redactionMode": {
+      "type": "string"
+    },
+    "environment": {
+      "type": "object",
+      "required": [
+        "serverVersion",
+        "javaVersion",
+        "paperVersion",
+        "eventLensVersion",
+        "platformLabel",
+        "generatedAtMillis",
+        "pluginVersions"
+      ],
+      "properties": {
+        "serverVersion": {
+          "type": "string"
+        },
+        "javaVersion": {
+          "type": "string"
+        },
+        "paperVersion": {
+          "type": "string"
+        },
+        "eventLensVersion": {
+          "type": "string"
+        },
+        "platformLabel": {
+          "type": "string"
+        },
+        "generatedAtMillis": {
+          "type": "integer"
+        },
+        "pluginVersions": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "instrumentation": {
+      "type": "object",
+      "required": [
+        "mode",
+        "agentPresent",
+        "protocolVersion",
+        "protocolCompatible",
+        "paperVersionCompatible",
+        "capabilities"
+      ],
+      "properties": {
+        "mode": {
+          "type": "string"
+        },
+        "agentPresent": {
+          "type": "boolean"
+        },
+        "protocolVersion": {
+          "type": "integer"
+        },
+        "protocolCompatible": {
+          "type": "boolean"
+        },
+        "paperVersionCompatible": {
+          "type": "boolean"
+        },
+        "capabilities": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": true
+    },
+    "session": {
+      "type": "object",
+      "required": [
+        "sessionId",
+        "eventClassName",
+        "state",
+        "ownerName",
+        "startedAtMillis",
+        "lastActivityAtMillis",
+        "durationMillis",
+        "capturedEvents",
+        "droppedEvents",
+        "sampledOutEvents",
+        "filters",
+        "conflicts"
+      ],
+      "properties": {
+        "sessionId": {
+          "type": "string"
+        },
+        "eventClassName": {
+          "type": "string"
+        },
+        "state": {
+          "type": "string"
+        },
+        "ownerName": {
+          "type": "string"
+        },
+        "startedAtMillis": {
+          "type": "integer"
+        },
+        "lastActivityAtMillis": {
+          "type": "integer"
+        },
+        "durationMillis": {
+          "type": [
+            "string",
+            "number",
+            "integer"
+          ]
+        },
+        "capturedEvents": {
+          "type": "integer"
+        },
+        "droppedEvents": {
+          "type": "integer"
+        },
+        "sampledOutEvents": {
+          "type": "integer"
+        },
+        "filters": {
+          "type": "string"
+        },
+        "conflicts": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": true
+    },
+    "sessionTimingSummary": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "dispatches": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    }
+  },
+  "additionalProperties": true
+}

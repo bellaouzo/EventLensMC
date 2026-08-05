@@ -1,0 +1,14 @@
+"reportVersion": "2"
+"instrumentation"
+"mode": "DEGRADED"
+"paperVersionCompatible": true
+"sessionTimingSummary"
+"dispatchStats"
+"eventLensOverheadStats"
+"eventLensOverheadNanos": 350000
+"snapshotBefore"
+"propertyChanges"
+"cancellationTransition"
+"exceptionType": "java.lang.RuntimeException"
+"partialReasons"
+

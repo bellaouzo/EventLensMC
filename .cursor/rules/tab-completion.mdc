@@ -1,0 +1,29 @@
+---
+description: Tab completion standards for commands and CLI flags
+alwaysApply: true
+---
+
+# Tab completion
+
+When adding or changing commands, subcommands, flags, or arguments, implement tab completion to the fullest practical extent in the same change.
+
+## Required coverage
+
+- Subcommand names at every command level
+- Dynamic values: session IDs, event names, online players, plugins, worlds
+- Flag names (`--format`, `--shareable`, etc.) at any position after fixed arguments
+- Flag values immediately after the flag token (formats, enums, booleans)
+- Multiple flags on one command — completion must still work after earlier flags
+
+## Rules
+
+- Mirror the same valid values enforced by command parsing
+- Prefer `CommandText.filterPrefix` for consistent partial matching
+- Keep completers colocated with handlers (`*TabCompleter`, `tabComplete*` methods)
+- When introducing a new flag or enum, add both parser validation and tab completion
+
+## Checklist for new CLI surface
+
+1. Usage string documents all flags and values
+2. Parser rejects invalid values with a helpful error listing valid types
+3. Tab completer suggests flags and value options at the correct argument index

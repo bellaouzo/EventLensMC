@@ -1,38 +1,235 @@
-# EventLens
+# AGENTS.md
 
-EventLens is a Paper 26.2 server-side plugin for diagnosing how Minecraft server events travel through registered plugin listeners.
+## Project purpose
 
-## Current stack
+EventLens is a Paper server-side diagnostics plugin intended to explain how events travel through registered plugin listeners.
 
-- Java 25 (Eclipse Temurin)
-- Gradle Wrapper 9.6.1 (Groovy DSL)
-- Paper API 26.2
-- run-paper 3.0.2
+The product helps server administrators and plugin developers answer questions such as:
 
-## Commands
+- Which plugins listen to this event?
+- In what priority and order are listeners invoked?
+- Which listener changed cancellation state?
+- Which supported event properties changed?
+- Which listener appears slow?
+- Was a trace incomplete because of sampling, limits, unsupported data, or an error?
 
-```powershell
-.\gradlew.bat clean build
-.\gradlew.bat test
-.\gradlew.bat runServer
-.\gradlew.bat runServerDebug
-```
+EventLens must observe server behavior without changing it.
 
-## Main entry point
+Planned capabilities are not implemented until source and tests prove they exist.
 
-- Package: `dev.bellaouzo.eventlens`
-- Main class: `dev.bellaouzo.eventlens.EventLens`
+## Current project facts
 
-## Architecture expectations
+| Property | Value |
+|---|---|
+| Project | EventLens |
+| Platform | Paper 26.2 |
+| Language | Java 25 |
+| Build system | Gradle Wrapper 9.6.1 |
+| Build DSL | Groovy Gradle |
+| Development server | run-paper 3.0.2 |
+| Operating system baseline | Windows |
+| Base package | `dev.bellaouzo.eventlens` |
+| Main class | `dev.bellaouzo.eventlens.EventLens` |
+| Plugin metadata file | `src/main/resources/plugin.yml` |
+| Current version | `0.1-SNAPSHOT` |
+| Gradle group | `dev.bellaouzo` |
+| Paper API dependency | `26.2.build.92-stable` (pinned in `gradle.properties`) |
+| Current commands | `/eventlens status`, `listeners`, `trace` (alias `el`) |
+| Current permissions | `eventlens.command.status`, `.listeners`, `.trace` (default op) |
+| Gradle subprojects | `eventlens-observability`, `eventlens-agent` |
+| Test framework | JUnit 5 |
+| Current tests | Session/trace, timing analyzers, budget controller, sampling, command permissions (MockBukkit), agent load (forked JVM), ArchUnit |
+| CI workflows | `.github/workflows/ci.yml` (`check` + `paperSmokeTest` on push/PR) |
+| ArchUnit / JaCoCo / Spotless | Configured |
+| MockBukkit | Configured (`mockbukkit-v26.1.2`) |
+| License | UNSPECIFIED — inspect repository |
 
-Keep commands, trace sessions, listener discovery, snapshots, timing, filtering, formatting/export, and Paper integration in separate packages. Use interfaces for version-sensitive or reflective behavior.
+Update this table when repository facts change. Do not guess missing values.
+
+## Initial supported trace events
+
+Tracing and snapshot capture are limited to these event types until expanded explicitly in `SupportedEventTypes`:
+
+- `BlockBreakEvent`, `BlockPlaceEvent`
+- `PlayerInteractEvent`, `PlayerMoveEvent`, `PlayerTeleportEvent`, `PlayerCommandPreprocessEvent`
+- `InventoryClickEvent`
+- `EntityDamageEvent`, `EntityDeathEvent`
+- `AsyncChatEvent`
+
+`listeners` still resolves any registered Bukkit event; `trace start` rejects events outside this list.
 
 ## Current implementation status
 
-- Plugin loads on Paper 26.2
-- `/eventlens status` reports version, platform, tracing flag, and active session count
-- Tracing engine, listener discovery, and export are not implemented yet
+**Implemented and verified**
 
-## Next development milestone
+- Plugin loads on Paper 26.2 (Java 25)
+- `/eventlens status`, `listeners`, `trace` commands
+- Listener inventory, trace sessions, snapshots/diffs, timing metrics
+- Optional Java agent for per-listener timing (`eventlens-agent`; dev `runServer` attaches automatically)
+- Performance budget controller, hot-event sampling, timing output in `trace view`
+- Gradle `runServer` and `runServerDebug` with `-javaagent`
 
-Implement trace session lifecycle and listener discovery for a single filtered event type, with bounded in-memory buffers and no global always-on tracing.
+**Not implemented**
+
+- Export timing aggregates and structured reports (Milestone 6)
+
+## Source-of-truth order
+
+1. Explicit current user request
+2. Compiling source and automated tests
+3. Build files and plugin metadata
+4. `.cursor/rules/*.mdc`
+5. This `AGENTS.md`
+6. Architecture decision records
+7. Other project documentation
+
+## Required commands
+
+Run all normal Gradle work through the committed Wrapper.
+
+### Windows
+
+```powershell
+.\gradlew.bat --version
+.\gradlew.bat clean build
+.\gradlew.bat test
+.\gradlew.bat check
+.\gradlew.bat runServer
+.\gradlew.bat runServerDebug
+.\gradlew.bat --stop
+```
+
+If `java -version` shows Java 8 in a Cursor terminal, restart Cursor or run:
+
+```powershell
+$env:JAVA_HOME = [Environment]::GetEnvironmentVariable('JAVA_HOME','User')
+$env:Path = "$env:JAVA_HOME\bin;" + $env:Path
+.\gradlew.bat --stop
+```
+
+### Expected output
+
+Plugin JAR: `build/libs/EventLens-0.1-SNAPSHOT.jar`
+
+Local Paper server directory: `run/` (gitignored)
+
+## Normal development workflow
+
+1. Read this file and applicable `.cursor/rules` files.
+2. Inspect git status and relevant source files.
+3. Make the smallest coherent change.
+4. Add or update tests.
+5. Run focused tests, then `.\gradlew.bat check`.
+6. Run the Paper test server when platform behavior changed.
+7. Inspect `run\logs\latest.log`.
+8. Stop the server with `stop` (never `/reload`).
+9. Update documentation when behavior changes.
+
+## Debug workflow
+
+Debug port: `127.0.0.1:5005` (localhost only)
+
+1. Run task **EventLens: Run Paper Server (Debug)** or `.\gradlew.bat runServerDebug`
+2. Launch **Java: Attach to EventLens Paper Server**
+3. Set breakpoints, reproduce behavior, stop server gracefully
+
+## Product invariants
+
+EventLens must not change observed events, reorder listeners, invoke listeners twice, hide exceptions, retain live Bukkit objects, collect unbounded data, or enable network telemetry by default.
+
+## Architecture overview
+
+```mermaid
+flowchart TD
+    PLUGIN["Plugin entry point"]
+    COMMAND["Command adapter"]
+    PAPER["Paper adapters"]
+    APP["Application services"]
+    DOMAIN["Pure Java domain"]
+    REPORT["Report/export adapters"]
+    SPI["Instrumentation SPI"]
+    AGENT["Optional future agent"]
+
+    PLUGIN --> COMMAND
+    PLUGIN --> PAPER
+    COMMAND --> APP
+    PAPER --> APP
+    APP --> DOMAIN
+    PAPER --> DOMAIN
+    APP --> SPI
+    AGENT -. optional .-> SPI
+```
+
+Dependency arrows point inward. Domain code must not import Paper.
+
+## Performance and resource limits
+
+| Limit | Default |
+|---|---:|
+| Concurrent sessions | 4 |
+| Records per session | 4,096 |
+| Listener records per dispatch | 256 |
+| Snapshot fields | 64 |
+| Snapshot depth | 2 |
+| Collection/map entries | 32 |
+| Captured string | 512 chars |
+| Serialized record | 16 KiB |
+| Export file | 32 MiB |
+| Pending exports | 2 |
+
+Performance targets per observed dispatch: avg <= 0.25 ms, p95 <= 0.75 ms, throttle above 1 ms p95, stop above 2.5 ms p95 for three windows, emergency stop above 10 ms single operation.
+
+These are EventLens design defaults, not Paper guarantees.
+
+## Privacy summary
+
+No external telemetry by default. Shareable exports redact player names, world names, exact coordinates, and paths unless explicitly enabled.
+
+See `docs/PRIVACY.md`.
+
+## Testing matrix
+
+| Layer | Tool | Status |
+|---|---|---|
+| Pure domain / application | JUnit 5 | Partial (`TraceSessionManagerTest`, `StatusQueryServiceTest`) |
+| Architecture | ArchUnit | Configured (`ArchitectureTest`) |
+| Lightweight plugin | MockBukkit | Basic command/permission coverage |
+| Real platform | run-paper | Manual via `runServer` |
+| Fixture plugin | EventLensTestTarget | TODO |
+| Agent | Forked JVM | TODO |
+
+## CI pipeline
+
+Configured: `.github/workflows/ci.yml` runs Java 25 setup, Gradle wrapper validation, `./gradlew check`, and Windows `.\gradlew.bat paperSmokeTest` on push/PR to `main` or `master`.
+
+Planned additions: JAR inspection.
+
+## Versioning
+
+Semantic Versioning in `0.y.z` during initial development.
+
+## Definition of done
+
+A change is complete when relevant tests pass, `.\gradlew.bat check` passes, Paper integration is tested when needed, logs are inspected, documentation matches behavior, and limitations are stated.
+
+## Current milestones
+
+### Repository foundation — **partial**
+
+Cursor rules, AGENTS.md, docs skeleton, Gradle wrapper, JUnit foundation, ArchUnit, JaCoCo, CI, CHANGELOG, and local Paper server verified.
+
+Remaining: license file.
+
+### Listener inventory — **not started**
+
+### Bounded trace sessions — **not started** (session manager stub only)
+
+### Snapshots and diffs — **not started**
+
+### Advanced interception / agent — **not started**
+
+## Next recommended tasks
+
+1. Implement listener inventory MVP for one event type on real Paper.
+2. Expand MockBukkit coverage to lifecycle and command registration edge cases.
+3. Add artifact inspection/release checks in CI.

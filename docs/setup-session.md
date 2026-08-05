@@ -282,7 +282,7 @@ Pending commit: project configuration, wrapper, EventLens source, docs, Cursor/V
 
 - Gradle deprecation warnings (Gradle 10 incompatibility hints from plugins/build scripts)
 - JOML `sun.misc.Unsafe` warnings during Paper bootstrap (upstream library, not EventLens)
-- `getDescription()` deprecation in plugin code (Paper API; acceptable for now)
+- `getDescription()` deprecation — resolved; plugin code uses `getPluginMeta()` instead
 
 ## Commands reference
 

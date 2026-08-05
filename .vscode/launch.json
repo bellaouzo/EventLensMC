@@ -3,10 +3,11 @@
   "configurations": [
     {
       "type": "java",
-      "name": "EventLens: Attach to Paper Server",
+      "name": "Java: Attach to EventLens Paper Server",
       "request": "attach",
-      "hostName": "localhost",
+      "hostName": "127.0.0.1",
       "port": 5005,
+      "timeout": 30000,
       "projectName": "EventLens"
     }
   ]

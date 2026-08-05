@@ -1,8 +1,11 @@
 {
   "recommendations": [
     "vscjava.vscode-java-pack",
+    "SonarSource.sonarlint-vscode",
     "redhat.vscode-yaml",
+    "vscjava.vscode-gradle",
     "usernamehw.errorlens",
     "eamodio.gitlens"
-  ]
+  ],
+  "unwantedRecommendations": []
 }

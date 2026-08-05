@@ -1,61 +1,122 @@
 {
   "version": "2.0.0",
+  "problemMatchers": [
+    {
+      "name": "eventlens-sonarlint",
+      "owner": "sonarlint",
+      "fileLocation": ["absolute"],
+      "severity": "warning",
+      "pattern": [
+        {
+          "regexp": "^(ERROR|WARNING|INFO): \\[[^|]+\\| ([^\\]]+)\\] (.+):(\\d+):(\\d+): (.*)$",
+          "severity": 1,
+          "code": 2,
+          "file": 3,
+          "line": 4,
+          "column": 5,
+          "message": 6
+        }
+      ]
+    {
+      "name": "eventlens-file-length",
+      "owner": "eventlens",
+      "fileLocation": ["relative"],
+      "pattern": [
+        {
+          "regexp": "^  (.+): (\\d+) lines \\(max (\\d+) for (.+)\\)$",
+          "file": 1,
+          "line": 2,
+          "message": 4
+        }
+      ]
+    }
+  ],
   "tasks": [
     {
-      "label": "EventLens: Build",
-      "type": "shell",
-      "command": ".\\gradlew.bat",
-      "args": ["build"],
-      "group": {
-        "kind": "build",
-        "isDefault": false
-      },
-      "problemMatcher": ["$gradle"]
+      "label": "EventLens: Clean Build",
+      "type": "process",
+      "command": "${workspaceFolder}\\gradlew.bat",
+      "args": ["clean", "build"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "group": { "kind": "build", "isDefault": true },
+      "problemMatcher": ["$javac"],
+      "presentation": { "reveal": "always", "panel": "dedicated", "clear": true }
     },
     {
-      "label": "EventLens: Clean Build",
-      "type": "shell",
-      "command": ".\\gradlew.bat",
-      "args": ["clean", "build"],
-      "group": {
-        "kind": "build",
-        "isDefault": true
-      },
-      "problemMatcher": ["$gradle"]
+      "label": "EventLens: Check",
+      "type": "process",
+      "command": "${workspaceFolder}\\gradlew.bat",
+      "args": ["check", "--warning-mode", "all"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "group": "test",
+      "problemMatcher": ["$javac", "$eventlens-sonarlint", "eventlens-file-length"],
+      "presentation": { "reveal": "always", "panel": "dedicated", "clear": true }
+    },
+    {
+      "label": "EventLens: SonarLint",
+      "type": "process",
+      "command": "${workspaceFolder}\\gradlew.bat",
+      "args": ["sonarLintMain", "sonarLintTest", "--warning-mode", "all"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "group": "test",
+      "problemMatcher": ["$eventlens-sonarlint"],
+      "presentation": { "reveal": "always", "panel": "dedicated", "clear": true }
     },
     {
       "label": "EventLens: Test",
-      "type": "shell",
-      "command": ".\\gradlew.bat",
+      "type": "process",
+      "command": "${workspaceFolder}\\gradlew.bat",
       "args": ["test"],
+      "options": { "cwd": "${workspaceFolder}" },
       "group": "test",
-      "problemMatcher": ["$gradle"]
+      "problemMatcher": ["$javac"],
+      "presentation": { "reveal": "always", "panel": "dedicated", "clear": true }
     },
     {
       "label": "EventLens: Run Paper Server",
-      "type": "shell",
-      "command": ".\\gradlew.bat",
+      "type": "process",
+      "command": "${workspaceFolder}\\gradlew.bat",
       "args": ["runServer"],
-      "group": "none",
-      "isBackground": true,
-      "problemMatcher": []
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated", "clear": true, "focus": true }
     },
     {
       "label": "EventLens: Run Paper Server (Debug)",
-      "type": "shell",
-      "command": ".\\gradlew.bat",
+      "type": "process",
+      "command": "${workspaceFolder}\\gradlew.bat",
       "args": ["runServerDebug"],
-      "group": "none",
-      "isBackground": true,
-      "problemMatcher": []
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated", "clear": true, "focus": true }
+    },
+    {
+      "label": "EventLens: Spotless Apply",
+      "type": "process",
+      "command": "${workspaceFolder}\\gradlew.bat",
+      "args": ["spotlessApply"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "group": "build",
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "shared" }
+    },
+    {
+      "label": "EventLens: Stop Paper Server",
+      "type": "process",
+      "command": "powershell",
+      "args": ["-ExecutionPolicy", "Bypass", "-File", "${workspaceFolder}\\scripts\\stop-server.ps1", "-Force"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "shared", "clear": true }
     },
     {
       "label": "EventLens: Stop Gradle Daemons",
-      "type": "shell",
-      "command": ".\\gradlew.bat",
+      "type": "process",
+      "command": "${workspaceFolder}\\gradlew.bat",
       "args": ["--stop"],
-      "group": "none",
-      "problemMatcher": []
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "shared" }
     }
   ]
 }

@@ -1,0 +1,45 @@
+---
+description: EventLens documentation accuracy and maintenance rules
+globs: "**/*.{md,mdc}"
+alwaysApply: false
+---
+
+# Documentation hierarchy
+
+When instructions conflict:
+
+1. Explicit user request
+2. Compiling source and passing tests
+3. Build files and plugin metadata
+4. `.cursor/rules/*.mdc`
+5. `AGENTS.md`
+6. Architecture decision records in `docs/adr/`
+7. Other docs
+
+Update docs in the same change when behavior changes.
+
+# Required documents
+
+- `README.md` — human overview and quick start
+- `AGENTS.md` — operational handbook for coding agents
+- `docs/ARCHITECTURE.md` — structure and boundaries
+- `docs/TESTING.md`, `docs/PERFORMANCE.md`, `docs/PRIVACY.md`, `docs/INSTRUMENTATION.md`
+- `docs/adr/` — decisions for NMS, agents, telemetry, databases, public APIs, multi-module splits
+
+# Accuracy rules
+
+Do not mark planned features as complete.
+
+Do not guess package names, commands, metrics, or CI jobs.
+
+Use `UNSPECIFIED` only for facts not discoverable in the repository.
+
+Architecture decision records are required before:
+
+- NMS or paperweight-userdev
+- Java agent
+- Network telemetry
+- Database storage
+- Public API publication
+- Multi-project Gradle split
+- Material privacy or limit changes

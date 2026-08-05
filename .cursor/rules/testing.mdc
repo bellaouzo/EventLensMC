@@ -1,0 +1,53 @@
+---
+description: EventLens testing strategy and coverage expectations
+globs: src/test/**/*.java
+alwaysApply: false
+---
+
+# Testing layers
+
+## Pure unit tests (JUnit 5)
+
+Required for domain policies when implemented:
+
+- Session state transitions
+- Ring buffers and limits
+- Sampling and filters
+- Snapshot values and diffs
+- Redaction and truncation markers
+- Metrics aggregation and throttling decisions
+
+Current state: `TraceSessionManagerTest`, `StatusQueryServiceTest`, and `ArchitectureTest` cover the current foundation.
+
+## Architecture tests
+
+Configured with ArchUnit in `ArchitectureTest`:
+
+- Domain, trace, and application packages have no Paper/Bukkit imports
+- No package cycles (extend as packages grow)
+- Only one `JavaPlugin` subclass
+- Domain does not reference instrumentation implementations directly
+
+## MockBukkit (planned)
+
+Use only for lifecycle, commands, permissions, and configuration that MockBukkit models accurately.
+
+Do not treat MockBukkit as proof of real listener dispatch order or timing.
+
+Not configured yet.
+
+## Real Paper integration
+
+Use `.\gradlew.bat runServer` for startup, command registration, lifecycle, and shutdown.
+
+Inspect `run\logs\latest.log`. Stop with `stop`, not `/reload`.
+
+Future: deterministic `EventLensTestTarget` fixture plugin for listener order, cancellation, and slow-listener cases.
+
+# Test quality
+
+Do not add meaningless tests for coverage percentage alone.
+
+Avoid `Thread.sleep` when latches, fake clocks, or explicit server signals suffice.
+
+Tests must be deterministic and bounded.

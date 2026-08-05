@@ -1,0 +1,74 @@
+---
+description: EventLens Gradle build, CI, dependencies, and release policy
+globs: "{build.gradle,settings.gradle,gradle.properties,gradle/**,.github/**}"
+alwaysApply: false
+---
+
+# Build commands (Windows)
+
+Use the Gradle Wrapper for all normal work:
+
+```powershell
+.\gradlew.bat --version
+.\gradlew.bat clean build
+.\gradlew.bat test
+.\gradlew.bat check
+.\gradlew.bat spotlessApply
+.\gradlew.bat spotlessCheck
+.\gradlew.bat runServer
+.\gradlew.bat runServerDebug
+.\gradlew.bat --stop
+```
+
+Do not rely on a globally installed Gradle.
+
+Ensure `JAVA_HOME` points to Java 25 before running Gradle. If Cursor terminals resolve Java 8, restart Cursor or set user-level `JAVA_HOME`.
+
+# Current Gradle model
+
+- Groovy DSL (`build.gradle`, `settings.gradle`)
+- Java 25 toolchain and release 25
+- Paper API: `compileOnly io.papermc.paper:paper-api:26.2.build.92-stable` (pinned in `gradle.properties`, must not be packaged)
+- run-paper 3.0.2 with `runServer` and custom `runServerDebug` (JDWP on 127.0.0.1:5005, no suspend)
+- JUnit 5 and ArchUnit for tests
+- JaCoCo coverage report after `test`
+- Spotless 8.9.0 with Palantir Java format; `check` depends on `spotlessCheck`
+- SonarLint (`name.remal.sonarlint` 7.1.5); `check` depends on `sonarLintMain` and `sonarLintTest`
+  - Fails on SonarLint **info**, **warning**, and **error** issues (no disabled rules)
+  - Standalone task: `.\gradlew.bat sonarLintMain sonarLintTest`
+  - List rules: `.\gradlew.bat sonarLintRules`
+- File length limits (`checkFileLengths`); `check` depends on `checkFileLengths`
+  - Limits match `.cursor/rules/file-organization.mdc` by package/type
+  - Standalone task: `.\gradlew.bat checkFileLengths`
+
+# Dependency policy
+
+Every new dependency requires purpose, scope, license, repository, and rationale.
+
+Prefer Maven Central, official Paper repository, and Gradle Plugin Portal.
+
+Pin release dependencies. Do not release against dynamic versions without explicit approval.
+
+Do not add `paperweight-userdev` until an approved architecture decision requires NMS.
+
+Planned after graph stabilizes: dependency locking and verification (not configured yet).
+
+# CI
+
+Configured: `.github/workflows/ci.yml` runs on push/PR to `main` or `master`:
+
+- Java 25 (Temurin)
+- Gradle wrapper validation
+- `./gradlew check`
+
+Planned additions: JAR inspection, Paper smoke test, dependency/security analysis.
+
+# Release
+
+Use Semantic Versioning. Initial development stays in `0.y.z`.
+
+Maintain `CHANGELOG.md` when release work begins.
+
+Never overwrite a released artifact.
+
+Do not commit machine-specific JDK paths, `build/`, `.gradle/`, or `run/` output.

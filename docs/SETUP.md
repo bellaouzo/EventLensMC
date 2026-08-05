@@ -30,7 +30,7 @@ Expected:
 .\gradlew.bat test
 ```
 
-The plugin JAR is written to `build/libs/EventLens-1.0-SNAPSHOT.jar`.
+The plugin JAR is written to `build/libs/EventLens-0.1-SNAPSHOT.jar`.
 
 ## Run the Paper test server
 
@@ -92,6 +92,32 @@ If an extension is listed in `.vscode/extensions.json` but not installed, use Cu
 
 ## Troubleshooting
 
-- If Gradle uses the wrong Java version, run `.\gradlew.bat --stop` and confirm `JAVA_HOME`.
+### Gradle says "JVM 8" or `java -version` shows 1.8
+
+Cursor terminals inherit environment from when Cursor was launched. Oracle Java 8 may appear before Java 25 on `Path`.
+
+1. **Fully restart Cursor** (quit and reopen).
+2. Open a **new terminal** and verify:
+   ```powershell
+   java -version
+   ```
+   Expected: **25.0.4**
+3. If still wrong, run before Gradle:
+   ```powershell
+   $env:JAVA_HOME = [Environment]::GetEnvironmentVariable('JAVA_HOME','User')
+   $env:Path = "$env:JAVA_HOME\bin;" + $env:Path
+   .\gradlew.bat --stop
+   ```
+
+If the Java extension reports **Invalid runtime for JavaSE-21**, Java 21 was removed during setup. Restart Cursor after confirming only Java 25 is configured:
+
+1. Open **Java: Configure Java Runtime** from the Command Palette.
+2. Remove any broken **JavaSE-21** entry pointing at `jdk-21.0.9.10-hotspot`.
+3. Ensure **JavaSE-25** uses `jdk-25.0.4.7-hotspot` and is marked default.
+4. Run **Java: Clean Java Language Server Workspace**, then reload the window.
+
+Project `.vscode/settings.json` pins the language server and Gradle import to Java 25.
+
+### Other issues
 - If the server fails to bind a port, stop any previous `runServer` process and delete stale lock files under `run/`.
 - If plugin changes are not picked up, run `.\gradlew.bat clean build` and restart the server.

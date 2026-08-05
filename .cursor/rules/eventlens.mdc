@@ -1,92 +1,119 @@
 ---
-description: EventLens project conventions for Paper plugin development
+description: EventLens identity, safety, architecture backbone, and definition of done
 alwaysApply: true
 ---
 
-## Project
+# EventLens project identity
 
-- The project is EventLens.
-- EventLens is a Paper 26.2 server-side plugin.
-- Use Java 25.
-- Build with the included Gradle Wrapper.
-- Use Groovy Gradle, not Kotlin Gradle.
-- Use supported Paper APIs first.
-- Players must not need a client-side mod.
-- Do not introduce Forge, NeoForge, Fabric, proxy, or client code.
-- Do not use /reload for development.
-- Run the real Paper test server for integration behavior.
+EventLens is a server-side diagnostics plugin for **Paper 26.2**.
 
-## Product purpose
+Required stack (verify in build files before changing):
 
-EventLens is intended to diagnose how Minecraft server events travel through registered plugin listeners.
+- Java 25
+- Gradle Wrapper 9.6.1
+- Groovy Gradle DSL
+- run-paper 3.0.2
+- Windows-first development workflow
+- Paper server plugin; no required client mod
 
-Long-term capabilities include:
+Discovered repository facts (re-inspect before relying on these):
 
-- Showing registered listeners for an event
-- Identifying the owning plugin
-- Showing listener priority and order
-- Recording cancellation changes
-- Comparing supported event properties before and after execution
-- Measuring listener execution time
-- Warning about slow listeners
-- Filtering by event, plugin, player, world, or region
-- Exporting trace results
+- Base package: `dev.bellaouzo.eventlens`
+- Main class: `dev.bellaouzo.eventlens.EventLens`
+- Plugin metadata: `src/main/resources/plugin.yml`
+- Gradle project name: `EventLens`
 
-Do not falsely claim that an advanced tracing capability works before it has been implemented and tested.
+Before editing:
 
-## Architecture
+1. Inspect relevant source, build, resource, test, and documentation files.
+2. Preserve the existing valid package and main class unless a change is intentional.
+3. Never invent a package, class, task, command, configuration key, or implemented capability.
+4. Clearly distinguish current behavior from proposed behavior.
+5. Check git status and do not overwrite unrelated user changes.
 
-Keep these concerns separate:
+Do not introduce Forge, NeoForge, Fabric, proxy, or client-side code.
 
-- Commands
-- Trace session lifecycle
-- Listener discovery
-- Event snapshots
-- Snapshot comparison
-- Timing
-- Filtering
-- Formatting and export
-- Paper-specific integration
-- Future reflective or instrumentation adapters
+# Product purpose
 
-Use interfaces around reflective, unsupported, or version-sensitive behavior.
+EventLens diagnoses how Paper events travel through registered plugin listeners.
 
-Do not spread reflection throughout the codebase.
+Do not claim any capability works until it is implemented and tested.
 
-Do not access NMS unless there is a documented need and supported API approaches have been exhausted.
+# Architectural backbone
 
-## Performance and safety
+Use ports and adapters with a pure Java domain.
 
-- Never block the main server thread with file, database, network, or expensive analysis work.
-- Cache safe metadata where appropriate.
-- Avoid repeated reflection in hot event paths.
-- Bound all trace buffers.
-- Do not retain Event or Player references longer than required.
-- Avoid tracing every event globally by default.
-- Require explicit filters or trace sessions.
-- Handle plugin disable and server shutdown cleanly.
-- Avoid recursively tracing EventLens's own internal behavior.
-- Do not swallow exceptions silently.
-- Avoid modifying another plugin's event behavior merely to observe it.
+- Plugin entry point composes dependencies; it is not a service locator.
+- Commands and Paper adapters call application services.
+- Application services coordinate domain models and ports.
+- Domain code must not import Bukkit, Paper, JavaPlugin, commands, file APIs, databases, JSON libraries, or agent implementations.
+- Keep a single Gradle project until a real second runtime boundary exists.
 
-## Code quality
+See `.cursor/rules/architecture.mdc` when editing production Java.
 
-- Prefer small focused classes.
-- Use descriptive names.
-- Add Javadocs to public APIs and complicated tracing logic.
-- Use immutable records or data objects where suitable.
-- Use the plugin logger.
-- Add tests for non-Paper logic.
-- Keep generated files out of source control.
-- Explain why any unsupported or reflective behavior is necessary.
-- Never write secrets or personal machine paths into tracked files.
+# Non-negotiable safety rules
 
-## Workflow
+## Threading
 
-Before saying work is complete:
+Assume Paper/Bukkit world state is main-thread confined unless the API explicitly says otherwise.
 
-1. Run the Gradle build.
-2. Run tests.
-3. Start the Paper test server when integration behavior changed.
-4. Inspect logs for EventLens startup errors.
-5. Summarize changed files and remaining limitations.
+Capture bounded immutable data synchronously. Perform JSON, compression, disk I/O, and heavy analysis asynchronously from immutable DTOs only.
+
+Never pass Event, Player, Entity, World, Plugin, or live Bukkit objects to async workers.
+
+## Observation integrity
+
+EventLens observes behavior; it does not alter it.
+
+Do not cancel, uncancel, reorder, re-fire, double-invoke, or hide listener exceptions merely to trace.
+
+## Bounded tracing defaults
+
+Initial defaults unless a documented benchmark justifies change:
+
+- Concurrent sessions: 4
+- Records per session: 4,096
+- Listener records per dispatch: 256
+- Snapshot fields: 64
+- Object depth: 2
+- Collection/map entries: 32
+- String length: 512 characters
+- Serialized record: 16 KiB
+- Export file: 32 MiB
+- Pending exports: 2
+- Normal sampling: 1:1
+- Hot-event sampling: 1:20 (requires an additional filter)
+
+## Performance targets (EventLens design defaults)
+
+Per observed dispatch:
+
+- Average overhead target: <= 0.25 ms
+- p95 target: <= 0.75 ms
+- Throttle above 1 ms p95 over 200 dispatches
+- Stop session above 2.5 ms p95 for three consecutive windows
+- Emergency stop after any single EventLens operation exceeds 10 ms
+
+## Privacy
+
+No external telemetry by default. Shareable exports redact player names, world names, exact coordinates, and paths unless an administrator explicitly opts in.
+
+## Instrumentation
+
+Use supported Paper APIs first. A future Java agent must be a separate optional artifact loaded with `-javaagent`; do not self-attach by default.
+
+See `.cursor/rules/instrumentation.mdc` for agent and reflection policy.
+
+# Workflow / definition of done
+
+Before declaring a coding task complete:
+
+1. Inspect the final git diff.
+2. Run the smallest relevant tests.
+3. Run `.\gradlew.bat check`.
+4. Run `.\gradlew.bat runServer` when Paper integration, commands, lifecycle, or exports changed.
+5. Inspect `run\logs\latest.log`.
+6. Stop the server gracefully with `stop` (never use `/reload`).
+7. Summarize files changed, tests run, performance/privacy impact, and remaining limitations.
+
+Never declare success based only on compilation.

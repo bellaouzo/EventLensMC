@@ -1,1 +1,13 @@
 rootProject.name = 'EventLens'
+
+include 'eventlens-observability', 'eventlens-agent', 'eventlens-testkit'
+
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+        maven {
+            name = 'papermc'
+            url = 'https://repo.papermc.io/repository/maven-public/'
+        }
+    }
+}

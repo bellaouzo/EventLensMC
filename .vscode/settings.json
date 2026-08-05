@@ -1,11 +1,86 @@
 {
-  "java.configuration.updateBuildConfiguration": "automatic",
-  "java.import.gradle.wrapper.enabled": true,
-  "java.project.sourcePaths": [
-    "src/main/java"
-  ],
-  "java.project.outputPath": "build/classes/java/main",
   "files.encoding": "utf8",
-  "terminal.integrated.scrollback": 10000,
-  "gradle.nestedProjects": true
+  "files.eol": "\n",
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+
+  "java.configuration.updateBuildConfiguration": "automatic",
+  "java.server.launchMode": "Standard",
+  "java.import.gradle.enabled": true,
+  "java.import.gradle.wrapper.enabled": true,
+  "java.jdt.ls.java.home": "C:\\Program Files\\Eclipse Adoptium\\jdk-25.0.4.7-hotspot",
+  "java.import.gradle.java.home": "C:\\Program Files\\Eclipse Adoptium\\jdk-25.0.4.7-hotspot",
+  "java.configuration.runtimes": [
+    {
+      "name": "JavaSE-25",
+      "path": "C:\\Program Files\\Eclipse Adoptium\\jdk-25.0.4.7-hotspot",
+      "default": true
+    }
+  ],
+  "java.debug.settings.hotCodeReplace": "auto",
+  "java.project.explorer.showNonJavaResources": true,
+  "java.saveActions.organizeImports": true,
+
+  "gradle.reuseTerminals": "task",
+  "gradle.nestedProjects": true,
+
+  "terminal.integrated.defaultProfile.windows": "PowerShell",
+  "terminal.integrated.scrollback": 20000,
+  "terminal.integrated.env.windows": {
+    "JAVA_HOME": "C:\\Program Files\\Eclipse Adoptium\\jdk-25.0.4.7-hotspot",
+    "Path": "C:\\Program Files\\Eclipse Adoptium\\jdk-25.0.4.7-hotspot\\bin;${env:Path}"
+  },
+
+  "editor.formatOnSave": false,
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": "explicit"
+  },
+
+  "[java]": {
+    "editor.defaultFormatter": "redhat.java",
+    "editor.formatOnSave": false,
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "explicit"
+    }
+  },
+
+  "[groovy]": {
+    "editor.formatOnSave": false
+  },
+
+  "[json]": {
+    "editor.tabSize": 2
+  },
+
+  "[jsonc]": {
+    "editor.tabSize": 2
+  },
+
+  "[yaml]": {
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true
+  },
+
+  "files.watcherExclude": {
+    "**/.gradle/**": true,
+    "**/build/**": true,
+    "**/run/cache/**": true,
+    "**/run/libraries/**": true,
+    "**/run/versions/**": true,
+    "**/run/world/**": true,
+    "**/run/world_nether/**": true,
+    "**/run/world_the_end/**": true
+  },
+
+  "search.exclude": {
+    "**/.gradle": true,
+    "**/build": true,
+    "**/run/cache": true,
+    "**/run/libraries": true,
+    "**/run/versions": true,
+    "**/run/world": true,
+    "**/run/world_nether": true,
+    "**/run/world_the_end": true
+  },
+  "java.compile.nullAnalysis.mode": "automatic"
 }

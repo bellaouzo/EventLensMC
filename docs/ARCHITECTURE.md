@@ -1,77 +1,71 @@
 # EventLens Architecture
 
-EventLens is organized around listener tracing concerns that should stay isolated from one another.
+EventLens uses **ports and adapters** with a pure Java domain at the center. Paper-specific code stays at the edges; tracing policies and session rules stay testable without a running server.
 
-## Package layout
+## Current physical layout
+
+Single Gradle project (`EventLens`). No subprojects yet.
 
 ```
 dev.bellaouzo.eventlens
-├── EventLens.java                 Main plugin lifecycle
-├── command/                       Player and console commands
-├── trace/                         Trace session lifecycle and counters
-├── discovery/                     Listener registration discovery (planned)
-├── snapshot/                      Event property snapshots (planned)
-├── compare/                       Before/after snapshot comparison (planned)
-├── timing/                        Listener execution timing (planned)
-├── filter/                        Event and scope filters (planned)
-├── format/                        Human-readable output (planned)
-├── export/                        Trace export writers (planned)
-└── paper/                         Paper-specific adapters (planned)
+├── EventLens.java              Composition root (JavaPlugin)
+├── application/                Use-case orchestration
+│   └── StatusQueryService.java
+├── command/                    Command adapters
+│   └── StatusCommand.java
+├── domain/                     Pure Java records and policies
+│   └── status/
+│       └── EventLensStatus.java
+└── trace/                      Session lifecycle (stub)
+    └── TraceSessionManager.java
 ```
 
-## Design principles
+Planned packages (create when code exists): `paper`, `snapshot`, `diff`, `filter`, `report`, `observability`, `instrumentation`.
 
-### Explicit trace sessions
+## Dependency rule
 
-Tracing must not run globally by default. Operators start a trace session with filters that bound scope, duration, and buffer size.
+```mermaid
+flowchart TD
+    CMD["command"] --> APP["application"]
+    PAPER["paper"] --> APP
+    APP --> DOMAIN["domain"]
+    SNAP["snapshot"] --> DOMAIN
+    REPORT["report"] --> APP
+    PLUGIN["EventLens plugin"] --> CMD
+    PLUGIN --> PAPER
+    PLUGIN --> REPORT
+```
 
-### No unsafe retention
+Domain code must not import Bukkit, Paper, or infrastructure.
 
-Do not store `Event`, `Player`, or other Bukkit objects longer than needed for a single trace step. Prefer primitive identifiers and immutable snapshots of supported properties.
+## Future module split (not yet justified)
 
-### Main-thread safety
+Possible later subprojects:
 
-Analysis, export, and expensive formatting run off the main server thread. Registration discovery and lightweight counters may use synchronous hooks, but heavy work is queued.
+- `eventlens-core` — pure Java domain
+- `eventlens-paper` — plugin and Paper adapters
+- `eventlens-agent` — optional `-javaagent` artifact
+- `eventlens-testkit` — fixture plugin for integration tests
 
-### Paper-first integration
+Split only when boundaries are stable and a separate artifact is required.
 
-Use supported Paper and Adventure APIs. Reflective or NMS-based adapters belong behind interfaces and are added only when the public API is insufficient.
-
-### Observation without mutation
-
-EventLens must observe listener behavior without changing event outcomes for other plugins unless an explicit diagnostic mode is documented and opt-in.
-
-## Current state
-
-Implemented:
-
-- Plugin bootstrap and shutdown cleanup
-- `TraceSessionManager` with disabled-by-default tracing state
-- `/eventlens status` command
-
-Not yet implemented:
-
-- Listener discovery
-- Event snapshots and comparison
-- Timing and slow-listener warnings
-- Filters beyond session setup
-- Export formats
-
-## Planned trace flow
+## Trace flow (planned)
 
 ```mermaid
 sequenceDiagram
-    participant Operator
+    participant Admin
     participant EventLens
     participant Session
     participant Paper
-    participant Export
 
-    Operator->>EventLens: /eventlens trace start ...
+    Admin->>EventLens: start trace session
     EventLens->>Session: create bounded session
     Session->>Paper: register scoped hooks
-    Paper-->>Session: event + listener metadata
-    Session-->>EventLens: aggregate results
-    Operator->>EventLens: /eventlens trace stop
-    EventLens->>Export: write summary off-thread
+    Paper-->>Session: listener metadata
+    Admin->>EventLens: stop session
+    EventLens-->>Admin: bounded report
 ```
+
+## Current state
+
+See `AGENTS.md` for verified implementation status.
