@@ -1,0 +1,11 @@
+﻿.gradle/
+build/
+run/cache/
+run/libraries/
+run/versions/
+run/world/
+run/world_nether/
+run/world_the_end/
+run/logs/*.log.gz
+*.jar
+!gradle/wrapper/gradle-wrapper.jar

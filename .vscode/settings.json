@@ -1,0 +1,11 @@
+{
+  "java.configuration.updateBuildConfiguration": "automatic",
+  "java.import.gradle.wrapper.enabled": true,
+  "java.project.sourcePaths": [
+    "src/main/java"
+  ],
+  "java.project.outputPath": "build/classes/java/main",
+  "files.encoding": "utf8",
+  "terminal.integrated.scrollback": 10000,
+  "gradle.nestedProjects": true
+}

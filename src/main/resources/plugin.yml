@@ -1,4 +1,17 @@
-name: BuildOpsMC
-version: '1.0-SNAPSHOT'
-main: dev.bellaouzo.buildOpsMC.BuildOpsMC
+name: EventLens
+version: '${version}'
+main: dev.bellaouzo.eventlens.EventLens
 api-version: '1.21'
+description: Diagnose how server events travel through registered plugin listeners.
+author: bellaouzo
+
+commands:
+  eventlens:
+    description: EventLens diagnostic commands
+    usage: /eventlens status
+    aliases: [el]
+
+permissions:
+  eventlens.command.status:
+    description: Allows use of /eventlens status
+    default: op

@@ -1,0 +1,92 @@
+---
+description: EventLens project conventions for Paper plugin development
+alwaysApply: true
+---
+
+## Project
+
+- The project is EventLens.
+- EventLens is a Paper 26.2 server-side plugin.
+- Use Java 25.
+- Build with the included Gradle Wrapper.
+- Use Groovy Gradle, not Kotlin Gradle.
+- Use supported Paper APIs first.
+- Players must not need a client-side mod.
+- Do not introduce Forge, NeoForge, Fabric, proxy, or client code.
+- Do not use /reload for development.
+- Run the real Paper test server for integration behavior.
+
+## Product purpose
+
+EventLens is intended to diagnose how Minecraft server events travel through registered plugin listeners.
+
+Long-term capabilities include:
+
+- Showing registered listeners for an event
+- Identifying the owning plugin
+- Showing listener priority and order
+- Recording cancellation changes
+- Comparing supported event properties before and after execution
+- Measuring listener execution time
+- Warning about slow listeners
+- Filtering by event, plugin, player, world, or region
+- Exporting trace results
+
+Do not falsely claim that an advanced tracing capability works before it has been implemented and tested.
+
+## Architecture
+
+Keep these concerns separate:
+
+- Commands
+- Trace session lifecycle
+- Listener discovery
+- Event snapshots
+- Snapshot comparison
+- Timing
+- Filtering
+- Formatting and export
+- Paper-specific integration
+- Future reflective or instrumentation adapters
+
+Use interfaces around reflective, unsupported, or version-sensitive behavior.
+
+Do not spread reflection throughout the codebase.
+
+Do not access NMS unless there is a documented need and supported API approaches have been exhausted.
+
+## Performance and safety
+
+- Never block the main server thread with file, database, network, or expensive analysis work.
+- Cache safe metadata where appropriate.
+- Avoid repeated reflection in hot event paths.
+- Bound all trace buffers.
+- Do not retain Event or Player references longer than required.
+- Avoid tracing every event globally by default.
+- Require explicit filters or trace sessions.
+- Handle plugin disable and server shutdown cleanly.
+- Avoid recursively tracing EventLens's own internal behavior.
+- Do not swallow exceptions silently.
+- Avoid modifying another plugin's event behavior merely to observe it.
+
+## Code quality
+
+- Prefer small focused classes.
+- Use descriptive names.
+- Add Javadocs to public APIs and complicated tracing logic.
+- Use immutable records or data objects where suitable.
+- Use the plugin logger.
+- Add tests for non-Paper logic.
+- Keep generated files out of source control.
+- Explain why any unsupported or reflective behavior is necessary.
+- Never write secrets or personal machine paths into tracked files.
+
+## Workflow
+
+Before saying work is complete:
+
+1. Run the Gradle build.
+2. Run tests.
+3. Start the Paper test server when integration behavior changed.
+4. Inspect logs for EventLens startup errors.
+5. Summarize changed files and remaining limitations.

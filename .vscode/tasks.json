@@ -1,0 +1,61 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "EventLens: Build",
+      "type": "shell",
+      "command": ".\\gradlew.bat",
+      "args": ["build"],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "problemMatcher": ["$gradle"]
+    },
+    {
+      "label": "EventLens: Clean Build",
+      "type": "shell",
+      "command": ".\\gradlew.bat",
+      "args": ["clean", "build"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": ["$gradle"]
+    },
+    {
+      "label": "EventLens: Test",
+      "type": "shell",
+      "command": ".\\gradlew.bat",
+      "args": ["test"],
+      "group": "test",
+      "problemMatcher": ["$gradle"]
+    },
+    {
+      "label": "EventLens: Run Paper Server",
+      "type": "shell",
+      "command": ".\\gradlew.bat",
+      "args": ["runServer"],
+      "group": "none",
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "EventLens: Run Paper Server (Debug)",
+      "type": "shell",
+      "command": ".\\gradlew.bat",
+      "args": ["runServerDebug"],
+      "group": "none",
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "EventLens: Stop Gradle Daemons",
+      "type": "shell",
+      "command": ".\\gradlew.bat",
+      "args": ["--stop"],
+      "group": "none",
+      "problemMatcher": []
+    }
+  ]
+}
