@@ -1,0 +1,4 @@
+name: BuildOpsMC
+version: '1.0-SNAPSHOT'
+main: dev.bellaouzo.buildOpsMC.BuildOpsMC
+api-version: '1.21'
