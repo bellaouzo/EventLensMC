@@ -18,13 +18,16 @@ When instructions conflict:
 
 Update docs in the same change when behavior changes.
 
+`docs/` and `AGENTS.md` are gitignored. Keep maintaining those files locally. Do not add new `docs/` or `AGENTS.md` links that would 404 on the remote. Published docs are `README.md` and `CHANGELOG.md`.
+
 # Required documents
 
-- `README.md` — human overview and quick start
-- `AGENTS.md` — operational handbook for coding agents
-- `docs/ARCHITECTURE.md` — structure and boundaries
-- `docs/TESTING.md`, `docs/PERFORMANCE.md`, `docs/PRIVACY.md`, `docs/INSTRUMENTATION.md`
-- `docs/adr/` — decisions for NMS, agents, telemetry, databases, public APIs, multi-module splits
+- `README.md` — human overview and quick start (published)
+- `AGENTS.md` — operational handbook for coding agents (local)
+- `CHANGELOG.md` — operator-facing history (published)
+- `docs/ARCHITECTURE.md` — structure and boundaries (local)
+- `docs/TESTING.md`, `docs/PERFORMANCE.md`, `docs/PRIVACY.md`, `docs/INSTRUMENTATION.md` (local)
+- `docs/adr/` — decisions for NMS, agents, telemetry, databases, public APIs, multi-module splits (local)
 
 # Accuracy rules
 

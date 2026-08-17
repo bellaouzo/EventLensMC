@@ -29,7 +29,7 @@ Set `JAVA_HOME` to your Java 25 installation. Windows PowerShell is the primary 
 
 On first server start, accept the Minecraft EULA in `run/eula.txt` when prompted.
 
-Built plugin JAR: `eventlens-paper/build/libs/EventLens-1.0.0.jar`
+Built plugin JAR: `eventlens-paper/build/libs/EventLens-1.1.1.jar`
 
 Development server directory: `run/` (gitignored)
 
@@ -135,7 +135,7 @@ Permission: `eventlens.command.trace.live`
 | `trace.presets` | Named trace presets (`quick-interact`, `plugin-focus`, …) |
 | `preferences` | Recent trace and favorite limits |
 
-See `docs/PERFORMANCE.md` and `docs/PRIVACY.md` for resource limits and redaction behavior.
+Resource limits and redaction defaults are summarized in [CHANGELOG.md](CHANGELOG.md) and the local `AGENTS.md` / `docs/` files (gitignored).
 
 ## Development
 
@@ -159,23 +159,14 @@ Stop the test server with `stop` in the console — never `/reload`.
 | `eventlens-observability` | Shared observation DTOs and SPI |
 | `eventlens-agent` | Optional Paper `-javaagent` for per-listener instrumentation |
 | `eventlens-client-agent` | Optional NeoForge client `-javaagent` for per-mod handler timing |
-| `docs/` | Architecture, setup, testing, performance, privacy |
-| `AGENTS.md` | Agent and contributor handbook |
+| `docs/` | Local setup, architecture, testing, and ADRs (gitignored) |
+| `AGENTS.md` | Local agent handbook (gitignored) |
 
 ## Documentation
 
-- [Setup guide](docs/SETUP.md)
-- [Architecture overview](docs/ARCHITECTURE.md)
-- [Testing strategy](docs/TESTING.md)
-- [Smoke test guide](docs/SMOKE_TEST.md)
-- [Plugin debugging guide](docs/DEBUGGING_PLUGINS.md)
-- [Performance budgets](docs/PERFORMANCE.md)
-- [Privacy policy](docs/PRIVACY.md)
-- [Instrumentation policy](docs/INSTRUMENTATION.md)
-- [Trace report schema v2](docs/schemas/trace-report-v2.schema.json)
-- [Roadmap](docs/ROADMAP.md)
-- [Changelog](CHANGELOG.md)
-- [Agent handbook](AGENTS.md)
+Published with the repo: [Changelog](CHANGELOG.md).
+
+`AGENTS.md` and the `docs/` folder stay on disk for local work and are not on the remote.
 
 ## License
 

@@ -27,10 +27,15 @@ public final class ModCommandNotices {
                 text.append(span.text());
             }
             String message = text.toString().trim();
-            if (!message.isBlank()) {
-                return Optional.of(message);
+            if (message.isBlank() || isPathLine(message)) {
+                continue;
             }
+            return Optional.of(message);
         }
         return Optional.empty();
+    }
+
+    private static boolean isPathLine(String message) {
+        return message.startsWith("Saved to") || message.startsWith("Folder:");
     }
 }

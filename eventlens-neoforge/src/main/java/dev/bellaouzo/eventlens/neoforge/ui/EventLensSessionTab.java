@@ -6,6 +6,7 @@ import dev.bellaouzo.eventlens.domain.snapshot.SnapshotValue;
 import dev.bellaouzo.eventlens.domain.trace.ListenerTimingRecord;
 import dev.bellaouzo.eventlens.domain.trace.TraceDispatchRecord;
 import dev.bellaouzo.eventlens.domain.trace.TraceSessionDetail;
+import dev.bellaouzo.eventlens.modcommon.ModDispatchSummary;
 import dev.bellaouzo.eventlens.modcommon.ModTraceResults;
 import java.util.ArrayList;
 import java.util.List;
@@ -106,7 +107,7 @@ final class EventLensSessionTab {
         }
         for (int i = from; i < records.size(); i++) {
             TraceDispatchRecord record = records.get(i);
-            lines.add(String.format(Locale.ROOT, "#%d  %.2f ms", record.sequence(), record.durationNanos() / 1_000_000.0));
+            lines.add(ModDispatchSummary.listLine(record));
         }
         return lines;
     }

@@ -15,6 +15,10 @@ final class FabricToasts {
         ModCommandNotices.toastMessage(args, lines).ifPresent(FabricToasts::show);
     }
 
+    static void copied() {
+        show("Copied");
+    }
+
     private static void show(String message) {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft == null || message == null || message.isBlank()) {

@@ -32,9 +32,11 @@ public final class EventLensScreen extends Screen {
     }
 
     public static void open() {
+        EventLensScreen screen = new EventLensScreen();
+        screen.restoreLocation();
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft != null) {
-            minecraft.setScreen(new EventLensScreen());
+            minecraft.setScreen(screen);
         }
     }
 
@@ -42,6 +44,7 @@ public final class EventLensScreen extends Screen {
         EventLensScreen screen = new EventLensScreen();
         screen.tab = Tab.SESSION;
         screen.sessionId = sessionId;
+        screen.persistLocation();
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft != null) {
             minecraft.setScreen(screen);
@@ -90,6 +93,7 @@ public final class EventLensScreen extends Screen {
         if (next != Tab.SESSION) {
             dispatchSequence = -1;
         }
+        persistLocation();
         rebuildWidgets();
     }
 
@@ -102,12 +106,14 @@ public final class EventLensScreen extends Screen {
         this.sessionGeneration = generation;
         this.dispatchSequence = -1;
         this.tab = Tab.SESSION;
+        persistLocation();
         rebuildWidgets();
     }
 
     public void showDispatch(int sequence) {
         this.dispatchSequence = sequence;
         this.tab = Tab.SESSION;
+        persistLocation();
         rebuildWidgets();
     }
 
@@ -143,6 +149,54 @@ public final class EventLensScreen extends Screen {
                 .bounds(x, frame.tabY(), 64, 20)
                 .build());
         button.active = tab != target && !(tab == Tab.SESSION && target == Tab.SESSION);
+    }
+
+    @Override
+    public void removed() {
+        persistLocation();
+    }
+
+    private void restoreLocation() {
+        EventLensUiPreferences prefs = preferences();
+        if (prefs == null) {
+            return;
+        }
+        try {
+            tab = Tab.valueOf(prefs.lastTab());
+        } catch (IllegalArgumentException ignored) {
+            tab = Tab.HOME;
+        }
+        sessionId = prefs.lastSessionId();
+        sessionGeneration = prefs.lastGeneration();
+        dispatchSequence = prefs.lastDispatch();
+        if (tab != Tab.SESSION) {
+            return;
+        }
+        if (sessionId.isBlank()
+                || coordinator() == null
+                || coordinator().sessionManager().getSessionDetail(sessionId).isEmpty()) {
+            tab = sessionId.isBlank() ? Tab.HOME : Tab.SESSIONS;
+            dispatchSequence = -1;
+            if (sessionId.isBlank()) {
+                sessionGeneration = -1;
+            }
+            return;
+        }
+        if (sessionGeneration >= 0
+                && coordinator()
+                        .sessionManager()
+                        .getSessionDetail(sessionId, Optional.of(sessionGeneration))
+                        .isEmpty()) {
+            sessionGeneration = -1;
+            dispatchSequence = -1;
+        }
+    }
+
+    private void persistLocation() {
+        EventLensUiPreferences prefs = preferences();
+        if (prefs != null) {
+            prefs.setLastLocation(tab.name(), sessionId, sessionGeneration, dispatchSequence);
+        }
     }
 
     @Override

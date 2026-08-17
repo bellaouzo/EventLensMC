@@ -35,6 +35,7 @@ public final class EventLensFabricMod implements ClientModInitializer {
                 sessionManager, reportBuilder, exportAdapter, listenerRegistry, environmentAdapter);
         FabricEventTracer.register(new ModDispatchRecorder(sessionManager));
         FabricClientCommands.register(coordinator);
+        FabricChatClicks.register();
     }
 
     public static ModTraceCoordinator coordinator() {

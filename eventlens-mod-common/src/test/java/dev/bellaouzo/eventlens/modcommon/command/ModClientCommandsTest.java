@@ -176,6 +176,12 @@ class ModClientCommandsTest {
         assertTrue(exported.stream().anyMatch(line -> contains(line, "Folder")));
         assertTrue(exported.stream().anyMatch(line -> line.spans().stream()
                 .anyMatch(span -> span.clickKind() == dev.bellaouzo.eventlens.modcommon.chat.ModChatClick.COPY)));
+        var toast = ModCommandNotices.toastMessage(List.of("trace", "export", sessionId), exported);
+        assertTrue(toast.isPresent());
+        assertTrue(toast.get().startsWith("Exported"));
+        assertTrue(toast.get().indexOf('\\') < 0);
+        assertTrue(toast.get().indexOf('/') < 0);
+        assertTrue(!toast.get().contains("Saved to"));
     }
 
     private static boolean contains(ModChatLine line, String text) {

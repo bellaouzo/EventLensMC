@@ -41,8 +41,9 @@ Thumbs.db
 # Keep Gradle wrapper JAR tracked
 !gradle/wrapper/gradle-wrapper.jar
 
-# Local backups and machine-specific patches
-docs/pre-setup-backup.patch
+# Local documentation (kept on disk, not published)
+docs/
+AGENTS.md
 
 # Dashboard SPA tooling
 eventlens-viewer/node_modules/

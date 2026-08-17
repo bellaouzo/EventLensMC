@@ -28,8 +28,9 @@ Update all of these to the same version:
 2. `eventlens-forge/gradle.properties` `mod_version`
 3. `eventlens-neoforge/gradle.properties` `mod_version`
 4. `eventlens-fabric/gradle.properties` `mod_version`
-5. `AGENTS.md` Current version table and any `EventLens-*.jar` example
-6. Hardcoded `*-1.x.y.jar` examples in `README.md`, `docs/SETUP.md`, `docs/INSTRUMENTATION.md`, `docs/CLIENT_AGENT.md` when they name the current artifact
+5. Local `AGENTS.md` Current version table and any `EventLens-*.jar` example (gitignored; still update it)
+6. Hardcoded `*-1.x.y.jar` examples in `README.md` when they name the current artifact
+7. The same jar examples in local `docs/SETUP.md`, `docs/INSTRUMENTATION.md`, and `docs/CLIENT_AGENT.md` (`docs/` is gitignored; still update them)
 
 Add a new `CHANGELOG.md` section at the top using today's date (`## [x.y.z] - YYYY-MM-DD`) with Keep a Changelog groups that apply: Added, Changed, Fixed, Removed. Write operator-facing lines (what they can do), not file lists.
 

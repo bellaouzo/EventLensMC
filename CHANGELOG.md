@@ -5,6 +5,23 @@ All notable changes to EventLens are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2026-08-17
+
+### Changed
+
+- Session dispatch list rows show player, a short field preview (chat text, screen, item, and similar), cancel state, and handler count so you can scan without opening each dispatch
+
+## [1.1.0] - 2026-08-17
+
+### Added
+
+- NeoForge/Forge Screen reopens on the last tab, session, run, and dispatch
+- Client toast `Copied` after a successful click-to-copy of an export path
+
+### Fixed
+
+- Export toast no longer includes the full file path, so it stays on screen; chat still has click-to-copy **Saved to** / **Folder** lines
+
 ## [1.0.0] - 2026-08-17
 
 ### Added

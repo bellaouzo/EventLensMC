@@ -1,7 +1,9 @@
 package dev.bellaouzo.eventlens.forge;
 
+import dev.bellaouzo.eventlens.neoforge.ui.EventLensToasts;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.ChatScreen;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Style;
 import net.minecraftforge.api.distmarker.Dist;
@@ -16,14 +18,7 @@ public final class ForgeChatClicks {
 
     @SubscribeEvent
     public static void onChatClick(ScreenEvent.MouseButtonPressed.Pre event) {
-        if (event.getButton() != 0 || !(event.getScreen() instanceof ChatScreen)) {
-            return;
-        }
-        Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft == null || minecraft.gui == null) {
-            return;
-        }
-        Style style = minecraft.gui.getChat().getClickedComponentStyleAt(event.getMouseX(), event.getMouseY());
+        Style style = clickedStyle(event.getButton(), event.getScreen(), event.getMouseX(), event.getMouseY());
         if (style == null || style.getClickEvent() == null) {
             return;
         }
@@ -34,5 +29,22 @@ public final class ForgeChatClicks {
         if (ForgeClientClickCommands.handle(clickEvent.getValue())) {
             event.setCanceled(true);
         }
+    }
+
+    @SubscribeEvent
+    public static void onChatCopy(ScreenEvent.MouseButtonPressed.Post event) {
+        Style style = clickedStyle(event.getButton(), event.getScreen(), event.getMouseX(), event.getMouseY());
+        EventLensToasts.copiedFrom(style);
+    }
+
+    private static Style clickedStyle(int button, Screen screen, double mouseX, double mouseY) {
+        if (button != 0 || !(screen instanceof ChatScreen)) {
+            return null;
+        }
+        Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft == null || minecraft.gui == null) {
+            return null;
+        }
+        return minecraft.gui.getChat().getClickedComponentStyleAt(mouseX, mouseY);
     }
 }

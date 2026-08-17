@@ -19,7 +19,11 @@ public final class EventLensNotices {
     private EventLensNotices() {}
 
     public static void export(ModTraceResults.ExportResult result) {
-        EventLensToasts.show(result.message());
+        if (result.success()) {
+            EventLensToasts.show("Exported " + result.dispatchCount() + " dispatch(es).");
+        } else {
+            EventLensToasts.show(result.message());
+        }
         for (ModChatLine line : ModTraceFormatter.export(result)) {
             chat(copyable(line));
         }

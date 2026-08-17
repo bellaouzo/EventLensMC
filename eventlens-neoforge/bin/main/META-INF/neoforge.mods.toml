@@ -4,7 +4,7 @@ license="MIT"
 
 [[mods]]
 modId="eventlens"
-version="1.0.0"
+version="1.1.1"
 displayName="EventLens"
 description='''Optional EventLens client mod for diagnosing mod event handlers. Companion to the Paper plugin.'''
 

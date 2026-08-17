@@ -115,6 +115,7 @@ Before declaring a coding task complete:
 5. Inspect `run\logs\latest.log`.
 6. Stop the server gracefully with `stop` (never use `/reload`).
 7. Apply `.cursor/rules/versioning.mdc` (bump and changelog when the change is user-visible).
-8. Summarize files changed, tests run, version bump if any, performance/privacy impact, and remaining limitations.
+8. Update local `docs/` and `AGENTS.md` when behavior changes. Those paths are gitignored; do not treat them as published.
+9. Summarize files changed, tests run, version bump if any, performance/privacy impact, and remaining limitations.
 
 Never declare success based only on compilation.
