@@ -20,6 +20,7 @@ final class TraceCommandTabCompleter {
     private static final String SUBCOMMAND_VIEW = "view";
     private static final String SUBCOMMAND_FAVORITE = CommandLiterals.SUBCOMMAND_FAVORITE;
     private static final String DISPATCH_FLAG = "--dispatch";
+    private static final String RUN_FLAG = "--run";
     static final String PLUGIN_FLAG = "--plugin";
     static final String SHAREABLE_FLAG = "--shareable";
     static final String REDACTED_FLAG = "--redacted";
@@ -50,8 +51,8 @@ final class TraceCommandTabCompleter {
     private static final List<String> EXPORT_FLAGS = List.of("--format", SHAREABLE_FLAG, REDACTED_FLAG, FULL_FLAG);
     private static final List<String> COPY_FLAGS = List.of(SHAREABLE_FLAG, REDACTED_FLAG, FULL_FLAG, DISPATCH_FLAG);
     private static final List<String> COMPARE_FLAGS = List.of(PLUGIN_FLAG, SHAREABLE_FLAG, REDACTED_FLAG, FULL_FLAG);
-    private static final List<String> TRACE_VIEW_FLAGS =
-            List.of(UNCHANGED_FLAG, DETAIL_FLAG, DISPATCH_FLAG, PLUGIN_FLAG, CHANGED_FLAG, SLOW_FLAG, CONFLICT_FLAG);
+    private static final List<String> TRACE_VIEW_FLAGS = List.of(
+            UNCHANGED_FLAG, DETAIL_FLAG, DISPATCH_FLAG, RUN_FLAG, PLUGIN_FLAG, CHANGED_FLAG, SLOW_FLAG, CONFLICT_FLAG);
     private static final List<String> DETAIL_VALUES =
             List.of(OutputDetailLevel.BRIEF.name().toLowerCase(Locale.ROOT), "normal", "verbose");
 
@@ -129,6 +130,9 @@ final class TraceCommandTabCompleter {
         }
         if (previous.equalsIgnoreCase(DISPATCH_FLAG)) {
             return CommandText.filterPrefix(traceCommandService.listDispatchSequenceTokens(sessionId), prefix);
+        }
+        if (previous.equalsIgnoreCase(RUN_FLAG)) {
+            return CommandText.filterPrefix(List.of("1", "2", "3", "4"), prefix);
         }
         if (previous.equalsIgnoreCase(PLUGIN_FLAG)) {
             return CommandText.filterPrefix(traceCommandService.listDispatchPluginNames(sessionId), prefix);

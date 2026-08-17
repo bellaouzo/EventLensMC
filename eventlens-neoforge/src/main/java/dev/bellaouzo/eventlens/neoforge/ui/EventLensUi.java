@@ -1,5 +1,6 @@
 package dev.bellaouzo.eventlens.neoforge.ui;
 
+import dev.bellaouzo.eventlens.domain.trace.TraceSessionSummary;
 import dev.bellaouzo.eventlens.modcommon.ModTraceResults;
 import dev.bellaouzo.eventlens.modcommon.command.ModStatusHover;
 import java.util.ArrayList;
@@ -181,6 +182,13 @@ final class EventLensUi {
         }
     }
 
+    static String sessionLabel(TraceSessionSummary session) {
+        if (session == null || !session.restarted()) {
+            return session == null ? "" : session.sessionId();
+        }
+        return session.sessionId() + "  " + session.restartBadge();
+    }
+
     static void section(GuiGraphics graphics, Font font, String title, int x, int y) {
         graphics.drawString(font, title, x, y, BRASS, false);
     }
@@ -202,6 +210,17 @@ final class EventLensUi {
         box.setResponder(onChange);
         screen.add(box);
         return box;
+    }
+
+    private static String lastClickId = "";
+    private static long lastClickAt;
+
+    static boolean doubleClicked(String id) {
+        long now = System.currentTimeMillis();
+        boolean twice = id.equals(lastClickId) && now - lastClickAt <= 350L;
+        lastClickId = id;
+        lastClickAt = now;
+        return twice;
     }
 
     static boolean matches(String query, String... parts) {

@@ -128,9 +128,11 @@ final class FabricClientCommands {
             ModTraceCoordinator coordinator,
             CommandContext<FabricClientCommandSource> context,
             List<String> args) {
-        for (ModChatLine line : ModClientCommands.execute(coordinator, ownerName(), args)) {
+        List<ModChatLine> lines = ModClientCommands.execute(coordinator, ownerName(), args);
+        for (ModChatLine line : lines) {
             context.getSource().sendFeedback(ModChatRenderer.render(line));
         }
+        FabricToasts.command(args, lines);
         return 1;
     }
 

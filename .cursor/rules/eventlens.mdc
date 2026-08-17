@@ -114,6 +114,7 @@ Before declaring a coding task complete:
 4. Run `.\gradlew.bat runServer` when Paper integration, commands, lifecycle, or exports changed.
 5. Inspect `run\logs\latest.log`.
 6. Stop the server gracefully with `stop` (never use `/reload`).
-7. Summarize files changed, tests run, performance/privacy impact, and remaining limitations.
+7. Apply `.cursor/rules/versioning.mdc` (bump and changelog when the change is user-visible).
+8. Summarize files changed, tests run, version bump if any, performance/privacy impact, and remaining limitations.
 
 Never declare success based only on compilation.

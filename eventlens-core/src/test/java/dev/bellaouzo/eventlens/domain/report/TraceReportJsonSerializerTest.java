@@ -144,7 +144,8 @@ class TraceReportJsonSerializerTest {
                 1_000_000L,
                 false,
                 timingSummary,
-                new SessionConflictSummary(1, 0, "No conflicts detected.", Map.of(), List.of(), List.of()));
+                new SessionConflictSummary(1, 0, "No conflicts detected.", Map.of(), List.of(), List.of()),
+                0);
         TraceReportEnvironment environment = new TraceReportEnvironment(
                 "Paper test", "25", "Paper 26.2", "1.0.0", "Paper 26.2", Map.of("EventLens", "1.0.0"), 3L);
         TraceReportInstrumentation instrumentation = new TraceReportInstrumentation(

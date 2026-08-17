@@ -5,6 +5,7 @@ import dev.bellaouzo.eventlens.domain.trace.TraceSessionSummary;
 import dev.bellaouzo.eventlens.modcommon.ModTraceResults;
 import dev.bellaouzo.eventlens.modcommon.SupportedModEventTypes;
 import java.util.List;
+import java.util.Optional;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
@@ -42,13 +43,14 @@ final class EventLensSessionsTab {
             String label = button.getMessage().getString();
             if ("Restart".equals(label)) {
                 var result = screen.coordinator().restartSession(selected);
+                EventLensNotices.action(result.message());
                 if (result.success()) {
                     selected = result.sessionId();
                 }
             } else if ("Resume".equals(label)) {
-                screen.coordinator().resumeSession(selected);
+                EventLensNotices.action(screen.coordinator().resumeSession(selected).message());
             } else {
-                screen.coordinator().pauseSession(selected);
+                EventLensNotices.action(screen.coordinator().pauseSession(selected).message());
             }
             refresh(screen);
         });
@@ -100,11 +102,7 @@ final class EventLensSessionsTab {
         if (selected.isBlank()) {
             return;
         }
-        ModTraceResults.ExportResult result = screen.coordinator().exportSession(selected);
-        Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft.player != null) {
-            minecraft.player.displayClientMessage(Component.literal(result.message()), false);
-        }
+        EventLensNotices.export(screen.coordinator().exportSession(selected, Optional.empty()));
     }
 
     private static final class SessionList extends ObjectSelectionList<SessionList.Entry> {
@@ -120,7 +118,12 @@ final class EventLensSessionsTab {
             }
             for (TraceSessionSummary session : sessions) {
                 String event = SupportedModEventTypes.displaySimpleName(session.eventClassName());
-                if (!EventLensUi.matches(query, session.sessionId(), event, String.valueOf(session.state()))) {
+                if (!EventLensUi.matches(
+                        query,
+                        session.sessionId(),
+                        event,
+                        String.valueOf(session.state()),
+                        session.restartBadge())) {
                     continue;
                 }
                 Entry entry = new Entry(session);
@@ -165,15 +168,21 @@ final class EventLensSessionsTab {
                 EventLensUi.row(graphics, left, top, width, height, on, hovering);
                 String event = SupportedModEventTypes.displaySimpleName(session.eventClassName());
                 graphics.drawString(
-                        minecraft.font, session.sessionId(), left + 6, top + 4, on ? EventLensUi.LENS : EventLensUi.PAPER, false);
-                int stateColor = session.state() == TraceSessionState.ACTIVE ? EventLensUi.LIVE : EventLensUi.BRASS;
-                graphics.drawString(
                         minecraft.font,
-                        session.state() + "  ·  " + event + "  ·  " + session.capturedEvents() + " captured",
+                        EventLensUi.sessionLabel(session),
                         left + 6,
-                        top + 16,
-                        stateColor,
+                        top + 4,
+                        session.restarted() ? EventLensUi.BRASS : on ? EventLensUi.LENS : EventLensUi.PAPER,
                         false);
+                int stateColor = session.state() == TraceSessionState.ACTIVE ? EventLensUi.LIVE : EventLensUi.BRASS;
+                String stateLine = (session.restarted() ? session.restartBadge() + "  ·  " : "")
+                        + session.state()
+                        + "  ·  "
+                        + event
+                        + "  ·  "
+                        + session.capturedEvents()
+                        + " captured";
+                graphics.drawString(minecraft.font, stateLine, left + 6, top + 16, stateColor, false);
             }
 
             @Override
@@ -182,6 +191,9 @@ final class EventLensSessionsTab {
                 setSelected(this);
                 if (Minecraft.getInstance().screen instanceof EventLensScreen screen) {
                     updatePauseButton(screen);
+                    if (EventLensUi.doubleClicked(session.sessionId())) {
+                        screen.showSession(session.sessionId());
+                    }
                 }
                 return true;
             }

@@ -65,7 +65,7 @@ Planned additions: JAR inspection, Paper smoke test, dependency/security analysi
 
 # Release
 
-Use Semantic Versioning. Initial development stays in `0.y.z`.
+Use Semantic Versioning. After `1.0.0`, agents bump and changelog per `.cursor/rules/versioning.mdc` without waiting to be asked.
 
 Maintain `CHANGELOG.md` when release work begins.
 

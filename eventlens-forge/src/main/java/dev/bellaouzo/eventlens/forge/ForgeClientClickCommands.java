@@ -12,12 +12,12 @@ public final class ForgeClientClickCommands {
             return false;
         }
         String command = rawCommand.charAt(0) == '/' ? rawCommand.substring(1) : rawCommand;
-        if (!isEventLensCommand(command)) {
-            return false;
-        }
         if (isUi(command)) {
             EventLensScreen.open();
             return true;
+        }
+        if (!isEventLensCommand(command)) {
+            return false;
         }
         ClientCommandHandler.runCommand(command);
         return true;
@@ -31,6 +31,8 @@ public final class ForgeClientClickCommands {
     }
 
     static boolean isUi(String command) {
-        return command.equals("eventlens ui") || command.equals("el ui");
+        return command.equals("eventlens ui")
+                || command.equals("el ui")
+                || command.equals("eventlensui");
     }
 }

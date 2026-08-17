@@ -2,6 +2,7 @@ package dev.bellaouzo.eventlens.neoforge.ui;
 
 import dev.bellaouzo.eventlens.modcommon.ModTraceCoordinator;
 import dev.bellaouzo.eventlens.modcommon.ModTraceResults;
+import java.util.Optional;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -21,6 +22,7 @@ public final class EventLensScreen extends Screen {
 
     private Tab tab = Tab.HOME;
     private String sessionId = "";
+    private int sessionGeneration = -1;
     private int dispatchSequence = -1;
     private int refreshTicks;
     private EventLensUi.Frame frame = EventLensUi.frame(320, 240);
@@ -71,6 +73,14 @@ public final class EventLensScreen extends Screen {
         return sessionId;
     }
 
+    public int sessionGeneration() {
+        return sessionGeneration;
+    }
+
+    public Optional<Integer> sessionGenerationOption() {
+        return sessionGeneration < 0 ? Optional.empty() : Optional.of(sessionGeneration);
+    }
+
     public int dispatchSequence() {
         return dispatchSequence;
     }
@@ -84,7 +94,12 @@ public final class EventLensScreen extends Screen {
     }
 
     public void showSession(String id) {
+        showSessionRun(id, -1);
+    }
+
+    public void showSessionRun(String id, int generation) {
         this.sessionId = id;
+        this.sessionGeneration = generation;
         this.dispatchSequence = -1;
         this.tab = Tab.SESSION;
         rebuildWidgets();

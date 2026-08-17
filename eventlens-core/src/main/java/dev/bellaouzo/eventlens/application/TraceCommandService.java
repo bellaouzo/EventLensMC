@@ -152,8 +152,17 @@ public final class TraceCommandService {
 
     public TraceViewResult viewSession(
             String sessionId, int page, boolean includeUnchanged, DispatchViewFilter filter) {
+        return viewSession(sessionId, page, includeUnchanged, filter, Optional.empty());
+    }
+
+    public TraceViewResult viewSession(
+            String sessionId,
+            int page,
+            boolean includeUnchanged,
+            DispatchViewFilter filter,
+            Optional<Integer> generation) {
         traceSessionManager.expireSessions(System.currentTimeMillis());
-        Optional<TraceSessionDetail> detail = traceSessionManager.getSessionDetail(sessionId);
+        Optional<TraceSessionDetail> detail = traceSessionManager.getSessionDetail(sessionId, generation);
         if (detail.isEmpty()) {
             return new TraceViewResult.NotFound(sessionId);
         }

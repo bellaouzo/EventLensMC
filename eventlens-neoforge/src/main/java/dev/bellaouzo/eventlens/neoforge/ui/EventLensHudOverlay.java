@@ -69,7 +69,7 @@ public final class EventLensHudOverlay {
         }
         if (active == null && paused != null) {
             line1 = SupportedModEventTypes.displaySimpleName(paused.eventClassName());
-            line2 = "paused  ·  " + paused.sessionId();
+            line2 = "paused  ·  " + EventLensUi.sessionLabel(paused);
             return;
         }
         if (active == null) {
@@ -81,7 +81,7 @@ public final class EventLensHudOverlay {
         Optional<TraceSessionDetail> detail = coordinator.sessionManager().getSessionDetail(active.sessionId());
         if (detail.isEmpty() || detail.orElseThrow().records().isEmpty()) {
             line1 = event;
-            line2 = "waiting  ·  " + active.sessionId();
+            line2 = "waiting  ·  " + EventLensUi.sessionLabel(active);
             return;
         }
         TraceDispatchRecord last = detail.orElseThrow().records().getLast();

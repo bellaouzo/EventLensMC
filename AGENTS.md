@@ -215,7 +215,9 @@ Planned additions: JAR inspection.
 
 ## Versioning
 
-Semantic Versioning in `0.y.z` during initial development.
+Semantic Versioning (`MAJOR.MINOR.PATCH`). Current release is `1.0.0`.
+
+Agents bump the version and update `CHANGELOG.md` on user-visible work without waiting to be asked. See `.cursor/rules/versioning.mdc`.
 
 ## Definition of done
 

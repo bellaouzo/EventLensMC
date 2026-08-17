@@ -1,0 +1,36 @@
+---
+description: Decide version bumps and changelog updates without waiting to be asked
+alwaysApply: true
+---
+
+# Versioning and changelog
+
+Do this yourself at the end of a user-visible change. Do not ask the user whether to bump or what the next version is unless the bump would be **major**.
+
+## When to bump
+
+Read the current version from root `build.gradle` (`version = 'x.y.z'`) and the latest `CHANGELOG.md` heading.
+
+- **No bump:** docs-only, comments, formatting, tests-only, Cursor rules, or internal refactors with no player/admin/mod-user facing change. Still add a changelog line only if operators would notice (smoke steps, required commands).
+- **Patch** (`1.0.0` → `1.0.1`): bug fix, crash, wrong output, click/command failure, small UX polish that does not add a capability.
+- **Minor** (`1.0.0` → `1.1.0`): new command, flag, Screen/HUD behavior, supported event, export/view capability, or other backward-compatible feature.
+- **Major** (`1.0.0` → `2.0.0`): breaking command/permission/export schema, dropped platform, or incompatible agent protocol. Confirm with the user before a major bump.
+
+If this conversation already created an unreleased version section, **append** to it. Do not bump twice for the same task.
+
+If `CHANGELOG.md` already has a dated heading equal to the current Gradle version, the next user-visible change **starts a new version**. Do not keep stacking features under a version that already shipped.
+
+## How to bump
+
+Update all of these to the same version:
+
+1. Root `build.gradle` `version`
+2. `eventlens-forge/gradle.properties` `mod_version`
+3. `eventlens-neoforge/gradle.properties` `mod_version`
+4. `eventlens-fabric/gradle.properties` `mod_version`
+5. `AGENTS.md` Current version table and any `EventLens-*.jar` example
+6. Hardcoded `*-1.x.y.jar` examples in `README.md`, `docs/SETUP.md`, `docs/INSTRUMENTATION.md`, `docs/CLIENT_AGENT.md` when they name the current artifact
+
+Add a new `CHANGELOG.md` section at the top using today's date (`## [x.y.z] - YYYY-MM-DD`) with Keep a Changelog groups that apply: Added, Changed, Fixed, Removed. Write operator-facing lines (what they can do), not file lists.
+
+Leave older changelog sections intact. Do not rewrite `1.0.0` history to look like it always included later work.

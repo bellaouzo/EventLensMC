@@ -7,7 +7,6 @@ import dev.bellaouzo.eventlens.domain.trace.ListenerTimingRecord;
 import dev.bellaouzo.eventlens.domain.trace.TraceDispatchRecord;
 import dev.bellaouzo.eventlens.domain.trace.TraceSessionDetail;
 import dev.bellaouzo.eventlens.modcommon.ModTraceResults;
-import dev.bellaouzo.eventlens.modcommon.SupportedModEventTypes;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -25,11 +24,14 @@ final class EventLensSessionTab {
     private EventLensSessionTab() {}
 
     static void init(EventLensScreen screen, EventLensUi.Frame frame) {
-        EventLensUi.search(screen, frame, query, searchHint(screen), text -> {
+        EventLensUi.search(screen, frame, query, EventLensSessionRuns.searchHint(screen), text -> {
             query = text;
             refresh(screen);
         });
-        screen.action(EventLensUi.footerX(frame, 0, 4, 80), frame.footerY(), 80, "Back", button -> {
+        boolean history = !EventLensSessionRuns.label(screen).isBlank();
+        int actions = history ? 5 : 4;
+        int buttonW = history ? 64 : 80;
+        screen.action(EventLensUi.footerX(frame, 0, actions, buttonW), frame.footerY(), buttonW, "Back", button -> {
             if (screen.dispatchSequence() >= 0) {
                 screen.showSession(screen.sessionId());
             } else {
@@ -40,24 +42,29 @@ final class EventLensSessionTab {
                 .map(TraceSessionDetail::summary)
                 .orElse(null);
         screen.action(
-                        EventLensUi.footerX(frame, 1, 4, 80),
+                        EventLensUi.footerX(frame, 1, actions, buttonW),
                         frame.footerY(),
-                        80,
+                        buttonW,
                         EventLensSessionActions.captureLabel(summary),
                         button -> EventLensSessionActions.applyCapture(
                                 screen, screen.sessionId(), button.getMessage().getString()))
                 .active = EventLensSessionActions.captureActive(summary);
-        screen.action(EventLensUi.footerX(frame, 2, 4, 80), frame.footerY(), 80, "Stop", button -> {
-            screen.coordinator().stopSession(screen.sessionId());
+        screen.action(EventLensUi.footerX(frame, 2, actions, buttonW), frame.footerY(), buttonW, "Stop", button -> {
+            var stopped = screen.coordinator().stopSession(screen.sessionId());
+            EventLensNotices.action(stopped.message());
             screen.show(EventLensScreen.Tab.SESSIONS);
         }).active = EventLensSessionActions.isOpen(summary);
-        screen.action(EventLensUi.footerX(frame, 3, 4, 80), frame.footerY(), 80, "Export", button -> {
-            var result = screen.coordinator().exportSession(screen.sessionId());
-            Minecraft minecraft = Minecraft.getInstance();
-            if (minecraft.player != null) {
-                minecraft.player.displayClientMessage(Component.literal(result.message()), false);
-            }
+        screen.action(EventLensUi.footerX(frame, 3, actions, buttonW), frame.footerY(), buttonW, "Export", button -> {
+            EventLensNotices.export(screen.coordinator().exportSession(screen.sessionId(), screen.sessionGenerationOption()));
         });
+        if (history) {
+            screen.action(
+                    EventLensUi.footerX(frame, 4, actions, buttonW),
+                    frame.footerY(),
+                    buttonW,
+                    EventLensSessionRuns.label(screen),
+                    button -> EventLensSessionRuns.cycle(screen));
+        }
         list = new LineList(screen.getMinecraft(), frame.contentW(), frame.contentH() - 22, frame.contentY() + 22, 14);
         list.setX(frame.contentX());
         refresh(screen);
@@ -73,27 +80,18 @@ final class EventLensSessionTab {
 
     static void render(EventLensScreen screen, GuiGraphics graphics, EventLensUi.Frame frame) {}
 
-    private static String searchHint(EventLensScreen screen) {
-        ModTraceResults.ViewResult result = screen.dispatchSequence() >= 0
-                ? screen.coordinator().viewDispatch(screen.sessionId(), screen.dispatchSequence())
-                : screen.coordinator().viewSession(screen.sessionId(), 1);
-        if (result.summary() == null) {
-            return "Search this session";
-        }
-        return SupportedModEventTypes.displaySimpleName(result.summary().eventClassName()) + "  ·  filter";
-    }
-
     private static List<String> lines(EventLensScreen screen) {
         if (screen.dispatchSequence() >= 0) {
-            ModTraceResults.ViewResult result =
-                    screen.coordinator().viewDispatch(screen.sessionId(), screen.dispatchSequence());
+            ModTraceResults.ViewResult result = screen.coordinator()
+                    .viewDispatch(screen.sessionId(), screen.dispatchSequence(), screen.sessionGenerationOption());
             if (result.records().isEmpty()) {
                 return List.of(result.message());
             }
             return detailLines(result.records().getFirst());
         }
-        Optional<TraceSessionDetail> detail =
-                screen.coordinator().sessionManager().getSessionDetail(screen.sessionId());
+        Optional<TraceSessionDetail> detail = screen.coordinator()
+                .sessionManager()
+                .getSessionDetail(screen.sessionId(), screen.sessionGenerationOption());
         if (detail.isEmpty()) {
             return List.of("Session not found: " + screen.sessionId());
         }

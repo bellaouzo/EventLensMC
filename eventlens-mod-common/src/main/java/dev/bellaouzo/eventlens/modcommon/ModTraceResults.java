@@ -125,16 +125,19 @@ public final class ModTraceResults {
 
     public record RestartResult(
             boolean success, String message, String sessionId, String sourceSessionId, String eventSimpleName) {
-        static RestartResult success(String sessionId, String sourceSessionId, String eventSimpleName) {
+        static RestartResult success(
+                String sessionId, String sourceSessionId, String eventSimpleName, int restartCount) {
+            String badge = restartCount <= 1 ? "RESTARTED" : "RESTARTED ×" + restartCount;
             return new RestartResult(
                     true,
-                    "Restarted "
-                            + sourceSessionId
-                            + " as "
+                    badge
+                            + " "
                             + sessionId
                             + " ("
                             + eventSimpleName
-                            + "). Previous session remains available for view/export.",
+                            + "). Same session id; previous run kept as run "
+                            + restartCount
+                            + ".",
                     sessionId,
                     sourceSessionId,
                     eventSimpleName);

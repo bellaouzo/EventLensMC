@@ -11,6 +11,7 @@ import dev.bellaouzo.eventlens.modcommon.SupportedModEventTypes;
 import dev.bellaouzo.eventlens.modcommon.chat.ModChatLine;
 import dev.bellaouzo.eventlens.modcommon.command.ModClientCommands;
 import dev.bellaouzo.eventlens.modcommon.command.ModClientTabCompleter;
+import dev.bellaouzo.eventlens.neoforge.ui.EventLensNotices;
 import dev.bellaouzo.eventlens.neoforge.ui.EventLensScreen;
 import java.util.ArrayList;
 import java.util.List;
@@ -119,9 +120,11 @@ public final class ForgeClientCommands {
 
     private int run(CommandContext<CommandSourceStack> context, List<String> args) {
         String owner = context.getSource().getTextName();
-        for (ModChatLine line : ModClientCommands.execute(coordinator, owner, args)) {
+        List<ModChatLine> lines = ModClientCommands.execute(coordinator, owner, args);
+        for (ModChatLine line : lines) {
             context.getSource().sendSuccess(() -> ForgeChatRenderer.render(line), false);
         }
+        EventLensNotices.command(args, lines);
         return 1;
     }
 

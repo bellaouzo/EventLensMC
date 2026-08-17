@@ -12,6 +12,7 @@ import dev.bellaouzo.eventlens.domain.trace.TraceRestartResult;
 import dev.bellaouzo.eventlens.domain.trace.TraceSessionConfig;
 import dev.bellaouzo.eventlens.domain.trace.TraceSessionDetail;
 import dev.bellaouzo.eventlens.domain.trace.TraceSessionExportBundle;
+import dev.bellaouzo.eventlens.domain.trace.TraceSessionGeneration;
 import dev.bellaouzo.eventlens.domain.trace.TraceSessionSummary;
 import dev.bellaouzo.eventlens.modcommon.port.ModEnvironmentPort;
 import dev.bellaouzo.eventlens.modcommon.port.ModListenerRegistryPort;
@@ -164,7 +165,8 @@ public final class ModTraceCoordinator {
                 yield ModTraceResults.RestartResult.success(
                         success.sessionId(),
                         success.sourceSessionId(),
-                        SupportedModEventTypes.displaySimpleName(success.eventClassName()));
+                        SupportedModEventTypes.displaySimpleName(success.eventClassName()),
+                        success.restartCount());
             }
             case TraceRestartResult.NotFound(var missing) ->
                 ModTraceResults.RestartResult.failure("No session " + missing + ".");
@@ -179,8 +181,12 @@ public final class ModTraceCoordinator {
         return sessionManager.listSessions();
     }
 
-    public ModTraceResults.ViewResult viewSession(String sessionId, int page) {
-        Optional<TraceSessionDetail> detail = sessionManager.getSessionDetail(sessionId);
+    public List<TraceSessionGeneration> listGenerations(String sessionId) {
+        return sessionManager.listGenerations(sessionId);
+    }
+
+    public ModTraceResults.ViewResult viewSession(String sessionId, int page, Optional<Integer> generation) {
+        Optional<TraceSessionDetail> detail = sessionManager.getSessionDetail(sessionId, generation);
         if (detail.isEmpty()) {
             return ModTraceResults.ViewResult.notFound(sessionId);
         }
@@ -196,8 +202,8 @@ public final class ModTraceCoordinator {
                 detail.orElseThrow().summary(), records.subList(from, to), page, totalPages, false);
     }
 
-    public ModTraceResults.ViewResult viewDispatch(String sessionId, int sequence) {
-        Optional<TraceSessionDetail> detail = sessionManager.getSessionDetail(sessionId);
+    public ModTraceResults.ViewResult viewDispatch(String sessionId, int sequence, Optional<Integer> generation) {
+        Optional<TraceSessionDetail> detail = sessionManager.getSessionDetail(sessionId, generation);
         if (detail.isEmpty()) {
             return ModTraceResults.ViewResult.notFound(sessionId);
         }
@@ -211,12 +217,12 @@ public final class ModTraceCoordinator {
         return ModTraceResults.ViewResult.success(detail.orElseThrow().summary(), match, 1, 1, true);
     }
 
-    public ModTraceResults.ExportResult exportSession(String sessionId) {
+    public ModTraceResults.ExportResult exportSession(String sessionId, Optional<Integer> generation) {
         String targetId = sessionId == null || sessionId.isBlank() ? lastSessionId : sessionId;
         if (targetId.isBlank()) {
             return ModTraceResults.ExportResult.failure("No session to export. Start and stop a trace first.");
         }
-        Optional<TraceSessionExportBundle> bundle = sessionManager.getExportBundle(targetId);
+        Optional<TraceSessionExportBundle> bundle = sessionManager.getExportBundle(targetId, generation);
         if (bundle.isEmpty()) {
             return ModTraceResults.ExportResult.failure("Session not found: " + targetId);
         }

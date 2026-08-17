@@ -110,7 +110,8 @@ public final class TraceReportRedactor {
                 summary.slowThresholdNanos(),
                 summary.captureStacks(),
                 summary.timingSummary(),
-                summary.conflictSummary());
+                summary.conflictSummary(),
+                summary.restartCount());
     }
 
     private static PropertyChange redactPropertyChange(PropertyChange change) {

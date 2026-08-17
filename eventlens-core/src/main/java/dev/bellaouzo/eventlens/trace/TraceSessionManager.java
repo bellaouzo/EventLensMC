@@ -7,6 +7,7 @@ import dev.bellaouzo.eventlens.domain.trace.TraceRestartResult;
 import dev.bellaouzo.eventlens.domain.trace.TraceSessionConfig;
 import dev.bellaouzo.eventlens.domain.trace.TraceSessionDetail;
 import dev.bellaouzo.eventlens.domain.trace.TraceSessionExportBundle;
+import dev.bellaouzo.eventlens.domain.trace.TraceSessionGeneration;
 import dev.bellaouzo.eventlens.domain.trace.TraceSessionState;
 import dev.bellaouzo.eventlens.domain.trace.TraceSessionSummary;
 import java.util.ArrayList;
@@ -21,6 +22,7 @@ public final class TraceSessionManager {
 
     private final Map<String, TraceSession> sessions = new LinkedHashMap<>();
     private final Map<String, Map<Long, TraceSession.PendingDispatch>> pendingDispatches = new ConcurrentHashMap<>();
+    private final TraceSessionArchives archives = new TraceSessionArchives();
     private InstrumentationPort instrumentationPort;
     private DispatchCaptureListener dispatchCaptureListener;
 
@@ -38,45 +40,34 @@ public final class TraceSessionManager {
             throw new IllegalStateException("Concurrent session limit reached.");
         }
         String sessionId = UUID.randomUUID().toString().substring(0, 8);
-        sessions.put(sessionId, new TraceSession(sessionId, config, ownerName, nowMillis));
-        pendingDispatches.put(sessionId, new ConcurrentHashMap<>());
-        refreshInstrumentationState();
-        if (dispatchCaptureListener instanceof SessionLifecycleListener listener) {
-            listener.onSessionStarted(sessionId);
-        }
-        return sessionId;
+        return TraceSessionSlots.insert(this, sessionId, config, ownerName, nowMillis, 0);
     }
 
     public synchronized List<TraceSessionSummary> listSessions() {
         return sessions.values().stream()
-                .map(session -> session.toSummary(TraceSessionInstrumentation.isAgentPresent(instrumentationPort)))
+                .map(session -> session.toSummary(agentPresent()))
                 .toList();
     }
 
-    public synchronized Optional<TraceSessionExportBundle> getExportBundle(String sessionId) {
-        TraceSession session = sessions.get(sessionId);
-        if (session == null) {
-            return Optional.empty();
-        }
-        return Optional.of(new TraceSessionExportBundle(
-                session.toSummary(TraceSessionInstrumentation.isAgentPresent(instrumentationPort)),
-                session.getConfig(),
-                session.getRecordsSnapshot()));
+    public synchronized Optional<TraceSessionExportBundle> getExportBundle(
+            String sessionId, Optional<Integer> generation) {
+        return archives.exportBundle(sessions, sessionId, generation, agentPresent());
     }
 
     public synchronized Optional<TraceSessionConfig> getSessionConfig(String sessionId) {
-        TraceSession session = sessions.get(sessionId);
-        return session == null ? Optional.empty() : Optional.of(session.getConfig());
+        return Optional.ofNullable(sessions.get(sessionId)).map(TraceSession::getConfig);
     }
 
     public synchronized Optional<TraceSessionDetail> getSessionDetail(String sessionId) {
-        TraceSession session = sessions.get(sessionId);
-        if (session == null) {
-            return Optional.empty();
-        }
-        return Optional.of(new TraceSessionDetail(
-                session.toSummary(TraceSessionInstrumentation.isAgentPresent(instrumentationPort)),
-                session.getRecordsSnapshot()));
+        return getSessionDetail(sessionId, Optional.empty());
+    }
+
+    public synchronized Optional<TraceSessionDetail> getSessionDetail(String sessionId, Optional<Integer> generation) {
+        return archives.detail(sessions, sessionId, generation, agentPresent());
+    }
+
+    public synchronized List<TraceSessionGeneration> listGenerations(String sessionId) {
+        return archives.listWithCurrent(sessions, sessionId, agentPresent());
     }
 
     public synchronized List<String> stopSessionsForOwner(String ownerName, long nowMillis) {
@@ -86,10 +77,10 @@ public final class TraceSessionManager {
                 session.stop(TraceSessionState.STOPPED, nowMillis);
                 stopped.add(session.getSessionId());
                 clearPending(session.getSessionId());
-                notifySessionStopped(session.getSessionId());
+                notifyLifecycle(session.getSessionId(), false);
             }
         }
-        refreshInstrumentationState();
+        refreshAfterMutation();
         return stopped;
     }
 
@@ -100,15 +91,15 @@ public final class TraceSessionManager {
         }
         session.stop(TraceSessionState.STOPPED, nowMillis);
         clearPending(sessionId);
-        notifySessionStopped(sessionId);
-        refreshInstrumentationState();
+        notifyLifecycle(sessionId, false);
+        refreshAfterMutation();
         return Optional.of(sessionId);
     }
 
     public synchronized List<String> pauseSessionsForOwner(String ownerName, long nowMillis) {
         List<String> paused = TraceSessionControl.changeOwner(
                 sessions.values(), ownerName, nowMillis, TraceSession::pause, this::clearPending);
-        refreshInstrumentationState();
+        refreshAfterMutation();
         return paused;
     }
 
@@ -116,21 +107,21 @@ public final class TraceSessionManager {
         Optional<String> paused =
                 TraceSessionControl.changeOne(sessions.get(sessionId), nowMillis, TraceSession::pause);
         paused.ifPresent(this::clearPending);
-        refreshInstrumentationState();
+        refreshAfterMutation();
         return paused;
     }
 
     public synchronized List<String> resumeSessionsForOwner(String ownerName, long nowMillis) {
         List<String> resumed = TraceSessionControl.changeOwner(
                 sessions.values(), ownerName, nowMillis, TraceSession::resume, ignored -> {});
-        refreshInstrumentationState();
+        refreshAfterMutation();
         return resumed;
     }
 
     public synchronized Optional<String> resumeSession(String sessionId, long nowMillis) {
         Optional<String> resumed =
                 TraceSessionControl.changeOne(sessions.get(sessionId), nowMillis, TraceSession::resume);
-        refreshInstrumentationState();
+        refreshAfterMutation();
         return resumed;
     }
 
@@ -156,10 +147,7 @@ public final class TraceSessionManager {
 
     public synchronized Optional<TraceSession> getActiveSession(String sessionId) {
         TraceSession session = sessions.get(sessionId);
-        if (session == null || !session.isActive()) {
-            return Optional.empty();
-        }
-        return Optional.of(session);
+        return session != null && session.isActive() ? Optional.of(session) : Optional.empty();
     }
 
     public synchronized boolean isThrottledCaptureForEvent(String eventClassName) {
@@ -196,19 +184,18 @@ public final class TraceSessionManager {
                 return;
             }
         }
-
         TraceSessionDispatchCompleter.complete(
                 session,
                 pendingForSession,
                 dispatchKey,
                 completion,
                 dispatchCaptureListener,
-                this::refreshInstrumentationState);
+                this::refreshAfterMutation);
     }
 
     public synchronized void expireSessions(long nowMillis) {
         TraceSessionExpiration.expireActiveSessions(sessions.values(), nowMillis, this::clearPending);
-        refreshInstrumentationState();
+        refreshAfterMutation();
     }
 
     public synchronized void closeAll() {
@@ -220,6 +207,7 @@ public final class TraceSessionManager {
         }
         pendingDispatches.clear();
         sessions.clear();
+        archives.clear();
         if (instrumentationPort != null) {
             instrumentationPort.clearObservationState();
         }
@@ -229,17 +217,34 @@ public final class TraceSessionManager {
         return instrumentationPort;
     }
 
-    private void refreshInstrumentationState() {
+    void archiveCurrent(String sessionId) {
+        Optional.ofNullable(sessions.get(sessionId)).ifPresent(session -> archives.archive(session, agentPresent()));
+    }
+
+    void refreshAfterMutation() {
         TraceSessionInstrumentation.refreshObservationState(instrumentationPort, sessions.values());
     }
 
-    private void notifySessionStopped(String sessionId) {
+    private boolean agentPresent() {
+        return TraceSessionInstrumentation.isAgentPresent(instrumentationPort);
+    }
+
+    Map<String, TraceSession> sessions() {
+        return sessions;
+    }
+
+    Map<String, Map<Long, TraceSession.PendingDispatch>> pendingDispatches() {
+        return pendingDispatches;
+    }
+
+    void notifyLifecycle(String sessionId, boolean started) {
         if (dispatchCaptureListener instanceof SessionLifecycleListener listener) {
-            listener.onSessionStopped(sessionId);
+            if (started) listener.onSessionStarted(sessionId);
+            else listener.onSessionStopped(sessionId);
         }
     }
 
-    private void clearPending(String sessionId) {
+    void clearPending(String sessionId) {
         pendingDispatches.remove(sessionId);
     }
 }

@@ -27,7 +27,8 @@ final class ForgeChatRenderer {
                 style = style.withUnderlined(true);
             }
             if (span.clickKind() == ModChatClick.RUN_COMMAND && !span.clickValue().isBlank()) {
-                style = style.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, span.clickValue()));
+                style = style.withClickEvent(
+                        new ClickEvent(ClickEvent.Action.RUN_COMMAND, clientClickCommand(span.clickValue())));
             } else if (span.clickKind() == ModChatClick.COPY && !span.clickValue().isBlank()) {
                 style = style.withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, span.clickValue()));
             }
@@ -38,6 +39,13 @@ final class ForgeChatRenderer {
             component.append(piece.withStyle(style));
         }
         return component;
+    }
+
+    private static String clientClickCommand(String command) {
+        if ("/eventlens ui".equals(command) || "/el ui".equals(command)) {
+            return "/eventlensui";
+        }
+        return command;
     }
 
     private static ChatFormatting color(ModChatColor color) {

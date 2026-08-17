@@ -57,10 +57,10 @@ public final class ModClientTabCompleter {
 
     private static List<String> completeView(List<String> args, String needle) {
         String previous = args.get(args.size() - 1);
-        if ("--dispatch".equalsIgnoreCase(previous)) {
+        if ("--dispatch".equalsIgnoreCase(previous) || "--run".equalsIgnoreCase(previous)) {
             return filter(List.of("1", "2", "3", "4", "5"), needle);
         }
-        return filter(List.of("--dispatch"), needle);
+        return filter(List.of("--dispatch", "--run"), needle);
     }
 
     private static List<String> completeStart(List<String> args, String needle) {

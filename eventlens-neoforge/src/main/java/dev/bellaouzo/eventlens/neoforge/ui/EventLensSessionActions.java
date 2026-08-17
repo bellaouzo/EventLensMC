@@ -35,14 +35,15 @@ final class EventLensSessionActions {
     static void applyCapture(EventLensScreen screen, String sessionId, String label) {
         if ("Restart".equals(label)) {
             ModTraceResults.RestartResult result = screen.coordinator().restartSession(sessionId);
+            EventLensNotices.action(result.message());
             if (result.success()) {
                 screen.showSession(result.sessionId());
                 return;
             }
         } else if ("Resume".equals(label)) {
-            screen.coordinator().resumeSession(sessionId);
+            EventLensNotices.action(screen.coordinator().resumeSession(sessionId).message());
         } else {
-            screen.coordinator().pauseSession(sessionId);
+            EventLensNotices.action(screen.coordinator().pauseSession(sessionId).message());
         }
         screen.showSession(sessionId);
     }

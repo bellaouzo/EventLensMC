@@ -24,6 +24,7 @@ final class ModTraceSessionCards {
                                 "/eventlens trace view " + session.sessionId(),
                                 "Open this session")
                         .add("  " + session.state(), ModChatColor.WHITE)
+                        .add(session.restarted() ? "  " + session.restartBadge() : "", ModChatColor.GOLD)
                         .build(),
                 ModChatLine.builder()
                         .add("  ", ModChatColor.WHITE)
@@ -45,7 +46,11 @@ final class ModTraceSessionCards {
                     .add("  ", ModChatColor.WHITE)
                     .click("[Open]", ModChatColor.AQUA, "/eventlens trace view " + sessionId, "View captured dispatches")
                     .add("   ", ModChatColor.DARK_GRAY)
-                    .click("[Restart]", ModChatColor.AQUA, "/eventlens trace restart " + sessionId, "Start a new session with the same filters")
+                    .click(
+                            "[Restart]",
+                            ModChatColor.AQUA,
+                            "/eventlens trace restart " + sessionId,
+                            "Restart this session id and clear captures")
                     .build();
         }
         return ModChatLine.builder()

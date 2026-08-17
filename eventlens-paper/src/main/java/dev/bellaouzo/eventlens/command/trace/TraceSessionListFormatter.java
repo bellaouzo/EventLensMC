@@ -27,6 +27,7 @@ final class TraceSessionListFormatter {
                     .hoverEvent(net.kyori.adventure.text.event.HoverEvent.showText(CommandUi.hoverBlock(
                             "Event: " + eventSimpleName,
                             "State: " + session.state(),
+                            session.restarted() ? "Restarted: " + session.restartBadge() : "Restarted: no",
                             "Owner: " + session.ownerName(),
                             "Captured: " + session.capturedEvents(),
                             "Dropped: " + session.droppedEvents(),
@@ -35,6 +36,10 @@ final class TraceSessionListFormatter {
                             "Click to view trace")))
                     .clickEvent(net.kyori.adventure.text.event.ClickEvent.runCommand(viewCommand))
                     .append(Component.text(" [" + session.state() + "] ", NamedTextColor.GRAY))
+                    .append(
+                            session.restarted()
+                                    ? Component.text(session.restartBadge() + " ", NamedTextColor.GOLD)
+                                    : Component.empty())
                     .append(CommandUi.runCommand(
                             eventSimpleName,
                             "/eventlens listeners " + eventSimpleName,

@@ -185,26 +185,32 @@ class TraceSessionManagerTest {
     }
 
     @Test
-    void restartClonesStoppedSessionIntoNewId() {
+    void restartReusesSameSessionId() {
         String sourceId = manager.startSession(defaultConfig("org.example.TestEvent"), "admin", 1_000L);
         assertEquals(List.of(sourceId), manager.stopSessionsForOwner("admin", 2_000L));
 
         TraceRestartResult result = manager.restartSession(sourceId, 3_000L);
         assertTrue(result instanceof TraceRestartResult.Success);
         TraceRestartResult.Success success = (TraceRestartResult.Success) result;
+        assertEquals(sourceId, success.sessionId());
         assertEquals(sourceId, success.sourceSessionId());
+        assertEquals(1, success.restartCount());
         assertEquals("org.example.TestEvent", success.eventClassName());
         assertTrue(manager.isTracingEnabled());
         assertEquals(
-                TraceSessionState.STOPPED,
+                TraceSessionState.ACTIVE,
                 manager.getSessionDetail(sourceId).orElseThrow().summary().state());
         assertEquals(
-                TraceSessionState.ACTIVE,
-                manager.getSessionDetail(success.sessionId())
-                        .orElseThrow()
-                        .summary()
-                        .state());
-        assertTrue(manager.restartSession(success.sessionId(), 4_000L) instanceof TraceRestartResult.StillOpen);
+                1, manager.getSessionDetail(sourceId).orElseThrow().summary().restartCount());
+        assertTrue(manager.getSessionDetail(sourceId).orElseThrow().summary().restarted());
+        assertEquals(
+                "RESTARTED",
+                manager.getSessionDetail(sourceId).orElseThrow().summary().restartBadge());
+        assertEquals(2, manager.listGenerations(sourceId).size());
+        assertEquals(0, manager.listGenerations(sourceId).getFirst().generation());
+        assertTrue(manager.listGenerations(sourceId).getLast().current());
+        assertTrue(manager.getSessionDetail(sourceId, Optional.of(0)).isPresent());
+        assertTrue(manager.restartSession(sourceId, 4_000L) instanceof TraceRestartResult.StillOpen);
     }
 
     @Test

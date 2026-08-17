@@ -8,7 +8,7 @@ Fabric does not have this Screen or HUD yet.
 
 - Keybind `key.eventlens.open` (Controls → EventLens). Unbound by default; bind it there.
 - `/eventlens ui` or `/el ui`
-- Status chat: `[Open UI]` (Forge opens the Screen from the click; other EventLens chat clicks stay on the client)
+- Status chat: `[Open UI]` (Forge handles this click on the client; typed `/eventlens ui` also works)
 
 The world keeps running while the Screen is open (`isPauseScreen` is false) so traces still capture. The Screen is a floating diagnostic panel over the live world, not a full-screen pause menu.
 
@@ -23,7 +23,7 @@ The world keeps running while the Screen is open (`isPauseScreen` is false) so t
 
 Hover the **live** / **paused** / **idle** and **precise** / **dispatch** pills (or the Home Tracing and Instrumentation cards) for agent protocol, EventLens version, and session counts.
 
-Pause keeps the session and stops capture. Resume starts capturing again. Restart clones a terminal session's filters into a new session ID. Chat: `/eventlens trace pause [id]`, `/eventlens trace resume [id]`, and `/eventlens trace restart <id>`.
+Pause keeps the session and stops capture. Resume starts capturing again. Restart reuses the same session ID, keeps previous captures as earlier runs, and marks the session `RESTARTED` (or `RESTARTED ×N`). Double-click an event to start it, or a session to open it. Chat: `/eventlens trace pause [id]`, `/eventlens trace resume [id]`, `/eventlens trace restart <id>`, and `/eventlens trace view <id> --run <n>`.
 
 Flame graphs and event graphs stay in `eventlens-viewer` after you export JSON.
 
@@ -39,7 +39,7 @@ The HUD reads already-captured session data. It does not start traces or instrum
 
 ## Chat
 
-`/eventlens status`, `listeners`, and `trace` still work. Export paths remain copy-to-clipboard in chat.
+`/eventlens status`, `listeners`, and `trace` still work. Export chat shows **Saved to** and **Folder** lines you can click to copy, and start/stop/export/restart also raise a toast.
 
 ## Fabric
 

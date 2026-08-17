@@ -41,7 +41,7 @@ public final class ExportCommandService {
     public Optional<TraceReportDocument> buildReport(String sessionId, ExportRedactionMode redactionMode) {
         traceSessionManager.expireSessions(System.currentTimeMillis());
         return traceSessionManager
-                .getExportBundle(sessionId)
+                .getExportBundle(sessionId, Optional.empty())
                 .map(bundle -> traceReportBuilder.build(bundle, redactionMode, System.currentTimeMillis()));
     }
 

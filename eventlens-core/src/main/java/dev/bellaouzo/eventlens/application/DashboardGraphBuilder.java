@@ -89,7 +89,7 @@ public final class DashboardGraphBuilder {
         Map<String, Integer> traceCoDispatchCounts = new HashMap<>();
         if (sessionId.isPresent()) {
             traceSessionManager
-                    .getExportBundle(sessionId.get())
+                    .getExportBundle(sessionId.get(), Optional.empty())
                     .ifPresent(bundle -> accumulateTraceCoDispatches(bundle, traceCoDispatchCounts));
         }
 

@@ -64,6 +64,7 @@ final class EventLensEventsTab {
                 screen.coordinator().startTrace(selected, playerName(), confirmHot || !hot, Optional.empty());
         confirmHot = false;
         if (result.success()) {
+            EventLensNotices.action(result.message());
             screen.showSession(result.sessionId());
         } else if (result.needsHotConfirm()) {
             confirmHot = true;
@@ -169,6 +170,9 @@ final class EventLensEventsTab {
                 setSelected(this);
                 if (startButton != null) {
                     startButton.setMessage(Component.literal(startLabel()));
+                }
+                if (EventLensUi.doubleClicked(name) && Minecraft.getInstance().screen instanceof EventLensScreen screen) {
+                    start(screen);
                 }
                 return true;
             }

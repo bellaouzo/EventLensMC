@@ -19,10 +19,23 @@ public record TraceSessionSummary(
         long slowThresholdNanos,
         boolean captureStacks,
         SessionTimingSummary timingSummary,
-        SessionConflictSummary conflictSummary) {
+        SessionConflictSummary conflictSummary,
+        int restartCount) {
 
     public TraceSessionSummary {
         conflictSummary = conflictSummary == null ? SessionConflictSummary.empty() : conflictSummary;
+        restartCount = Math.max(0, restartCount);
+    }
+
+    public boolean restarted() {
+        return restartCount > 0;
+    }
+
+    public String restartBadge() {
+        if (restartCount <= 0) {
+            return "";
+        }
+        return restartCount == 1 ? "RESTARTED" : "RESTARTED ×" + restartCount;
     }
 
     public TraceSessionSummary(
@@ -51,6 +64,7 @@ public record TraceSessionSummary(
                 dev.bellaouzo.eventlens.domain.observability.PerformanceBudget.DEFAULT_SLOW_THRESHOLD_NANOS,
                 false,
                 null,
-                SessionConflictSummary.empty());
+                SessionConflictSummary.empty(),
+                0);
     }
 }

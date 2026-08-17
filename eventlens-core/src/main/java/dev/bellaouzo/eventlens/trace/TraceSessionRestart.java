@@ -1,6 +1,8 @@
 package dev.bellaouzo.eventlens.trace;
 
+import dev.bellaouzo.eventlens.domain.trace.TraceLimits;
 import dev.bellaouzo.eventlens.domain.trace.TraceRestartResult;
+import dev.bellaouzo.eventlens.domain.trace.TraceSessionConfig;
 import java.util.Map;
 
 final class TraceSessionRestart {
@@ -17,11 +19,17 @@ final class TraceSessionRestart {
         if (session.isOpen()) {
             return new TraceRestartResult.StillOpen(sessionId, session.getState());
         }
-        try {
-            String newId = manager.startSession(session.getConfig(), session.getOwnerName(), nowMillis);
-            return new TraceRestartResult.Success(newId, sessionId, session.getEventClassName());
-        } catch (IllegalStateException ex) {
-            return new TraceRestartResult.SessionLimit(ex.getMessage());
+        if (sessions.values().stream().filter(TraceSession::isOpen).count() >= TraceLimits.MAX_CONCURRENT_SESSIONS) {
+            return new TraceRestartResult.SessionLimit("Concurrent session limit reached.");
         }
+        int restartCount = session.getRestartCount() + 1;
+        TraceSessionConfig config = session.getConfig();
+        String ownerName = session.getOwnerName();
+        String eventClassName = session.getEventClassName();
+        manager.archiveCurrent(sessionId);
+        sessions.remove(sessionId);
+        TraceSessionSlots.detach(manager, sessionId);
+        TraceSessionSlots.insert(manager, sessionId, config, ownerName, nowMillis, restartCount);
+        return new TraceRestartResult.Success(sessionId, sessionId, eventClassName, restartCount);
     }
 }

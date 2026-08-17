@@ -9,12 +9,17 @@ public sealed interface TraceRestartResult
                 TraceRestartResult.StillOpen,
                 TraceRestartResult.SessionLimit {
 
-    record Success(@NonNull String sessionId, @NonNull String sourceSessionId, @NonNull String eventClassName)
+    record Success(
+            @NonNull String sessionId,
+            @NonNull String sourceSessionId,
+            @NonNull String eventClassName,
+            int restartCount)
             implements TraceRestartResult {
         public Success {
             Objects.requireNonNull(sessionId, "newSessionId");
             Objects.requireNonNull(sourceSessionId, "sourceSessionId");
             Objects.requireNonNull(eventClassName, "eventClassName");
+            restartCount = Math.max(1, restartCount);
         }
     }
 

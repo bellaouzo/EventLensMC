@@ -109,6 +109,7 @@ public final class ModClientCommands {
         }
         int page = 1;
         Integer dispatch = null;
+        Optional<Integer> generation = Optional.empty();
         for (int i = 3; i < args.size(); i++) {
             String token = args.get(i);
             if ("--dispatch".equalsIgnoreCase(token) && i + 1 < args.size()) {
@@ -116,6 +117,16 @@ public final class ModClientCommands {
                     dispatch = Integer.parseInt(args.get(++i));
                 } catch (NumberFormatException ignored) {
                     return List.of(ModChatLine.text("--dispatch requires a number.", ModChatColor.RED));
+                }
+            } else if ("--run".equalsIgnoreCase(token) && i + 1 < args.size()) {
+                try {
+                    int run = Integer.parseInt(args.get(++i));
+                    if (run < 1) {
+                        return List.of(ModChatLine.text("--run must be a positive integer.", ModChatColor.RED));
+                    }
+                    generation = Optional.of(run - 1);
+                } catch (NumberFormatException ignored) {
+                    return List.of(ModChatLine.text("--run requires a number.", ModChatColor.RED));
                 }
             } else {
                 try {
@@ -126,8 +137,8 @@ public final class ModClientCommands {
             }
         }
         var result = dispatch != null
-                ? coordinator.viewDispatch(args.get(2), dispatch)
-                : coordinator.viewSession(args.get(2), page);
+                ? coordinator.viewDispatch(args.get(2), dispatch, generation)
+                : coordinator.viewSession(args.get(2), page, generation);
         List<ModHandlerRegistration> handlers = List.of();
         if (result.summary() != null) {
             handlers = coordinator.listenerRegistryPort().listHandlers(result.summary().eventClassName());
@@ -137,6 +148,6 @@ public final class ModClientCommands {
 
     private static List<ModChatLine> export(ModTraceCoordinator coordinator, List<String> args) {
         String sessionId = args.size() >= 3 ? args.get(2) : "";
-        return ModTraceFormatter.export(coordinator.exportSession(sessionId));
+        return ModTraceFormatter.export(coordinator.exportSession(sessionId, Optional.empty()));
     }
 }

@@ -22,6 +22,7 @@ final class TraceSession {
     private final TraceSessionConfig config;
     private final String ownerName;
     private final long startedAtMillis;
+    private final int restartCount;
     private final AtomicLong sequence = new AtomicLong(0);
     private final SamplingPolicy samplingPolicy = new SamplingPolicy();
     private final PerformanceBudgetController budgetController = new PerformanceBudgetController();
@@ -33,12 +34,18 @@ final class TraceSession {
     private int sampledOutEvents;
     private boolean throttledCapture;
 
-    TraceSession(String sessionId, TraceSessionConfig config, String ownerName, long startedAtMillis) {
+    TraceSession(
+            String sessionId, TraceSessionConfig config, String ownerName, long startedAtMillis, int restartCount) {
         this.sessionId = sessionId;
         this.config = config;
         this.ownerName = ownerName;
         this.startedAtMillis = startedAtMillis;
         this.lastActivityAtMillis = startedAtMillis;
+        this.restartCount = Math.max(0, restartCount);
+    }
+
+    int getRestartCount() {
+        return restartCount;
     }
 
     String getSessionId() {
@@ -77,18 +84,6 @@ final class TraceSession {
         return lastActivityAtMillis;
     }
 
-    int getCapturedEvents() {
-        return records.size();
-    }
-
-    int getDroppedEvents() {
-        return droppedEvents;
-    }
-
-    int getSampledOutEvents() {
-        return sampledOutEvents;
-    }
-
     boolean isThrottledCapture() {
         return throttledCapture;
     }
@@ -120,7 +115,8 @@ final class TraceSession {
                 config.slowThresholdNanos(),
                 config.captureStacks(),
                 timingSummary,
-                conflictSummary);
+                conflictSummary,
+                restartCount);
     }
 
     boolean shouldAccept(EventFilterContext context, long nowMillis) {

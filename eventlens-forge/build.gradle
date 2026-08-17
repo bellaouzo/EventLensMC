@@ -47,6 +47,7 @@ minecraft {
             workingDir = layout.projectDirectory.dir('run')
         }
         register('client') {
+            args '-mixin.config=eventlens.mixins.json'
             jvmArgs.add(clientAgentArgument())
             mods {
                 eventlens {
@@ -104,6 +105,12 @@ var generateModMetadata = tasks.register('generateModMetadata', Copy) {
 }
 
 sourceSets.main.resources.srcDir generateModMetadata
+
+tasks.named('jar', Jar) {
+    manifest {
+        attributes 'MixinConfigs': 'eventlens.mixins.json'
+    }
+}
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'

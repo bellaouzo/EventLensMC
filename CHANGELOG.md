@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Client mods: clickable `/eventlens` status, listeners, and trace start/stop/list/view/export
 - Client trace events beyond tick: chat, screens, attack, use item/block/entity/empty, move, join/disconnect, respawn, pause, game mode, input, tooltip, screenshot, toast, sound, entity/chunk load, world/player tick, recipes
 - Optional `eventlens-client-agent` for NeoForge and Forge per-mod handler timing (`docs/adr/0003-client-java-agent.md`)
-- `/eventlens trace restart <session>` clones a stopped session's filters into a new session ID
+- `/eventlens trace restart <session>` reuses the same session ID, keeps previous runs, and marks the session `RESTARTED`
 - MIT license
 - Client `/eventlens` status shows `precise` vs `dispatch-only`; `trace view` lists handler rows when the agent is attached
 - NeoForge/Forge in-game EventLens Screen and optional HUD (`/eventlens ui`, keybinds, `[Open UI]`)
@@ -50,8 +50,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Forge `runClient` now loads EventLens as one mod file (classes + `mods.toml`) and includes `pack.mcmeta`
-- Forge `[Open UI]` chat clicks now run `/eventlens ui` on the client instead of sending it to the server
+- Forge `[Open UI]` chat clicks are handled on the client (chat mouse event, mixins, and a server `eventlens ui` fallback) so they no longer show `unknown or incomplete command`
 - Forge `runClient` attaches the client agent so instrumentation can report `precise` instead of dispatch-only
 - Paper plugin JAR now shades `eventlens-core`, so `/eventlens` loads on a local `runServer`
 - `/eventlens` with no arguments shows status instead of an incomplete-command error
-- Forge `[Open UI]` opens the Screen directly and swallows EventLens chat clicks before they reach the server
+- Forge `[Open UI]` remaps the click to `/eventlensui` and intercepts the chat mouse click on the client so it does not depend on mixins applying in `runClient`
+- Client export chat copies the file and folder paths on click, matching the Paper export path lines
+- Client mods show toast notices for start, stop, pause, resume, restart, and export
+- EventLens Screen lists open on double-click (Events starts, Sessions opens the session)
+- Restart keeps earlier runs on the same session id (`--run` / Screen **Run N/M**)

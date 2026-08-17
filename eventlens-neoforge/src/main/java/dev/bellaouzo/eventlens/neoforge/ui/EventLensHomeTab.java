@@ -45,7 +45,12 @@ final class EventLensHomeTab {
             boolean open = session.state() == TraceSessionState.ACTIVE
                     || session.state() == TraceSessionState.THROTTLED
                     || paused;
-            screen.action(frame.contentX(), row, viewW, event + "  " + session.sessionId(), button -> screen.showSession(session.sessionId()));
+            screen.action(
+                    frame.contentX(),
+                    row,
+                    viewW,
+                    event + "  " + EventLensUi.sessionLabel(session),
+                    button -> screen.showSession(session.sessionId()));
             screen.action(
                             frame.contentX() + viewW + 6,
                             row,
@@ -53,17 +58,20 @@ final class EventLensHomeTab {
                             terminal ? "Restart" : paused ? "Resume" : "Pause",
                             button -> {
                                 if (terminal) {
-                                    screen.coordinator().restartSession(session.sessionId());
+                                    EventLensNotices.action(
+                                            screen.coordinator().restartSession(session.sessionId()).message());
                                 } else if (paused) {
-                                    screen.coordinator().resumeSession(session.sessionId());
+                                    EventLensNotices.action(
+                                            screen.coordinator().resumeSession(session.sessionId()).message());
                                 } else {
-                                    screen.coordinator().pauseSession(session.sessionId());
+                                    EventLensNotices.action(
+                                            screen.coordinator().pauseSession(session.sessionId()).message());
                                 }
                                 screen.show(EventLensScreen.Tab.HOME);
                             })
                     .active = open || terminal;
             screen.action(frame.contentX() + viewW + pauseW + 12, row, stopW, "Stop", button -> {
-                screen.coordinator().stopSession(session.sessionId());
+                EventLensNotices.action(screen.coordinator().stopSession(session.sessionId()).message());
                 screen.show(EventLensScreen.Tab.HOME);
             }).active = open;
             row += 24;

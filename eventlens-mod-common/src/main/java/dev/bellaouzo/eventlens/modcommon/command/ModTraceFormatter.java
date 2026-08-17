@@ -5,6 +5,7 @@ import dev.bellaouzo.eventlens.modcommon.ModTraceResults;
 import dev.bellaouzo.eventlens.modcommon.SupportedModEventTypes;
 import dev.bellaouzo.eventlens.modcommon.chat.ModChatColor;
 import dev.bellaouzo.eventlens.modcommon.chat.ModChatLine;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -123,13 +124,7 @@ public final class ModTraceFormatter {
                                 "[Open session]",
                                 ModChatColor.AQUA,
                                 "/eventlens trace view " + result.sessionId(),
-                                "View the new session")
-                        .add("   ", ModChatColor.DARK_GRAY)
-                        .click(
-                                "[View previous]",
-                                ModChatColor.AQUA,
-                                "/eventlens trace view " + result.sourceSessionId(),
-                                "View the stopped session")
+                                "View the restarted session")
                         .build());
     }
 
@@ -137,17 +132,26 @@ public final class ModTraceFormatter {
         if (!result.success()) {
             return List.of(ModChatLine.text(result.message(), ModChatColor.RED));
         }
-        return List.of(
-                ModChatLine.text("Exported " + result.dispatchCount() + " dispatch(es).", ModChatColor.GREEN),
-                ModChatLine.blank(),
-                ModChatLine.text("Path", ModChatColor.GOLD),
-                ModChatLine.builder()
-                        .copy(result.path(), ModChatColor.AQUA, result.path(), "Click to copy export path")
-                        .build(),
-                ModChatLine.blank(),
-                ModChatLine.builder()
-                        .click("[Open session]", ModChatColor.AQUA, "/eventlens trace view " + result.sessionId(), "View this session")
-                        .build());
+        Path absolute = Path.of(result.path()).toAbsolutePath().normalize();
+        Path folder = absolute.getParent();
+        List<ModChatLine> lines = new ArrayList<>();
+        lines.add(ModChatLine.text("Exported " + result.dispatchCount() + " dispatch(es).", ModChatColor.GREEN));
+        lines.add(pathLine("Saved to", absolute.toString(), "Click to copy file path"));
+        if (folder != null) {
+            lines.add(pathLine("Folder", folder.toString(), "Click to copy folder path"));
+        }
+        lines.add(ModChatLine.blank());
+        lines.add(ModChatLine.builder()
+                .click("[Open session]", ModChatColor.AQUA, "/eventlens trace view " + result.sessionId(), "View this session")
+                .build());
+        return lines;
+    }
+
+    private static ModChatLine pathLine(String label, String path, String hoverText) {
+        return ModChatLine.builder()
+                .add(label + ": ", ModChatColor.GRAY)
+                .copy(path, ModChatColor.AQUA, path, hoverText)
+                .build();
     }
 
     public static List<ModChatLine> uiUnavailable() {
@@ -169,11 +173,11 @@ public final class ModTraceFormatter {
         return List.of(
                 ModChatLine.text("Trace commands", ModChatColor.GOLD),
                 ModChatLine.text("start <event>   begin recording", ModChatColor.WHITE),
-                ModChatLine.text("view <id>       open a session", ModChatColor.WHITE),
+                ModChatLine.text("view <id> [--run n]  open a session or earlier run", ModChatColor.WHITE),
                 ModChatLine.text("stop [id]       stop recording", ModChatColor.WHITE),
                 ModChatLine.text("pause [id]      keep the session, stop capture", ModChatColor.WHITE),
                 ModChatLine.text("resume [id]     start capturing again", ModChatColor.WHITE),
-                ModChatLine.text("restart <id>    new session with the same filters", ModChatColor.WHITE),
+                ModChatLine.text("restart <id>    reuse the same id; keep previous runs", ModChatColor.WHITE),
                 ModChatLine.text("list            all sessions", ModChatColor.WHITE),
                 ModChatLine.text("export [id]     write JSON", ModChatColor.WHITE));
     }

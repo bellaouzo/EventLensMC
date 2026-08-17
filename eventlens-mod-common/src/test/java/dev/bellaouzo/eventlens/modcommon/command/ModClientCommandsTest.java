@@ -1,5 +1,6 @@
 package dev.bellaouzo.eventlens.modcommon.command;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.bellaouzo.eventlens.application.TraceReportBuilder;
@@ -142,16 +143,39 @@ class ModClientCommandsTest {
     }
 
     @Test
-    void restartStoppedSessionCreatesNewId() {
+    void restartStoppedSessionReusesSameId() {
         ModClientCommands.execute(coordinator, "Dev", List.of("trace", "start", "ClientChatEvent"));
         String sessionId = coordinator.listSessions().getFirst().sessionId();
         ModClientCommands.execute(coordinator, "Dev", List.of("trace", "stop", sessionId));
         List<ModChatLine> restarted =
                 ModClientCommands.execute(coordinator, "Dev", List.of("trace", "restart", sessionId));
-        assertTrue(restarted.stream().anyMatch(line -> contains(line, "Restarted")));
+        assertTrue(restarted.stream().anyMatch(line -> contains(line, "RESTARTED")));
+        assertTrue(restarted.stream().anyMatch(line -> contains(line, sessionId)));
+        assertTrue(restarted.stream().anyMatch(line -> contains(line, "previous run kept")));
         assertTrue(restarted.stream().anyMatch(line -> contains(line, "[Open session]")));
+        assertEquals(sessionId, coordinator.listSessions().getFirst().sessionId());
+        assertTrue(coordinator.listSessions().getFirst().restarted());
+        assertEquals(2, coordinator.listGenerations(sessionId).size());
+        List<ModChatLine> previous = ModClientCommands.execute(
+                coordinator, "Dev", List.of("trace", "view", sessionId, "--run", "1"));
+        assertTrue(previous.stream().anyMatch(line -> contains(line, sessionId)));
+        assertTrue(ModClientTabCompleter.complete(coordinator, List.of("trace", "view", sessionId), "--r")
+                .contains("--run"));
+        ModClientCommands.execute(coordinator, "Dev", List.of("trace", "stop", sessionId));
         assertTrue(ModClientTabCompleter.complete(coordinator, List.of("trace", "restart"), sessionId.substring(0, 1))
                 .contains(sessionId));
+    }
+
+    @Test
+    void exportPathIsClickToCopy() {
+        ModClientCommands.execute(coordinator, "Dev", List.of("trace", "start", "ClientChatEvent"));
+        String sessionId = coordinator.listSessions().getFirst().sessionId();
+        List<ModChatLine> exported =
+                ModClientCommands.execute(coordinator, "Dev", List.of("trace", "export", sessionId));
+        assertTrue(exported.stream().anyMatch(line -> contains(line, "Saved to")));
+        assertTrue(exported.stream().anyMatch(line -> contains(line, "Folder")));
+        assertTrue(exported.stream().anyMatch(line -> line.spans().stream()
+                .anyMatch(span -> span.clickKind() == dev.bellaouzo.eventlens.modcommon.chat.ModChatClick.COPY)));
     }
 
     private static boolean contains(ModChatLine line, String text) {
