@@ -128,13 +128,7 @@ class TraceReportRedactorTest {
                 null,
                 new SessionConflictSummary(1, 0, "No conflicts detected.", Map.of(), List.of(), List.of()));
         TraceReportEnvironment environment = new TraceReportEnvironment(
-                "Paper test",
-                "25",
-                "Paper 26.2",
-                "0.1-SNAPSHOT",
-                "Paper 26.2",
-                Map.of("EventLens", "0.1-SNAPSHOT"),
-                3L);
+                "Paper test", "25", "Paper 26.2", "1.0.0", "Paper 26.2", Map.of("EventLens", "1.0.0"), 3L);
         TraceFilter filter =
                 TraceFilter.Builder.unrestricted().playerName("Steve").build();
         return new TraceReportDocument(

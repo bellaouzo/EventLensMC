@@ -1,0 +1,739 @@
+
+
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<style>/* cyrillic-ext */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("36e030d8-73a3-49f9-85f2-f866800499a1") format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* cyrillic */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("65f53b3e-fcfd-44a6-b8c8-2414f9e6f673") format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("d0aa2ecd-62b3-4f84-b449-7e99b897fabc") format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("2963b3ec-383c-445b-be6b-30613c9537c0") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("d709ae3c-5f12-454f-8944-394f47a55934") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* cyrillic-ext */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("bb3c993e-e567-4f83-bffb-ba140c00e5ae") format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* cyrillic */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("134f8d4b-1a8b-4e70-8486-5db617190955") format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("705c6b4b-934b-47a8-9a63-ca8394797541") format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("b92124ba-d102-40c1-8431-38a4368c1732") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("a7acb631-2a89-4273-a3e6-0a2a69a9e093") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* cyrillic-ext */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("3f569def-5b5d-4b54-8eb6-0d1cea633360") format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* cyrillic */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("eaeccdd2-0f82-4c56-bd7d-78f69dc9a1dd") format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("671b3ea1-f98b-4e6d-b0f3-1837e342a9d1") format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("aa0825b5-4092-45c9-b53f-38958856a1f9") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("61bc9249-f9e8-4176-9d1b-a288bd7e7593") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Sora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("5bbe1d7c-3611-4198-aa18-a5abfb02a170") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Sora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("147d3743-5ab9-4fae-b058-8215b908e61b") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Sora';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("5bbe1d7c-3611-4198-aa18-a5abfb02a170") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Sora';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("147d3743-5ab9-4fae-b058-8215b908e61b") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Sora';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("5bbe1d7c-3611-4198-aa18-a5abfb02a170") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Sora';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("147d3743-5ab9-4fae-b058-8215b908e61b") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Sora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("5bbe1d7c-3611-4198-aa18-a5abfb02a170") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Sora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("147d3743-5ab9-4fae-b058-8215b908e61b") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Sora';
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url("5bbe1d7c-3611-4198-aa18-a5abfb02a170") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Sora';
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url("147d3743-5ab9-4fae-b058-8215b908e61b") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+</style>
+<style>
+:root{
+  --canvas: oklch(16% 0.015 260);
+  --surface: oklch(20% 0.016 260);
+  --surface-raised: oklch(23% 0.017 260);
+  --surface-hover: oklch(27% 0.018 260);
+  --border-subtle: oklch(32% 0.016 260 / 0.55);
+  --border: oklch(38% 0.02 260);
+  --text-primary: oklch(95% 0.01 260);
+  --text-secondary: oklch(74% 0.015 260);
+  --text-muted: oklch(54% 0.016 260);
+  --accent: oklch(80% 0.15 75);
+  --accent-dim: oklch(58% 0.11 75);
+  --accent-soft: oklch(80% 0.15 75 / 0.16);
+  --ok: oklch(74% 0.15 150);
+  --ok-soft: oklch(74% 0.15 150 / 0.15);
+  --warn: oklch(77% 0.16 60);
+  --warn-soft: oklch(77% 0.16 60 / 0.16);
+  --crit: oklch(64% 0.21 24);
+  --crit-soft: oklch(64% 0.21 24 / 0.17);
+  --info: oklch(76% 0.1 220);
+  --space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--space-5:20px;--space-6:24px;--space-8:32px;
+  --radius-sm:6px;--radius-md:8px;--radius-lg:12px;--radius-pill:999px;
+  --font-ui:'Sora',sans-serif;
+  --font-mono:'IBM Plex Mono',monospace;
+}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--canvas);}
+a{color:var(--accent);}
+a:hover{color:var(--accent-dim);}
+::selection{background:var(--accent-soft);}
+</style>
+</helmet>
+
+<div style="display:grid;grid-template-columns:232px 1fr;min-height:100vh;background:var(--canvas);color:var(--text-primary);font-family:var(--font-ui);">
+
+  <div style="display:flex;flex-direction:column;padding:var(--space-5) var(--space-3);border-right:1px solid var(--border-subtle);gap:var(--space-6);">
+    <div style="display:flex;align-items:center;gap:var(--space-2);padding:0 var(--space-2) var(--space-4);border-bottom:1px solid var(--border-subtle);">
+      <div style="width:28px;height:28px;border-radius:var(--radius-sm);background:var(--accent-soft);border:1px solid var(--accent-dim);display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:12px;font-weight:600;color:var(--accent);">EL</div>
+      <div style="display:flex;flex-direction:column;">
+        <div style="font-size:14px;font-weight:700;letter-spacing:-0.01em;">EventLens</div>
+        <div style="font-size:9.5px;color:var(--text-muted);font-family:var(--font-mono);letter-spacing:.06em;">DIAGNOSTICS</div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:2px;">
+      <div style="{{ navOverview.btn }}" sc-camel-on-click="{{ goOverview }}">
+        <svg width="16" height="16" sc-camel-view-box="0 0 16 16" style="{{ navOverview.icon }}"><rect x="1" y="1" width="6" height="6" rx="1.2" fill="currentColor"></rect><rect x="9" y="1" width="6" height="6" rx="1.2" fill="currentColor"></rect><rect x="1" y="9" width="6" height="6" rx="1.2" fill="currentColor"></rect><rect x="9" y="9" width="6" height="6" rx="1.2" fill="currentColor"></rect></svg>
+        <span style="{{ navOverview.label }}">Overview</span>
+      </div>
+      <div style="{{ navTimeline.btn }}" sc-camel-on-click="{{ goTimeline }}">
+        <svg width="16" height="16" sc-camel-view-box="0 0 16 16" style="{{ navTimeline.icon }}"><line x1="1" y1="4" x2="15" y2="4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></line><line x1="1" y1="8" x2="10" y2="8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></line><line x1="1" y1="12" x2="13" y2="12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></line></svg>
+        <span style="{{ navTimeline.label }}">Timeline</span>
+      </div>
+      <div style="{{ navFlame.btn }}" sc-camel-on-click="{{ goFlame }}">
+        <svg width="16" height="16" sc-camel-view-box="0 0 16 16" style="{{ navFlame.icon }}"><rect x="1" y="10" width="3" height="5" fill="currentColor"></rect><rect x="6.5" y="6" width="3" height="9" fill="currentColor"></rect><rect x="12" y="2" width="3" height="13" fill="currentColor"></rect></svg>
+        <span style="{{ navFlame.label }}">Flame graph</span>
+      </div>
+      <div style="{{ navEventGraph.btn }}" sc-camel-on-click="{{ goEventGraph }}">
+        <svg width="16" height="16" sc-camel-view-box="0 0 16 16" style="{{ navEventGraph.icon }}"><line x1="3" y1="13" x2="8" y2="3" stroke="currentColor" stroke-width="1.3"></line><line x1="13" y1="13" x2="8" y2="3" stroke="currentColor" stroke-width="1.3"></line><line x1="3" y1="13" x2="13" y2="13" stroke="currentColor" stroke-width="1.3"></line><circle cx="3" cy="13" r="1.8" fill="currentColor"></circle><circle cx="13" cy="13" r="1.8" fill="currentColor"></circle><circle cx="8" cy="3" r="1.8" fill="currentColor"></circle></svg>
+        <span style="{{ navEventGraph.label }}">Event graph</span>
+      </div>
+      <div style="{{ navPluginGraph.btn }}" sc-camel-on-click="{{ goPluginGraph }}">
+        <svg width="16" height="16" sc-camel-view-box="0 0 16 16" style="{{ navPluginGraph.icon }}"><line x1="2" y1="8" x2="8" y2="3" stroke="currentColor" stroke-width="1.3"></line><line x1="2" y1="8" x2="8" y2="13" stroke="currentColor" stroke-width="1.3"></line><line x1="8" y1="3" x2="14" y2="8" stroke="currentColor" stroke-width="1.3"></line><line x1="8" y1="13" x2="14" y2="8" stroke="currentColor" stroke-width="1.3"></line><circle cx="2" cy="8" r="1.6" fill="currentColor"></circle><circle cx="8" cy="3" r="1.6" fill="currentColor"></circle><circle cx="8" cy="13" r="1.6" fill="currentColor"></circle><circle cx="14" cy="8" r="1.6" fill="currentColor"></circle></svg>
+        <span style="{{ navPluginGraph.label }}">Plugin graph</span>
+      </div>
+    </div>
+
+    <div style="margin-top:auto;display:flex;flex-direction:column;gap:2px;">
+      <div style="{{ navTokens.btn }}" sc-camel-on-click="{{ goTokens }}">
+        <svg width="16" height="16" sc-camel-view-box="0 0 16 16" style="{{ navTokens.icon }}"><circle cx="5" cy="5" r="4" fill="currentColor"></circle><circle cx="11" cy="5" r="4" fill="currentColor" opacity=".55"></circle><circle cx="8" cy="11" r="4" fill="currentColor" opacity=".3"></circle></svg>
+        <span style="{{ navTokens.label }}">Design system</span>
+      </div>
+      <div style="padding:var(--space-3) var(--space-2) 0;font-family:var(--font-mono);font-size:10px;color:var(--text-muted);border-top:1px solid var(--border-subtle);margin-top:var(--space-2);">Paper 1.21.4<br>agent v2.3.1</div>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;min-width:0;">
+
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:var(--space-3) var(--space-6);border-bottom:1px solid var(--border-subtle);gap:var(--space-4);flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:var(--space-4);flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span style="width:7px;height:7px;border-radius:50%;background:var(--ok);display:inline-block;animation:pulse 1.6s ease-in-out infinite;"></span>
+          <span style="font-family:var(--font-mono);font-size:11px;color:var(--ok);font-weight:600;letter-spacing:.03em;">LIVE</span>
+          <span style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted);">· refreshes every 2s</span>
+        </div>
+        <div style="width:1px;height:14px;background:var(--border-subtle);"></div>
+        <div style="font-family:var(--font-mono);font-size:12px;color:var(--text-secondary);">session <span style="color:var(--text-primary);">sess_8f21ac</span></div>
+        <div style="font-family:var(--font-mono);font-size:12px;color:var(--text-secondary);">world <span style="color:var(--text-primary);">painteria</span> · survival · 7 players</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:var(--space-4);">
+        <div style="font-family:var(--font-mono);font-size:12px;color:var(--text-secondary);">TPS <span style="color:var(--ok);font-weight:600;">19.8</span></div>
+        <div style="font-family:var(--font-mono);font-size:12px;color:var(--text-secondary);">tick budget <span style="color:var(--text-primary);">50ms</span></div>
+        <div style="font-family:var(--font-mono);font-size:10px;padding:3px 8px;border-radius:var(--radius-pill);background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent-dim);">agent v2.3.1</div>
+      </div>
+    </div>
+
+    <div style="padding:var(--space-6);overflow-x:auto;overflow-y:auto;flex:1;min-width:0;">
+
+      <sc-if value="{{ isOverview }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;flex-direction:column;gap:var(--space-6);">
+          <div>
+            <div style="font-size:20px;font-weight:700;letter-spacing:-0.01em;">Overview</div>
+            <div style="font-size:13px;color:var(--text-secondary);margin-top:2px;">Session-wide listener activity across all traced event types.</div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:var(--space-4);">
+            <div style="background:var(--surface);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:var(--space-4);">
+              <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;">Session uptime</div>
+              <div style="font-family:var(--font-mono);font-size:24px;font-weight:600;margin-top:6px;">41m 12s</div>
+            </div>
+            <div style="background:var(--surface);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:var(--space-4);">
+              <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;">Events traced</div>
+              <div style="font-family:var(--font-mono);font-size:24px;font-weight:600;margin-top:6px;">18,304</div>
+            </div>
+            <div style="background:var(--surface);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:var(--space-4);">
+              <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;">Listeners invoked</div>
+              <div style="font-family:var(--font-mono);font-size:24px;font-weight:600;margin-top:6px;">92,655</div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">avg 5.1 / event</div>
+            </div>
+            <div style="background:var(--surface);border:1px solid var(--crit);border-radius:var(--radius-lg);padding:var(--space-4);">
+              <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;">Flagged listeners</div>
+              <div style="font-family:var(--font-mono);font-size:24px;font-weight:600;margin-top:6px;color:var(--crit);">3</div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">warn or critical this session</div>
+            </div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:var(--space-5);">
+<div style="min-width:0;background:var(--surface);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);">
+              <div style="padding:var(--space-3) var(--space-4);border-bottom:1px solid var(--border-subtle);font-size:13px;font-weight:600;">Top offenders</div>
+              <div style="min-width:0;display:grid;grid-template-columns:minmax(90px,1.3fr) minmax(110px,1.5fr) minmax(0,.6fr) minmax(0,.6fr) minmax(70px,.8fr);gap:8px;padding:8px var(--space-4);font-size:10.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;">
+                <div>Plugin</div><div>Event</div><div>Time</div><div>% tick</div><div>Status</div>
+              </div>
+              <div style="display:grid;grid-template-columns:minmax(90px,1.3fr) minmax(110px,1.5fr) minmax(0,.6fr) minmax(0,.6fr) minmax(70px,.8fr);gap:8px;padding:10px var(--space-4);border-top:1px solid var(--border-subtle);align-items:center;">
+                <div style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;font-weight:600;">WorldGuard</div><div style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--font-mono);font-size:12px;color:var(--text-secondary);">BlockBreakEvent</div><div style="font-family:var(--font-mono);font-size:12px;">8.40ms</div><div style="font-family:var(--font-mono);font-size:12px;color:var(--crit);">16.8%</div>
+                <div><span style="font-family:var(--font-mono);font-size:10px;padding:2px 8px;border-radius:var(--radius-pill);background:var(--crit-soft);color:var(--crit);border:1px solid var(--crit);white-space:nowrap;">critical</span></div>
+              </div>
+              <div style="display:grid;grid-template-columns:minmax(90px,1.3fr) minmax(110px,1.5fr) minmax(0,.6fr) minmax(0,.6fr) minmax(70px,.8fr);gap:8px;padding:10px var(--space-4);border-top:1px solid var(--border-subtle);align-items:center;">
+                <div style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;font-weight:600;">mcMMO</div><div style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--font-mono);font-size:12px;color:var(--text-secondary);">EntityDamageEvent</div><div style="font-family:var(--font-mono);font-size:12px;">5.90ms</div><div style="font-family:var(--font-mono);font-size:12px;color:var(--warn);">11.8%</div>
+                <div><span style="font-family:var(--font-mono);font-size:10px;padding:2px 8px;border-radius:var(--radius-pill);background:var(--warn-soft);color:var(--warn);border:1px solid var(--warn);white-space:nowrap;">warn</span></div>
+              </div>
+              <div style="display:grid;grid-template-columns:minmax(90px,1.3fr) minmax(110px,1.5fr) minmax(0,.6fr) minmax(0,.6fr) minmax(70px,.8fr);gap:8px;padding:10px var(--space-4);border-top:1px solid var(--border-subtle);align-items:center;">
+                <div style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;font-weight:600;">WorldGuard</div><div style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--font-mono);font-size:12px;color:var(--text-secondary);">PlayerMoveEvent</div><div style="font-family:var(--font-mono);font-size:12px;">3.40ms</div><div style="font-family:var(--font-mono);font-size:12px;color:var(--warn);">6.8%</div>
+                <div><span style="font-family:var(--font-mono);font-size:10px;padding:2px 8px;border-radius:var(--radius-pill);background:var(--warn-soft);color:var(--warn);border:1px solid var(--warn);white-space:nowrap;">warn</span></div>
+              </div>
+              <div style="display:grid;grid-template-columns:minmax(90px,1.3fr) minmax(110px,1.5fr) minmax(0,.6fr) minmax(0,.6fr) minmax(70px,.8fr);gap:8px;padding:10px var(--space-4);border-top:1px solid var(--border-subtle);align-items:center;">
+                <div style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;font-weight:600;">GriefPrevention</div><div style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--font-mono);font-size:12px;color:var(--text-secondary);">BlockBreakEvent</div><div style="font-family:var(--font-mono);font-size:12px;">0.60ms</div><div style="font-family:var(--font-mono);font-size:12px;color:var(--ok);">1.2%</div>
+                <div><span style="font-family:var(--font-mono);font-size:10px;padding:2px 8px;border-radius:var(--radius-pill);background:var(--ok-soft);color:var(--ok);border:1px solid var(--ok);white-space:nowrap;">ok</span></div>
+              </div>
+              <div style="display:grid;grid-template-columns:minmax(90px,1.3fr) minmax(110px,1.5fr) minmax(0,.6fr) minmax(0,.6fr) minmax(70px,.8fr);gap:8px;padding:10px var(--space-4);border-top:1px solid var(--border-subtle);align-items:center;">
+                <div style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;font-weight:600;">CoreProtect</div><div style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--font-mono);font-size:12px;color:var(--text-secondary);">BlockBreakEvent</div><div style="font-family:var(--font-mono);font-size:12px;">0.30ms</div><div style="font-family:var(--font-mono);font-size:12px;color:var(--ok);">0.6%</div>
+                <div><span style="font-family:var(--font-mono);font-size:10px;padding:2px 8px;border-radius:var(--radius-pill);background:var(--ok-soft);color:var(--ok);border:1px solid var(--ok);white-space:nowrap;">ok</span></div>
+              </div>
+            </div>
+
+<div style="min-width:0;background:var(--surface);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);">
+              <div style="padding:var(--space-3) var(--space-4);border-bottom:1px solid var(--border-subtle);font-size:13px;font-weight:600;">Recent trace feed</div>
+              <div style="display:flex;flex-direction:column;">
+                <div style="display:flex;justify-content:space-between;gap:var(--space-2);padding:9px var(--space-4);border-top:1px solid var(--border-subtle);">
+                  <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted);">14:22:31.402</div>
+                  <div style="font-size:12px;flex:1;padding:0 var(--space-2);">BlockBreakEvent <span style="color:var(--text-muted);font-family:var(--font-mono);font-size:11px;">stone</span></div>
+                  <div style="font-family:var(--font-mono);font-size:11px;color:var(--crit);">11.07ms</div>
+                </div>
+                <div style="display:flex;justify-content:space-between;gap:var(--space-2);padding:9px var(--space-4);border-top:1px solid var(--border-subtle);">
+                  <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted);">14:22:31.180</div>
+                  <div style="font-size:12px;flex:1;padding:0 var(--space-2);">PlayerMoveEvent</div>
+                  <div style="font-family:var(--font-mono);font-size:11px;color:var(--ok);">1.40ms</div>
+                </div>
+                <div style="display:flex;justify-content:space-between;gap:var(--space-2);padding:9px var(--space-4);border-top:1px solid var(--border-subtle);">
+                  <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted);">14:22:30.998</div>
+                  <div style="font-size:12px;flex:1;padding:0 var(--space-2);">EntityDamageEvent <span style="color:var(--text-muted);font-family:var(--font-mono);font-size:11px;">zombie</span></div>
+                  <div style="font-family:var(--font-mono);font-size:11px;color:var(--warn);">6.70ms</div>
+                </div>
+                <div style="display:flex;justify-content:space-between;gap:var(--space-2);padding:9px var(--space-4);border-top:1px solid var(--border-subtle);">
+                  <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted);">14:22:30.640</div>
+                  <div style="font-size:12px;flex:1;padding:0 var(--space-2);">BlockBreakEvent <span style="color:var(--text-muted);font-family:var(--font-mono);font-size:11px;">oak_log</span></div>
+                  <div style="font-family:var(--font-mono);font-size:11px;color:var(--ok);">2.10ms</div>
+                </div>
+                <div style="display:flex;justify-content:space-between;gap:var(--space-2);padding:9px var(--space-4);border-top:1px solid var(--border-subtle);">
+                  <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted);">14:22:29.884</div>
+                  <div style="font-size:12px;flex:1;padding:0 var(--space-2);">BlockBreakEvent <span style="color:var(--text-muted);font-family:var(--font-mono);font-size:11px;">diamond_ore</span></div>
+                  <div style="font-family:var(--font-mono);font-size:11px;color:var(--crit);">10.90ms</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isTimeline }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:var(--space-5);">
+          <div>
+            <div style="font-size:20px;font-weight:700;letter-spacing:-0.01em;">Timeline</div>
+            <div style="font-size:13px;color:var(--text-secondary);margin-top:2px;font-family:var(--font-mono);">BlockBreakEvent · stone @ 182,64,-40 · tick #184223 · total <span style="color:var(--crit);">11.07ms (22.1% of tick budget)</span></div>
+          </div>
+
+          <div style="background:var(--surface);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:var(--space-5);">
+            <div style="display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:10.5px;color:var(--text-muted);padding-bottom:6px;border-bottom:1px solid var(--border-subtle);margin-bottom:var(--space-4);">
+              <span>0ms</span><span>2ms</span><span>4ms</span><span>6ms</span><span>8ms</span><span>10ms</span><span>12ms</span>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:var(--space-4);">
+              <div>
+                <div style="font-size:10.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Lowest</div>
+                <div style="position:relative;height:30px;background:var(--surface-raised);border-radius:var(--radius-sm);">
+                  <div style="position:absolute;left:0%;width:2.5%;top:0;bottom:0;background:var(--ok-soft);border:1px solid var(--ok);border-radius:var(--radius-sm);"></div>
+                  <span style="position:absolute;left:calc(2.5% + 6px);top:0;bottom:0;display:flex;align-items:center;font-family:var(--font-mono);font-size:10px;color:var(--ok);white-space:nowrap;">CoreProtect 0.30ms</span>
+                </div>
+              </div>
+              <div>
+                <div style="font-size:10.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Low</div>
+                <div style="position:relative;height:30px;background:var(--surface-raised);border-radius:var(--radius-sm);">
+                  <div style="position:absolute;left:2.5%;width:5%;top:0;bottom:0;background:var(--ok-soft);border:1px solid var(--ok);border-radius:var(--radius-sm);"></div>
+                  <span style="position:absolute;left:calc(7.5% + 6px);top:0;bottom:0;display:flex;align-items:center;font-family:var(--font-mono);font-size:10px;color:var(--ok);white-space:nowrap;">GriefPrevention 0.60ms</span>
+                </div>
+              </div>
+              <div>
+                <div style="font-size:10.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Normal</div>
+                <div style="position:relative;height:30px;background:var(--surface-raised);border-radius:var(--radius-sm);">
+                  <div style="position:absolute;left:7.5%;width:.8%;top:0;bottom:0;background:var(--ok-soft);border:1px solid var(--ok);border-radius:2px;"></div>
+                  <div style="position:absolute;left:8.3%;width:70%;top:0;bottom:0;background:var(--crit-soft);border:1.5px solid var(--crit);border-radius:var(--radius-sm);display:flex;align-items:center;padding-left:8px;overflow:hidden;white-space:nowrap;box-shadow:0 0 0 3px var(--crit-soft);">
+                    <span style="font-family:var(--font-mono);font-size:11px;color:var(--crit);font-weight:600;">WorldGuard 8.40ms · flagged</span>
+                  </div>
+                </div>
+                <div style="font-size:10px;color:var(--text-muted);margin-top:3px;font-family:var(--font-mono);">LuckPerms 0.10ms sits under the WorldGuard bar (left edge)</div>
+              </div>
+              <div>
+                <div style="font-size:10.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">High</div>
+                <div style="position:relative;height:30px;background:var(--surface-raised);border-radius:var(--radius-sm);">
+                  <div style="position:absolute;left:78.3%;width:3.3%;top:0;bottom:0;background:var(--ok-soft);border:1px solid var(--ok);border-radius:2px;"></div>
+                  <div style="position:absolute;left:81.7%;width:10%;top:0;bottom:0;background:var(--ok-soft);border:1px solid var(--ok);border-radius:var(--radius-sm);display:flex;align-items:center;padding-left:6px;overflow:hidden;white-space:nowrap;">
+                    <span style="font-family:var(--font-mono);font-size:10px;color:var(--ok);">mcMMO 1.20ms</span>
+                  </div>
+                </div>
+                <div style="font-size:10px;color:var(--text-muted);margin-top:3px;font-family:var(--font-mono);">EssentialsX 0.40ms sits just left of mcMMO</div>
+              </div>
+              <div>
+                <div style="font-size:10.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Monitor</div>
+                <div style="position:relative;height:30px;background:var(--surface-raised);border-radius:var(--radius-sm);">
+                  <div style="position:absolute;left:91.7%;width:.6%;top:0;bottom:0;background:var(--info);border-radius:2px;opacity:.7;"></div>
+                </div>
+                <div style="font-size:10px;color:var(--text-muted);margin-top:3px;font-family:var(--font-mono);">Vault 0.05ms, EventLens agent 0.02ms (read-only observers)</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isFlame }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:var(--space-5);">
+          <div>
+            <div style="font-size:20px;font-weight:700;letter-spacing:-0.01em;">Flame graph</div>
+            <div style="font-size:13px;color:var(--text-secondary);margin-top:2px;font-family:var(--font-mono);">Call stack for the same trace · widths scaled to 11.07ms</div>
+          </div>
+
+          <div style="background:var(--surface);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:var(--space-5);">
+            <div style="display:flex;flex-direction:column;gap:3px;">
+              <div style="position:relative;height:38px;">
+                <div style="position:absolute;left:0;width:100%;top:0;bottom:0;background:var(--accent-soft);border:1px solid var(--accent-dim);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;">
+                  <span style="font-family:var(--font-mono);font-size:12px;font-weight:600;color:var(--accent);">BlockBreakEvent · 11.07ms · 100%</span>
+                </div>
+              </div>
+
+              <div style="position:relative;height:38px;">
+                <div style="position:absolute;left:0%;width:2.5%;top:0;bottom:0;background:var(--ok-soft);border:1px solid var(--ok);border-radius:2px;"></div>
+                <div style="position:absolute;left:2.5%;width:5%;top:0;bottom:0;background:var(--ok-soft);border:1px solid var(--ok);border-radius:2px;"></div>
+                <div style="position:absolute;left:7.5%;width:.8%;top:0;bottom:0;background:var(--ok-soft);border:1px solid var(--ok);border-radius:2px;"></div>
+                <div style="position:absolute;left:8.3%;width:70%;top:0;bottom:0;background:var(--crit-soft);border:1.5px solid var(--crit);border-radius:2px;display:flex;align-items:center;justify-content:center;overflow:hidden;">
+                  <span style="font-family:var(--font-mono);font-size:11px;font-weight:600;color:var(--crit);">WorldGuard · 8.40ms</span>
+                </div>
+                <div style="position:absolute;left:78.3%;width:3.3%;top:0;bottom:0;background:var(--ok-soft);border:1px solid var(--ok);border-radius:2px;"></div>
+                <div style="position:absolute;left:81.7%;width:10%;top:0;bottom:0;background:var(--ok-soft);border:1px solid var(--ok);border-radius:2px;display:flex;align-items:center;justify-content:center;overflow:hidden;">
+                  <span style="font-family:var(--font-mono);font-size:10px;color:var(--ok);">mcMMO</span>
+                </div>
+                <div style="position:absolute;left:91.7%;width:.4%;top:0;bottom:0;background:var(--info);border-radius:2px;opacity:.7;"></div>
+                <div style="position:absolute;left:92.1%;width:.2%;top:0;bottom:0;background:var(--info);border-radius:2px;opacity:.5;"></div>
+              </div>
+
+              <div style="position:relative;height:38px;">
+                <div style="position:absolute;left:8.3%;width:25.83%;top:0;bottom:0;background:var(--surface-raised);border:1px solid var(--crit);border-radius:2px;display:flex;align-items:center;justify-content:center;overflow:hidden;">
+                  <span style="font-family:var(--font-mono);font-size:9.5px;color:var(--text-secondary);">regionQuery lookup 3.10ms</span>
+                </div>
+                <div style="position:absolute;left:34.13%;width:23.33%;top:0;bottom:0;background:var(--surface-raised);border:1px solid var(--crit);border-radius:2px;display:flex;align-items:center;justify-content:center;overflow:hidden;">
+                  <span style="font-family:var(--font-mono);font-size:9.5px;color:var(--text-secondary);">flag permission check 2.80ms</span>
+                </div>
+                <div style="position:absolute;left:57.46%;width:20.83%;top:0;bottom:0;background:var(--surface-raised);border:1px solid var(--crit);border-radius:2px;display:flex;align-items:center;justify-content:center;overflow:hidden;">
+                  <span style="font-family:var(--font-mono);font-size:9.5px;color:var(--text-secondary);">cache miss → disk read 2.50ms</span>
+                </div>
+                <div style="position:absolute;left:81.7%;width:7.5%;top:0;bottom:0;background:var(--surface-raised);border:1px solid var(--ok);border-radius:2px;display:flex;align-items:center;justify-content:center;overflow:hidden;">
+                  <span style="font-family:var(--font-mono);font-size:9px;color:var(--text-secondary);">xp calc</span>
+                </div>
+                <div style="position:absolute;left:89.2%;width:2.5%;top:0;bottom:0;background:var(--surface-raised);border:1px solid var(--ok);border-radius:2px;"></div>
+              </div>
+            </div>
+            <div style="display:flex;gap:var(--space-5);margin-top:var(--space-5);padding-top:var(--space-4);border-top:1px solid var(--border-subtle);font-size:11px;color:var(--text-secondary);">
+              <div>WorldGuard's <span style="color:var(--crit);font-family:var(--font-mono);">8.40ms</span> is dominated by a region query cache miss falling through to disk.</div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isEventGraph }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:var(--space-5);">
+          <div>
+            <div style="font-size:20px;font-weight:700;letter-spacing:-0.01em;">Event graph</div>
+            <div style="font-size:13px;color:var(--text-secondary);margin-top:2px;">Cascades observed downstream of BlockBreakEvent this session. Node size = frequency.</div>
+          </div>
+          <div style="background:var(--surface);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:var(--space-5);overflow-x:auto;">
+            <div style="position:relative;width:960px;height:420px;flex-shrink:0;">
+              <svg width="960" height="420" style="position:absolute;left:0;top:0;">
+                <line x1="90" y1="220" x2="340" y2="90" stroke="var(--accent-dim)" stroke-width="2"></line>
+                <line x1="90" y1="220" x2="340" y2="220" stroke="var(--border)" stroke-width="1.5"></line>
+                <line x1="90" y1="220" x2="340" y2="350" stroke="var(--border)" stroke-width="1.5"></line>
+                <line x1="340" y1="90" x2="600" y2="90" stroke="var(--accent-dim)" stroke-width="2"></line>
+                <line x1="600" y1="90" x2="860" y2="90" stroke="var(--accent-dim)" stroke-width="2"></line>
+              </svg>
+              <div style="position:absolute;left:20px;top:190px;width:140px;padding:10px;background:var(--accent-soft);border:1.5px solid var(--accent);border-radius:var(--radius-md);text-align:center;">
+                <div style="font-size:12px;font-weight:700;">BlockBreakEvent</div>
+                <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-secondary);margin-top:3px;">18,304 / session</div>
+              </div>
+              <div style="position:absolute;left:270px;top:60px;width:140px;padding:10px;background:var(--surface-raised);border:1px solid var(--border);border-radius:var(--radius-md);text-align:center;">
+                <div style="font-size:12px;font-weight:600;">BlockDropItemEvent</div>
+                <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-secondary);margin-top:3px;">17,890 · drops item</div>
+              </div>
+              <div style="position:absolute;left:270px;top:190px;width:140px;padding:10px;background:var(--surface-raised);border:1px solid var(--border);border-radius:var(--radius-md);text-align:center;">
+                <div style="font-size:12px;font-weight:600;">BlockPhysicsEvent</div>
+                <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-secondary);margin-top:3px;">6,120 · neighbor update</div>
+              </div>
+              <div style="position:absolute;left:270px;top:320px;width:140px;padding:10px;background:var(--surface-raised);border:1px solid var(--border);border-radius:var(--radius-md);text-align:center;">
+                <div style="font-size:12px;font-weight:600;">PlayerExpChangeEvent</div>
+                <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-secondary);margin-top:3px;">2,240 · ore XP</div>
+              </div>
+              <div style="position:absolute;left:530px;top:60px;width:140px;padding:10px;background:var(--surface-raised);border:1px solid var(--border);border-radius:var(--radius-md);text-align:center;">
+                <div style="font-size:12px;font-weight:600;">ItemSpawnEvent</div>
+                <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-secondary);margin-top:3px;">17,890 · spawns entity</div>
+              </div>
+              <div style="position:absolute;left:790px;top:60px;width:140px;padding:10px;background:var(--surface-raised);border:1px solid var(--border);border-radius:var(--radius-md);text-align:center;">
+                <div style="font-size:12px;font-weight:600;">EntityPickupItemEvent</div>
+                <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-secondary);margin-top:3px;">12,004 · auto-pickup ~67%</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isPluginGraph }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:var(--space-5);">
+          <div>
+            <div style="font-size:20px;font-weight:700;letter-spacing:-0.01em;">Plugin graph</div>
+            <div style="font-size:13px;color:var(--text-secondary);margin-top:2px;">Execution order for this trace, grouped by listener priority. Node color = severity.</div>
+          </div>
+          <div style="background:var(--surface);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:var(--space-5);">
+            <div style="display:grid;grid-template-columns:1fr 24px 1fr 24px 1fr 24px 1fr 24px 1fr;align-items:center;">
+              <div style="display:flex;flex-direction:column;gap:10px;">
+                <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-muted);text-align:center;text-transform:uppercase;letter-spacing:.06em;">Lowest</div>
+                <div style="background:var(--surface-raised);border:1px solid var(--ok);border-radius:var(--radius-md);padding:10px;text-align:center;">
+                  <div style="font-size:12px;font-weight:600;">CoreProtect</div>
+                  <div style="font-family:var(--font-mono);font-size:13px;color:var(--ok);margin-top:4px;">0.30ms</div>
+                  <div style="font-size:10px;color:var(--text-muted);">0.6% tick</div>
+                </div>
+              </div>
+              <div style="text-align:center;color:var(--text-muted);font-size:16px;">›</div>
+              <div style="display:flex;flex-direction:column;gap:10px;">
+                <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-muted);text-align:center;text-transform:uppercase;letter-spacing:.06em;">Low</div>
+                <div style="background:var(--surface-raised);border:1px solid var(--ok);border-radius:var(--radius-md);padding:10px;text-align:center;">
+                  <div style="font-size:12px;font-weight:600;">GriefPrevention</div>
+                  <div style="font-family:var(--font-mono);font-size:13px;color:var(--ok);margin-top:4px;">0.60ms</div>
+                  <div style="font-size:10px;color:var(--text-muted);">1.2% tick</div>
+                </div>
+              </div>
+              <div style="text-align:center;color:var(--text-muted);font-size:16px;">›</div>
+              <div style="display:flex;flex-direction:column;gap:10px;">
+                <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-muted);text-align:center;text-transform:uppercase;letter-spacing:.06em;">Normal</div>
+                <div style="background:var(--surface-raised);border:1px solid var(--ok);border-radius:var(--radius-md);padding:10px;text-align:center;">
+                  <div style="font-size:12px;font-weight:600;">LuckPerms</div>
+                  <div style="font-family:var(--font-mono);font-size:13px;color:var(--ok);margin-top:4px;">0.10ms</div>
+                  <div style="font-size:10px;color:var(--text-muted);">0.2% tick</div>
+                </div>
+                <div style="background:var(--crit-soft);border:1.5px solid var(--crit);border-radius:var(--radius-md);padding:10px;text-align:center;box-shadow:0 0 0 3px var(--crit-soft);">
+                  <div style="font-size:12px;font-weight:700;">WorldGuard</div>
+                  <div style="font-family:var(--font-mono);font-size:13px;color:var(--crit);font-weight:700;margin-top:4px;">8.40ms</div>
+                  <div style="font-size:10px;color:var(--crit);">16.8% tick · flagged</div>
+                </div>
+              </div>
+              <div style="text-align:center;color:var(--text-muted);font-size:16px;">›</div>
+              <div style="display:flex;flex-direction:column;gap:10px;">
+                <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-muted);text-align:center;text-transform:uppercase;letter-spacing:.06em;">High</div>
+                <div style="background:var(--surface-raised);border:1px solid var(--ok);border-radius:var(--radius-md);padding:10px;text-align:center;">
+                  <div style="font-size:12px;font-weight:600;">EssentialsX</div>
+                  <div style="font-family:var(--font-mono);font-size:13px;color:var(--ok);margin-top:4px;">0.40ms</div>
+                  <div style="font-size:10px;color:var(--text-muted);">0.8% tick</div>
+                </div>
+                <div style="background:var(--surface-raised);border:1px solid var(--ok);border-radius:var(--radius-md);padding:10px;text-align:center;">
+                  <div style="font-size:12px;font-weight:600;">mcMMO</div>
+                  <div style="font-family:var(--font-mono);font-size:13px;color:var(--ok);margin-top:4px;">1.20ms</div>
+                  <div style="font-size:10px;color:var(--text-muted);">2.4% tick</div>
+                </div>
+              </div>
+              <div style="text-align:center;color:var(--text-muted);font-size:16px;">›</div>
+              <div style="display:flex;flex-direction:column;gap:10px;">
+                <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-muted);text-align:center;text-transform:uppercase;letter-spacing:.06em;">Monitor</div>
+                <div style="background:var(--surface-raised);border:1px solid var(--info);border-radius:var(--radius-md);padding:10px;text-align:center;">
+                  <div style="font-size:12px;font-weight:600;">Vault</div>
+                  <div style="font-family:var(--font-mono);font-size:13px;color:var(--info);margin-top:4px;">0.05ms</div>
+                  <div style="font-size:10px;color:var(--text-muted);">read-only</div>
+                </div>
+                <div style="background:var(--surface-raised);border:1px solid var(--info);border-radius:var(--radius-md);padding:10px;text-align:center;">
+                  <div style="font-size:12px;font-weight:600;">EventLens</div>
+                  <div style="font-family:var(--font-mono);font-size:13px;color:var(--info);margin-top:4px;">0.02ms</div>
+                  <div style="font-size:10px;color:var(--text-muted);">profiler overhead</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isTokens }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:var(--space-6);max-width:1100px;">
+          <div>
+            <div style="font-size:20px;font-weight:700;letter-spacing:-0.01em;">Design tokens &amp; components</div>
+            <div style="font-size:13px;color:var(--text-secondary);margin-top:2px;">Sora for UI chrome, IBM Plex Mono for data. Amber accent reserved for selection and emphasis only.</div>
+          </div>
+
+          <div>
+            <div style="font-size:12px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.06em;margin-bottom:var(--space-3);">Color</div>
+            <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:var(--space-3);">
+              <div><div style="height:56px;border-radius:var(--radius-md);background:var(--canvas);border:1px solid var(--border-subtle);"></div><div style="font-family:var(--font-mono);font-size:10px;margin-top:4px;color:var(--text-secondary);">--canvas</div></div>
+              <div><div style="height:56px;border-radius:var(--radius-md);background:var(--surface);border:1px solid var(--border-subtle);"></div><div style="font-family:var(--font-mono);font-size:10px;margin-top:4px;color:var(--text-secondary);">--surface</div></div>
+              <div><div style="height:56px;border-radius:var(--radius-md);background:var(--surface-raised);border:1px solid var(--border-subtle);"></div><div style="font-family:var(--font-mono);font-size:10px;margin-top:4px;color:var(--text-secondary);">--surface-raised</div></div>
+              <div><div style="height:56px;border-radius:var(--radius-md);background:var(--accent);"></div><div style="font-family:var(--font-mono);font-size:10px;margin-top:4px;color:var(--text-secondary);">--accent</div></div>
+              <div><div style="height:56px;border-radius:var(--radius-md);background:var(--text-primary);"></div><div style="font-family:var(--font-mono);font-size:10px;margin-top:4px;color:var(--text-secondary);">--text-primary</div></div>
+              <div><div style="height:56px;border-radius:var(--radius-md);background:var(--text-muted);"></div><div style="font-family:var(--font-mono);font-size:10px;margin-top:4px;color:var(--text-secondary);">--text-muted</div></div>
+              <div><div style="height:56px;border-radius:var(--radius-md);background:var(--ok);"></div><div style="font-family:var(--font-mono);font-size:10px;margin-top:4px;color:var(--text-secondary);">--ok</div></div>
+              <div><div style="height:56px;border-radius:var(--radius-md);background:var(--warn);"></div><div style="font-family:var(--font-mono);font-size:10px;margin-top:4px;color:var(--text-secondary);">--warn</div></div>
+              <div><div style="height:56px;border-radius:var(--radius-md);background:var(--crit);"></div><div style="font-family:var(--font-mono);font-size:10px;margin-top:4px;color:var(--text-secondary);">--crit</div></div>
+              <div><div style="height:56px;border-radius:var(--radius-md);background:var(--info);"></div><div style="font-family:var(--font-mono);font-size:10px;margin-top:4px;color:var(--text-secondary);">--info</div></div>
+            </div>
+          </div>
+
+          <div>
+            <div style="font-size:12px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.06em;margin-bottom:var(--space-3);">Type scale</div>
+            <div style="display:flex;flex-direction:column;gap:var(--space-2);background:var(--surface);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:var(--space-4);">
+              <div style="display:flex;align-items:baseline;gap:var(--space-3);"><span style="font-size:20px;font-weight:700;width:220px;">Title 20/700</span><span style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted);">section headers</span></div>
+              <div style="display:flex;align-items:baseline;gap:var(--space-3);"><span style="font-size:13px;font-weight:600;width:220px;">Body strong 13/600</span><span style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted);">table headers, labels</span></div>
+              <div style="display:flex;align-items:baseline;gap:var(--space-3);"><span style="font-size:13px;font-weight:400;width:220px;color:var(--text-secondary);">Body 13/400</span><span style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted);">descriptions</span></div>
+              <div style="display:flex;align-items:baseline;gap:var(--space-3);"><span style="font-family:var(--font-mono);font-size:13px;width:220px;">Mono data 13</span><span style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted);">durations, ids, timestamps</span></div>
+              <div style="display:flex;align-items:baseline;gap:var(--space-3);"><span style="font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;width:220px;color:var(--text-muted);">Caption 10.5/uppercase</span><span style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted);">column labels, phase headers</span></div>
+            </div>
+          </div>
+
+          <div>
+            <div style="font-size:12px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.06em;margin-bottom:var(--space-3);">Components</div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-4);">
+              <div style="background:var(--surface);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:var(--space-4);display:flex;flex-direction:column;gap:var(--space-3);">
+                <div style="font-size:11px;color:var(--text-muted);">Buttons</div>
+                <div style="display:flex;gap:var(--space-2);flex-wrap:wrap;">
+                  <div style="padding:7px 14px;border-radius:var(--radius-md);background:var(--accent);color:oklch(20% 0.02 75);font-size:12px;font-weight:600;">Primary</div>
+                  <div style="padding:7px 14px;border-radius:var(--radius-md);background:var(--surface-raised);border:1px solid var(--border);color:var(--text-primary);font-size:12px;font-weight:600;">Secondary</div>
+                  <div style="padding:7px 14px;border-radius:var(--radius-md);color:var(--text-secondary);font-size:12px;font-weight:600;">Ghost</div>
+                </div>
+              </div>
+              <div style="background:var(--surface);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:var(--space-4);display:flex;flex-direction:column;gap:var(--space-3);">
+                <div style="font-size:11px;color:var(--text-muted);">Severity chips</div>
+                <div style="display:flex;gap:var(--space-2);flex-wrap:wrap;">
+                  <span style="font-family:var(--font-mono);font-size:10px;padding:2px 8px;border-radius:var(--radius-pill);background:var(--ok-soft);color:var(--ok);border:1px solid var(--ok);">ok</span>
+                  <span style="font-family:var(--font-mono);font-size:10px;padding:2px 8px;border-radius:var(--radius-pill);background:var(--warn-soft);color:var(--warn);border:1px solid var(--warn);">warn</span>
+                  <span style="font-family:var(--font-mono);font-size:10px;padding:2px 8px;border-radius:var(--radius-pill);background:var(--crit-soft);color:var(--crit);border:1px solid var(--crit);">critical</span>
+                </div>
+              </div>
+              <div style="background:var(--surface);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:var(--space-4);display:flex;flex-direction:column;gap:var(--space-3);">
+                <div style="font-size:11px;color:var(--text-muted);">Priority badges</div>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                  <span style="font-family:var(--font-mono);font-size:9.5px;padding:2px 7px;border-radius:var(--radius-pill);background:var(--surface-raised);border:1px solid var(--border);color:var(--text-secondary);">LOWEST</span>
+                  <span style="font-family:var(--font-mono);font-size:9.5px;padding:2px 7px;border-radius:var(--radius-pill);background:var(--surface-raised);border:1px solid var(--border);color:var(--text-secondary);">HIGH</span>
+                  <span style="font-family:var(--font-mono);font-size:9.5px;padding:2px 7px;border-radius:var(--radius-pill);background:var(--surface-raised);border:1px solid var(--border);color:var(--text-secondary);">MONITOR</span>
+                </div>
+              </div>
+              <div style="background:var(--surface);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:var(--space-4);display:flex;flex-direction:column;gap:var(--space-3);">
+                <div style="font-size:11px;color:var(--text-muted);">Nav item (active / default)</div>
+                <div style="display:flex;flex-direction:column;gap:2px;">
+                  <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--radius-md);background:var(--surface-hover);"><span style="width:6px;height:6px;border-radius:50%;background:var(--accent);"></span><span style="font-size:13px;font-weight:600;">Active</span></div>
+                  <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--radius-md);"><span style="width:6px;height:6px;border-radius:50%;"></span><span style="font-size:13px;color:var(--text-secondary);">Default</span></div>
+                </div>
+              </div>
+              <div style="background:var(--surface);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:var(--space-4);display:flex;flex-direction:column;gap:var(--space-3);">
+                <div style="font-size:11px;color:var(--text-muted);">Metric card</div>
+                <div style="border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:var(--space-3);">
+                  <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;">Label</div>
+                  <div style="font-family:var(--font-mono);font-size:18px;font-weight:600;margin-top:4px;">1,234</div>
+                </div>
+              </div>
+              <div style="background:var(--surface);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:var(--space-4);display:flex;flex-direction:column;gap:var(--space-3);">
+                <div style="font-size:11px;color:var(--text-muted);">Live indicator</div>
+                <div style="display:flex;align-items:center;gap:6px;">
+                  <span style="width:7px;height:7px;border-radius:50%;background:var(--ok);animation:pulse 1.6s ease-in-out infinite;"></span>
+                  <span style="font-family:var(--font-mono);font-size:11px;color:var(--ok);font-weight:600;">LIVE</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+    </div>
+  </div>
+</div>
+

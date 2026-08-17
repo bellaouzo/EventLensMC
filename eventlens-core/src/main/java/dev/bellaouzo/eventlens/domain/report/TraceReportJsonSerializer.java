@@ -57,10 +57,19 @@ public final class TraceReportJsonSerializer {
         comma(json);
         fieldString(json, depth + 1, "platformLabel", environment.platformLabel());
         comma(json);
+        fieldString(json, depth + 1, "runtimeKind", environment.runtimeKind().wireName());
+        comma(json);
+        fieldString(json, depth + 1, "loaderVersion", environment.loaderVersion());
+        comma(json);
         fieldLong(json, depth + 1, "generatedAtMillis", environment.generatedAtMillis());
         comma(json);
         key(json, depth + 1, "pluginVersions");
         appendStringMap(json, environment.pluginVersions(), depth + 1);
+        if (!environment.modVersions().isEmpty()) {
+            comma(json);
+            key(json, depth + 1, "modVersions");
+            appendStringMap(json, environment.modVersions(), depth + 1);
+        }
         indent(json, depth);
         json.append('}');
     }
@@ -236,6 +245,11 @@ public final class TraceReportJsonSerializer {
     }
 
     static void fieldLong(StringBuilder json, int depth, String name, long value) {
+        key(json, depth, name);
+        json.append(value);
+    }
+
+    static void fieldDouble(StringBuilder json, int depth, String name, double value) {
         key(json, depth, name);
         json.append(value);
     }

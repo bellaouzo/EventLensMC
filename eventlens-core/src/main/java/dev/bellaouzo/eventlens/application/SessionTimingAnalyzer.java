@@ -66,7 +66,9 @@ public final class SessionTimingAnalyzer {
             }
         }
 
-        if (!agentAttached) {
+        if (agentAttached) {
+            sessionPartialReasons.remove(TracePartialReason.AGENT_ABSENT);
+        } else {
             sessionPartialReasons.add(TracePartialReason.AGENT_ABSENT);
         }
 

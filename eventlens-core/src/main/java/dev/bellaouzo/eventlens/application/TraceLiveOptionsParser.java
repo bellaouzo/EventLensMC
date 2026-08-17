@@ -169,7 +169,7 @@ public final class TraceLiveOptionsParser {
             }
             try {
                 return Math.max(1L, Math.round(Double.parseDouble(normalized) * 1_000_000L));
-            } catch (NumberFormatException _) {
+            } catch (NumberFormatException ignored) {
                 return fallback;
             }
         }
@@ -184,7 +184,7 @@ public final class TraceLiveOptionsParser {
             }
             try {
                 return Math.max(500L, Long.parseLong(normalized));
-            } catch (NumberFormatException _) {
+            } catch (NumberFormatException ignored) {
                 return fallback;
             }
         }

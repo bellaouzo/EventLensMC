@@ -9,6 +9,28 @@
       "port": 5005,
       "timeout": 30000,
       "projectName": "EventLens"
+    },
+    {
+      "type": "java",
+      "request": "launch",
+      "name": "eventlens-neoforge - Client",
+      "presentation": {
+        "group": "Mod Development - eventlens-neoforge",
+        "order": 0
+      },
+      "projectName": "eventlens-neoforge",
+      "mainClass": "net.neoforged.devlaunch.Main",
+      "args": [
+        "@C:\\Users\\gregp\\Desktop\\Code Projects\\MinecraftPlugins\\EventLensMC\\eventlens-neoforge\\build\\moddev\\clientRunProgramArgs.txt"
+      ],
+      "vmArgs": [
+        "@C:\\Users\\gregp\\Desktop\\Code Projects\\MinecraftPlugins\\EventLensMC\\eventlens-neoforge\\build\\moddev\\clientRunVmArgs.txt",
+        "-Dfml.modFolders\u003deventlens%%C:\\Users\\gregp\\Desktop\\Code Projects\\MinecraftPlugins\\EventLensMC\\eventlens-neoforge\\bin\\main;eventlens%%C:\\Users\\gregp\\Desktop\\Code Projects\\MinecraftPlugins\\EventLensMC\\eventlens-mod-common\\bin\\main;eventlens%%C:\\Users\\gregp\\Desktop\\Code Projects\\MinecraftPlugins\\EventLensMC\\eventlens-core\\bin\\main"
+      ],
+      "cwd": "${workspaceFolder}\\eventlens-neoforge\\run",
+      "env": {},
+      "console": "internalConsole",
+      "shortenCommandLine": "none"
     }
   ]
 }

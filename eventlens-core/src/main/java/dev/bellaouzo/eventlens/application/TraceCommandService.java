@@ -9,6 +9,7 @@ import dev.bellaouzo.eventlens.domain.observability.SamplingPolicy;
 import dev.bellaouzo.eventlens.domain.preferences.OutputDetailLevel;
 import dev.bellaouzo.eventlens.domain.snapshot.SupportedEventTypes;
 import dev.bellaouzo.eventlens.domain.trace.TraceFilter;
+import dev.bellaouzo.eventlens.domain.trace.TraceRestartResult;
 import dev.bellaouzo.eventlens.domain.trace.TraceSessionConfig;
 import dev.bellaouzo.eventlens.domain.trace.TraceSessionDetail;
 import dev.bellaouzo.eventlens.domain.trace.TraceSessionSummary;
@@ -140,6 +141,10 @@ public final class TraceCommandService {
         return new TraceStopResult.Success(stopped);
     }
 
+    public TraceRestartResult restartTrace(String sessionId) {
+        return TraceRestartService.restart(traceSessionManager, traceHookPort, sessionId);
+    }
+
     public List<TraceSessionSummary> listSessions() {
         traceSessionManager.expireSessions(System.currentTimeMillis());
         return traceSessionManager.listSessions();
@@ -182,24 +187,11 @@ public final class TraceCommandService {
     }
 
     public List<String> listDispatchSequenceTokens(String sessionId) {
-        return traceSessionManager
-                .getSessionDetail(sessionId)
-                .map(detail -> detail.records().stream()
-                        .map(dispatchRecord -> Long.toString(dispatchRecord.sequence()))
-                        .toList())
-                .orElse(List.of());
+        return TraceCommandLookups.sequenceTokens(traceSessionManager, sessionId);
     }
 
     public List<String> listDispatchPluginNames(String sessionId) {
-        return traceSessionManager
-                .getSessionDetail(sessionId)
-                .map(detail -> detail.records().stream()
-                        .flatMap(dispatchRecord -> dispatchRecord.listenerChain().stream())
-                        .map(dev.bellaouzo.eventlens.domain.trace.TraceListenerSnapshot::pluginName)
-                        .distinct()
-                        .sorted(String.CASE_INSENSITIVE_ORDER)
-                        .toList())
-                .orElse(List.of());
+        return TraceCommandLookups.pluginNames(traceSessionManager, sessionId);
     }
 
     public List<String> listPresetNames() {

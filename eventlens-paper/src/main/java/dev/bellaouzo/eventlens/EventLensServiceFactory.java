@@ -1,7 +1,11 @@
 package dev.bellaouzo.eventlens;
 
 import dev.bellaouzo.eventlens.application.BaselineCommandService;
+import dev.bellaouzo.eventlens.application.DashboardQueryService;
+import dev.bellaouzo.eventlens.application.DashboardStreamHub;
+import dev.bellaouzo.eventlens.application.DashboardStreamNotifier;
 import dev.bellaouzo.eventlens.application.EventLensCommandConfig;
+import dev.bellaouzo.eventlens.application.EventLensDashboardConfig;
 import dev.bellaouzo.eventlens.application.EventLensReportConfig;
 import dev.bellaouzo.eventlens.application.ExportCommandService;
 import dev.bellaouzo.eventlens.application.InstrumentationTestService;
@@ -22,9 +26,13 @@ import dev.bellaouzo.eventlens.paper.PaperListenerRegistry;
 import dev.bellaouzo.eventlens.paper.PaperPluginRegistry;
 import dev.bellaouzo.eventlens.paper.PaperTraceHookManager;
 import dev.bellaouzo.eventlens.paper.YamlPlayerPreferencesStore;
+import dev.bellaouzo.eventlens.paper.dashboard.PaperDashboardHttpServer;
+import dev.bellaouzo.eventlens.paper.dashboard.PaperDashboardServerContextAdapter;
 import dev.bellaouzo.eventlens.paper.instrumentation.PaperInstrumentationTestAdapter;
 import dev.bellaouzo.eventlens.paper.snapshot.PaperEventSnapshotRegistry;
+import dev.bellaouzo.eventlens.trace.CompositeDispatchCaptureListener;
 import dev.bellaouzo.eventlens.trace.TraceSessionManager;
+import java.util.List;
 import org.bukkit.plugin.java.JavaPlugin;
 
 @SuppressWarnings("java:S6539")
@@ -38,7 +46,8 @@ final class EventLensServiceFactory {
             String targetPlatform,
             EventLensReportConfig reportConfig,
             EventLensCommandConfig commandConfig,
-            LiveFeedConfig liveFeedConfig) {}
+            LiveFeedConfig liveFeedConfig,
+            EventLensDashboardConfig dashboardConfig) {}
 
     private EventLensServiceFactory() {}
 
@@ -73,6 +82,14 @@ final class EventLensServiceFactory {
         TraceLiveFeedService traceLiveFeedService = EventLensLiveFeedBootstrap.register(
                 input.plugin(), input.traceSessionManager(), input.liveFeedConfig());
 
+        DashboardStreamHub dashboardStreamHub = new DashboardStreamHub();
+        DashboardStreamNotifier dashboardStreamNotifier =
+                new DashboardStreamNotifier(dashboardStreamHub, input.traceSessionManager());
+        input.traceSessionManager()
+                .setDispatchCaptureListener(new CompositeDispatchCaptureListener(
+                        List.of(traceLiveFeedService, dashboardStreamNotifier),
+                        List.of(traceLiveFeedService, dashboardStreamNotifier)));
+
         PaperExportAdapter exportAdapter = new PaperExportAdapter(input.plugin());
         ReportRetentionService reportRetentionService = new ReportRetentionService(exportAdapter, input.reportConfig());
         TraceReportBuilder traceReportBuilder = new TraceReportBuilder(
@@ -81,6 +98,16 @@ final class EventLensServiceFactory {
                 input.targetPlatform());
         ExportCommandService exportCommandService = new ExportCommandService(
                 input.traceSessionManager(), traceReportBuilder, exportAdapter, reportRetentionService);
+        DashboardQueryService dashboardQueryService = new DashboardQueryService(
+                input.traceSessionManager(),
+                exportCommandService,
+                exportAdapter,
+                listenerRegistry,
+                input.instrumentationPort(),
+                new PaperDashboardServerContextAdapter(input.plugin()),
+                input.dashboardConfig());
+        PaperDashboardHttpServer dashboardHttpServer = EventLensDashboardBootstrap.register(
+                input.plugin(), input.dashboardConfig(), dashboardQueryService, dashboardStreamHub);
         BaselineCommandService baselineCommandService = new BaselineCommandService(exportCommandService, exportAdapter);
         InstrumentationTestService instrumentationTestService =
                 new InstrumentationTestService(input.instrumentationPort(), instrumentationTestAdapter);
@@ -100,6 +127,8 @@ final class EventLensServiceFactory {
                 instrumentationTestService,
                 reportRetentionService,
                 playerPreferencesService,
+                dashboardQueryService,
+                dashboardHttpServer,
                 input.commandConfig(),
                 input.liveFeedConfig());
     }

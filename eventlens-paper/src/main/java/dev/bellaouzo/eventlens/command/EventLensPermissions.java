@@ -12,6 +12,7 @@ public final class EventLensPermissions {
     public static final String TRACE = "eventlens.command.trace";
     public static final String TRACE_START = "eventlens.command.trace.start";
     public static final String TRACE_STOP = "eventlens.command.trace.stop";
+    public static final String TRACE_RESTART = "eventlens.command.trace.restart";
     public static final String TRACE_LIST = "eventlens.command.trace.list";
     public static final String TRACE_VIEW = "eventlens.command.trace.view";
     public static final String TRACE_EXPORT = "eventlens.command.trace.export";

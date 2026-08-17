@@ -16,7 +16,6 @@ final class EventLensLiveFeedBootstrap {
         PaperLiveFeedAdapter liveFeedAdapter = new PaperLiveFeedAdapter(plugin);
         TraceLiveFeedService traceLiveFeedService =
                 new TraceLiveFeedService(traceSessionManager, liveFeedAdapter, config);
-        traceSessionManager.setDispatchCaptureListener(traceLiveFeedService);
         plugin.getServer()
                 .getPluginManager()
                 .registerEvents(new PaperLiveFeedQuitListener(traceLiveFeedService), plugin);

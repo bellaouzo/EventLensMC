@@ -10,7 +10,7 @@ final class TraceSessionExpiration {
 
     static void expireActiveSessions(Iterable<TraceSession> sessions, long nowMillis, Consumer<String> onCleared) {
         for (TraceSession session : sessions) {
-            if (session.isActive()) {
+            if (session.isOpen()) {
                 expireIfNeeded(session, nowMillis, onCleared);
             }
         }

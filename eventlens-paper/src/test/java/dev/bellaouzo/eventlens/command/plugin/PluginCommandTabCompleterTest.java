@@ -44,7 +44,7 @@ class PluginCommandTabCompleterTest {
     private static PluginQueryService stubService() {
         StubPluginRegistry pluginRegistry = new StubPluginRegistry();
         pluginRegistry.setDescriptor(
-                new PluginDescriptor("EventLens", "0.1-SNAPSHOT", true, List.of(), List.of(), List.of(), List.of()));
+                new PluginDescriptor("EventLens", "1.0.0", true, List.of(), List.of(), List.of(), List.of()));
         pluginRegistry.setSearchResult(PluginSearchResult.found("EventLens"));
 
         StubListenerRegistry listenerRegistry = new StubListenerRegistry();

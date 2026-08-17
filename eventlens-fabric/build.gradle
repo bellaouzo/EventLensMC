@@ -1,0 +1,75 @@
+plugins {
+    id 'fabric-loom' version '1.10.5'
+    id 'java-library'
+}
+
+group = 'dev.bellaouzo'
+version = rootProject.version
+
+base {
+    archivesName = 'eventlens-fabric'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+repositories {
+    mavenCentral()
+    maven { url = 'https://maven.fabricmc.net/' }
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${fabric_minecraft_version}"
+    mappings loom.officialMojangMappings()
+    modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
+    implementation project(':eventlens-mod-common')
+}
+
+loom {
+    splitEnvironmentSourceSets()
+}
+
+processResources {
+    inputs.property 'version', version
+    filesMatching('fabric.mod.json') {
+        expand version: version
+    }
+}
+
+tasks.named('runServer') {
+    enabled = false
+    description = 'Disabled: EventLens Fabric is a client mod. Use :eventlens-paper:runServer or :eventlens-fabric:runClient.'
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 21
+}
+
+tasks.register('checkFileLengths') {
+    group = 'verification'
+    def srcDir = layout.projectDirectory.dir('src')
+    def projectDir = layout.projectDirectory.asFile
+    doLast {
+        def violations = []
+        fileTree(srcDir) { include '**/java/**/*.java' }.each { File file ->
+            int lines = file.readLines().size()
+            String relPath = projectDir.toPath().relativize(file.toPath()).toString().replace('\\', '/')
+            def limit = rootProject.ext.resolveFileLengthLimit(relPath, file.name)
+            if (lines > limit.max) {
+                violations << [relPath, lines, limit.max, limit.category]
+            }
+        }
+        if (!violations.isEmpty()) {
+            throw new GradleException("File length check failed: ${violations.size()} file(s)")
+        }
+    }
+}
+
+tasks.named('check') {
+    dependsOn 'checkFileLengths'
+}

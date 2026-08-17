@@ -8,19 +8,41 @@ $repoRoot = Split-Path -Parent $PSScriptRoot
 Set-Location $repoRoot
 
 $patterns = @(
-    [regex]::Escape($repoRoot),
-    "run-task-jars\\paper",
-    "EventLens-0\.1-SNAPSHOT"
+    "run-task-jars[/\\]paper",
+    "org\.bukkit\.craftbukkit\.Main",
+    "io\.papermc\.paperclip",
+    "paper-26\.2"
 )
 
-$javaProcesses = Get-CimInstance Win32_Process -Filter "Name='java.exe'" | Where-Object {
-    $commandLine = $_.CommandLine
-    if (-not $commandLine) { return $false }
-    foreach ($pattern in $patterns) {
-        if ($commandLine -match $pattern) { return $true }
+$excludePatterns = @(
+    "GradleDaemon",
+    "gradle\.launcher\.daemon",
+    "GradleWrapperMain",
+    "gradlew",
+    "org\.gradle",
+    "fml\.modFolders",
+    "forgeclientdev",
+    "net\.neoforged",
+    "net\.fabricmc",
+    "FabricLoader",
+    "runClient"
+)
+
+function Get-EventLensPaperProcesses {
+    Get-CimInstance Win32_Process -Filter "Name='java.exe'" | Where-Object {
+        $commandLine = $_.CommandLine
+        if (-not $commandLine) { return $false }
+        foreach ($exclude in $excludePatterns) {
+            if ($commandLine -match $exclude) { return $false }
+        }
+        foreach ($pattern in $patterns) {
+            if ($commandLine -match $pattern) { return $true }
+        }
+        return $false
     }
-    return $false
 }
+
+$javaProcesses = Get-EventLensPaperProcesses
 
 if ($javaProcesses.Count -eq 0) {
     Write-Host "No EventLens dev server Java processes found."
@@ -40,14 +62,7 @@ if ($javaProcesses.Count -eq 0) {
     Start-Sleep -Seconds 2
 }
 
-$remaining = Get-CimInstance Win32_Process -Filter "Name='java.exe'" | Where-Object {
-    $commandLine = $_.CommandLine
-    if (-not $commandLine) { return $false }
-    foreach ($pattern in $patterns) {
-        if ($commandLine -match $pattern) { return $true }
-    }
-    return $false
-}
+$remaining = Get-EventLensPaperProcesses
 
 if ($remaining.Count -gt 0) {
     Write-Host "Some processes are still running. Re-run with -Force if needed."

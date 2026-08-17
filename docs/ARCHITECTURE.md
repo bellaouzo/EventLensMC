@@ -1,70 +1,44 @@
 # EventLens Architecture
 
-EventLens uses **ports and adapters** with a pure Java domain at the center. Paper-specific code stays at the edges; tracing policies and session rules stay testable without a running server.
+EventLens uses **ports and adapters** with a pure Java core. Paper-specific and loader-specific code stay at the edges.
 
-## Current physical layout
-
-Single Gradle project (`EventLens`). No subprojects yet.
+## Physical layout (Gradle subprojects)
 
 ```
-dev.bellaouzo.eventlens
-├── EventLens.java              Composition root (JavaPlugin)
-├── application/                Use-case orchestration
-│   └── StatusQueryService.java
-├── command/                    Command adapters
-│   └── StatusCommand.java
-├── domain/                     Pure Java records and policies
-│   └── status/
-│       └── EventLensStatus.java
-└── trace/                      Session lifecycle (stub)
-    └── TraceSessionManager.java
+EventLens/
+├── eventlens-core/           domain, application, trace (Java 21 bytecode)
+├── eventlens-paper/          Paper plugin + commands + paper adapters
+├── eventlens-mod-common/     Shared client trace orchestration
+├── eventlens-neoforge/       NeoForge 1.21.1 client mod
+├── eventlens-forge/          Minecraft Forge 1.21.1 client mod
+├── eventlens-fabric/         Fabric client mod
+├── eventlens-agent/          Optional Paper Java agent
+├── eventlens-client-agent/   Optional NeoForge client Java agent
+├── eventlens-observability/  Agent↔plugin protocol (Java 21 bytecode)
+├── eventlens-testkit/        Fixture plugin for dev/smoke tests
+└── eventlens-viewer/         Vite dashboard + offline report viewer
 ```
-
-Planned packages (create when code exists): `paper`, `snapshot`, `diff`, `filter`, `report`, `observability`, `instrumentation`.
 
 ## Dependency rule
 
 ```mermaid
 flowchart TD
-    CMD["command"] --> APP["application"]
-    PAPER["paper"] --> APP
-    APP --> DOMAIN["domain"]
-    SNAP["snapshot"] --> DOMAIN
-    REPORT["report"] --> APP
-    PLUGIN["EventLens plugin"] --> CMD
-    PLUGIN --> PAPER
-    PLUGIN --> REPORT
+    CMD["eventlens-paper / mod adapters"] --> APP["eventlens-core application"]
+    MODCOMMON["eventlens-mod-common"] --> CORE["eventlens-core"]
+    PAPER["eventlens-paper"] --> CORE
+    NEO["eventlens-neoforge"] --> MODCOMMON
+    FORGE["eventlens-forge"] --> MODCOMMON
+    FAB["eventlens-fabric"] --> MODCOMMON
+    APP --> DOM["domain"]
 ```
 
-Domain code must not import Bukkit, Paper, or infrastructure.
+- `eventlens-core` must not import Bukkit, NeoForge, Forge, or Fabric APIs.
+- Server agent artifacts stay out of client mod JARs.
+- In-game Screen/HUD classes stay in loader subprojects. See `docs/CLIENT_UI.md`.
 
-## Future module split (not yet justified)
+## Trace flow
 
-Possible later subprojects:
-
-- `eventlens-core` — pure Java domain
-- `eventlens-paper` — plugin and Paper adapters
-- `eventlens-agent` — optional `-javaagent` artifact
-- `eventlens-testkit` — fixture plugin for integration tests
-
-Split only when boundaries are stable and a separate artifact is required.
-
-## Trace flow (planned)
-
-```mermaid
-sequenceDiagram
-    participant Admin
-    participant EventLens
-    participant Session
-    participant Paper
-
-    Admin->>EventLens: start trace session
-    EventLens->>Session: create bounded session
-    Session->>Paper: register scoped hooks
-    Paper-->>Session: listener metadata
-    Admin->>EventLens: stop session
-    EventLens-->>Admin: bounded report
-```
+Paper and client mods reuse the same domain session/report pipeline. Exports include `environment.runtimeKind` (`paper`, `neoforge`, `forge`, `fabric`) for the shared viewer.
 
 ## Current state
 

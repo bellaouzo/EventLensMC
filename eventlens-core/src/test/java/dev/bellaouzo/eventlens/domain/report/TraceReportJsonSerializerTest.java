@@ -146,13 +146,7 @@ class TraceReportJsonSerializerTest {
                 timingSummary,
                 new SessionConflictSummary(1, 0, "No conflicts detected.", Map.of(), List.of(), List.of()));
         TraceReportEnvironment environment = new TraceReportEnvironment(
-                "Paper test",
-                "25",
-                "Paper 26.2",
-                "0.1-SNAPSHOT",
-                "Paper 26.2",
-                Map.of("EventLens", "0.1-SNAPSHOT"),
-                3L);
+                "Paper test", "25", "Paper 26.2", "1.0.0", "Paper 26.2", Map.of("EventLens", "1.0.0"), 3L);
         TraceReportInstrumentation instrumentation = new TraceReportInstrumentation(
                 InstrumentationMode.DEGRADED, true, 1, false, true, InstrumentationCapabilities.degraded(false));
         return new TraceReportDocument(
@@ -174,7 +168,11 @@ class TraceReportJsonSerializerTest {
             throw new IOException("Missing fixture " + path);
         }
         try (stream) {
-            return new String(stream.readAllBytes(), StandardCharsets.UTF_8);
+            String content = new String(stream.readAllBytes(), StandardCharsets.UTF_8);
+            if (content.startsWith("\uFEFF")) {
+                content = content.substring(1);
+            }
+            return content;
         }
     }
 }

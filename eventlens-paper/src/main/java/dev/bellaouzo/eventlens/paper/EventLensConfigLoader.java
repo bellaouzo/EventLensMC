@@ -1,6 +1,7 @@
 package dev.bellaouzo.eventlens.paper;
 
 import dev.bellaouzo.eventlens.application.EventLensCommandConfig;
+import dev.bellaouzo.eventlens.application.EventLensDashboardConfig;
 import dev.bellaouzo.eventlens.application.EventLensReportConfig;
 import dev.bellaouzo.eventlens.application.LiveFeedConfig;
 import dev.bellaouzo.eventlens.application.TracePreset;
@@ -45,6 +46,14 @@ public final class EventLensConfigLoader {
                         EventLensReportConfig.defaults().retentionDays()),
                 config.getBoolean(
                         "reports.auto-cleanup", EventLensReportConfig.defaults().autoCleanup()));
+    }
+
+    public static EventLensDashboardConfig loadDashboardConfig(FileConfiguration config) {
+        EventLensDashboardConfig defaults = EventLensDashboardConfig.defaults();
+        return new EventLensDashboardConfig(
+                config.getBoolean("dashboard.enabled", defaults.enabled()),
+                config.getInt("dashboard.port", defaults.port()),
+                config.getString("dashboard.bind-address", defaults.bindAddress()));
     }
 
     public static EventLensCommandConfig loadCommandConfig(FileConfiguration config) {

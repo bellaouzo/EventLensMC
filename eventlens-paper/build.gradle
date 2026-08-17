@@ -1,0 +1,386 @@
+plugins {
+    id 'java'
+    id 'jacoco'
+    id 'com.diffplug.spotless'
+    id 'xyz.jpenilla.run-paper' version '3.0.2'
+    id 'name.remal.sonarlint'
+    id 'net.ltgt.errorprone'
+}
+
+group = 'dev.bellaouzo'
+version = rootProject.version
+description = 'EventLens - Paper event listener tracing and diagnostics'
+
+base {
+    archivesName = 'EventLens'
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        name = 'papermc'
+        url = 'https://repo.papermc.io/repository/maven-public/'
+    }
+}
+
+dependencies {
+    implementation project(':eventlens-core')
+    compileOnly project(':eventlens-observability')
+
+    compileOnly "io.papermc.paper:paper-api:${paperApiVersion}"
+    compileOnly 'org.jspecify:jspecify:1.0.0'
+    testCompileOnly "io.papermc.paper:paper-api:${paperApiVersion}"
+    testRuntimeOnly "io.papermc.paper:paper-api:${paperApiVersion}"
+
+    errorprone 'com.google.errorprone:error_prone_core:2.36.0'
+    errorprone 'com.uber.nullaway:nullaway:0.12.7'
+
+    testImplementation project(':eventlens-core')
+    testImplementation project(':eventlens-observability')
+    testImplementation project(':eventlens-agent')
+    testImplementation 'org.mockbukkit.mockbukkit:mockbukkit-v26.1.2:4.114.0'
+    testImplementation platform('org.junit:junit-bom:5.11.4')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.junit.jupiter:junit-jupiter-params'
+    testImplementation 'com.tngtech.archunit:archunit-junit5:1.4.1'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+tasks.named('jar', Jar) {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    from project(':eventlens-core').sourceSets.main.output
+}
+
+tasks.register('stopRunServer') {
+    group = 'run'
+    description = 'Stops any existing EventLens dev Paper server and releases run/ locks.'
+
+    def repoDir = rootProject.layout.projectDirectory.asFile
+    def stopScriptPs1 = rootProject.layout.projectDirectory.file('scripts/stop-server.ps1').asFile
+    def stopScriptSh = rootProject.layout.projectDirectory.file('scripts/stop-server.sh').asFile
+
+    doLast {
+        boolean isWindows = System.getProperty('os.name').toLowerCase(java.util.Locale.ROOT).contains('win')
+        List<String> command = isWindows
+                ? ['powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', stopScriptPs1.absolutePath, '-Force']
+                : ['bash', stopScriptSh.absolutePath]
+        Process process = new ProcessBuilder(command)
+                .directory(repoDir)
+                .redirectErrorStream(true)
+                .start()
+        process.inputStream.withReader('UTF-8') { reader ->
+            reader.eachLine { line -> logger.lifecycle(line) }
+        }
+        process.waitFor()
+    }
+}
+
+tasks.named('runServer') {
+    dependsOn 'stopRunServer'
+    dependsOn ':eventlens-agent:jar', ':eventlens-observability:jar', ':eventlens-testkit:jar', tasks.named('jar')
+    minecraftVersion('26.2')
+    runDirectory(rootProject.layout.projectDirectory.dir('run').asFile)
+    jvmArgs "-javaagent:${project(':eventlens-agent').tasks.named('jar', Jar).get().archiveFile.get().asFile.absolutePath}"
+    pluginJars.from(project(':eventlens-testkit').tasks.named('jar'))
+}
+
+tasks.register('runServerDebug', xyz.jpenilla.runpaper.task.RunServer) {
+    dependsOn 'stopRunServer'
+    dependsOn ':eventlens-agent:jar', ':eventlens-observability:jar', ':eventlens-testkit:jar', tasks.named('jar')
+    group = 'run'
+    description = 'Starts the Paper test server with JVM debug enabled on localhost:5005.'
+    minecraftVersion('26.2')
+    runDirectory(rootProject.layout.projectDirectory.dir('run').asFile)
+    jvmArgs '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=127.0.0.1:5005'
+    jvmArgs "-javaagent:${project(':eventlens-agent').tasks.named('jar', Jar).get().archiveFile.get().asFile.absolutePath}"
+    pluginJars.from(project(':eventlens-testkit').tasks.named('jar'))
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 25
+    options.compilerArgs.addAll([
+        '-Xlint:deprecation',
+        '-Xlint:unchecked',
+    ])
+    options.errorprone {
+        enabled.set(true)
+        disableWarningsInGeneratedCode.set(true)
+        option('NullAway:AnnotatedPackages', 'dev.bellaouzo.eventlens.command')
+        check('NullAway', net.ltgt.gradle.errorprone.CheckSeverity.ERROR)
+    }
+}
+
+tasks.withType(Test).configureEach {
+    useJUnitPlatform()
+    finalizedBy jacocoTestReport
+}
+
+jacoco {
+    toolVersion = '0.8.13'
+}
+
+tasks.named('jacocoTestReport') {
+    dependsOn tasks.named('test')
+    reports {
+        xml.required = true
+        html.required = true
+    }
+}
+
+processResources {
+    def props = [version: version]
+    inputs.properties props
+    filteringCharset = 'UTF-8'
+    filesMatching('plugin.yml') {
+        expand props
+    }
+}
+
+tasks.register('buildDashboard') {
+    group = 'build'
+    description = 'Builds the EventLens web dashboard into src/main/resources/dashboard'
+
+    def viewerDir = rootProject.layout.projectDirectory.dir('eventlens-viewer').asFile
+    def dashboardDir = layout.projectDirectory.dir('src/main/resources/dashboard').asFile
+    inputs.dir(viewerDir)
+    outputs.dir(dashboardDir)
+
+    doLast {
+        if (!viewerDir.exists()) {
+            throw new GradleException('Missing eventlens-viewer directory.')
+        }
+        boolean isWindows = System.getProperty('os.name').toLowerCase(java.util.Locale.ROOT).contains('win')
+        String npm = isWindows ? 'npm.cmd' : 'npm'
+        exec {
+            workingDir viewerDir
+            commandLine npm, 'install'
+        }
+        exec {
+            workingDir viewerDir
+            commandLine npm, 'run', 'build'
+        }
+    }
+}
+
+spotless {
+    java {
+        target 'src/*/java/**/*.java'
+        palantirJavaFormat('2.74.0')
+        removeUnusedImports()
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
+}
+
+tasks.register('checkPluginJarContents') {
+    group = 'verification'
+    description = 'Fails when the Paper plugin JAR is missing shaded eventlens-core classes.'
+    dependsOn tasks.named('jar')
+
+    doLast {
+        File pluginJar = tasks.named('jar', Jar).get().archiveFile.get().asFile
+        String required = 'dev/bellaouzo/eventlens/application/port/InstrumentationPort.class'
+        boolean found = false
+        pluginJar.withInputStream { input ->
+            java.util.zip.ZipInputStream zip = new java.util.zip.ZipInputStream(input)
+            java.util.zip.ZipEntry entry
+            while ((entry = zip.getNextEntry()) != null) {
+                if (entry.name == required) {
+                    found = true
+                    break
+                }
+            }
+        }
+        if (!found) {
+            throw new GradleException(
+                    "EventLens plugin JAR is missing eventlens-core classes (${required}): ${pluginJar}")
+        }
+    }
+}
+
+tasks.named('check') {
+    dependsOn 'spotlessCheck'
+    dependsOn 'checkFileLengths'
+    dependsOn 'checkPluginJarContents'
+    dependsOn tasks.matching { it.name.startsWith('sonarLint') && !it.name.endsWith('Rules') && !it.name.endsWith('Properties') }
+}
+
+tasks.register('checkFileLengths') {
+    group = 'verification'
+    description = 'Fails when Java source files exceed line limits from file-organization.mdc.'
+
+    def srcDir = layout.projectDirectory.dir('src')
+    def projectDir = layout.projectDirectory.asFile
+
+    doLast {
+        def violations = []
+        fileTree(srcDir) {
+            include '**/java/**/*.java'
+        }.each { File file ->
+            int lines = file.readLines().size()
+            String relPath = projectDir.toPath().relativize(file.toPath()).toString().replace('\\', '/')
+            def limit = rootProject.ext.resolveFileLengthLimit(relPath, file.name)
+            if (lines > limit.max) {
+                violations << [relPath, lines, limit.max, limit.category]
+            }
+        }
+
+        if (!violations.isEmpty()) {
+            violations.sort { a, b -> b[1] <=> a[1] }
+            def report = new StringBuilder()
+            report.append("File length check failed (${violations.size()} file(s) exceed limits):\n")
+            violations.each { entry ->
+                report.append(String.format(
+                        '  %s: %d lines (max %d for %s)%n', entry[0], entry[1], entry[2], entry[3]))
+            }
+            report.append('\nLimits are defined in .cursor/rules/file-organization.mdc')
+            throw new GradleException(report.toString())
+        }
+    }
+}
+
+tasks.register('paperSmokeTest') {
+    group = 'verification'
+    description = 'Starts Paper headlessly, runs EventLens console commands, and validates server logs.'
+    dependsOn tasks.named('jar')
+    dependsOn ':eventlens-agent:jar', ':eventlens-observability:jar', ':eventlens-testkit:jar'
+
+    doLast {
+        File repoDir = rootProject.layout.projectDirectory.asFile
+        File latestLog = rootProject.layout.projectDirectory.file('run/logs/latest.log').asFile
+        latestLog.parentFile.mkdirs()
+        if (latestLog.exists()) {
+            latestLog.delete()
+        }
+
+        Process process = new ProcessBuilder(smokeRunServerCommand())
+                .directory(repoDir)
+                .redirectErrorStream(true)
+                .start()
+        StringBuilder runServerOutput = new StringBuilder()
+        Thread outputThread = new Thread({
+            process.inputStream.withReader('UTF-8') { reader ->
+                String line
+                while ((line = reader.readLine()) != null) {
+                    runServerOutput.append(line).append(System.lineSeparator())
+                }
+            }
+        }, 'paper-smoke-log-reader')
+        outputThread.setDaemon(true)
+        outputThread.start()
+
+        try {
+            boolean serverReady = waitForLogContent(latestLog, 'Done (', 240_000L)
+            if (!serverReady) {
+                process.destroyForcibly()
+                throw new GradleException(
+                        'Paper did not reach ready state within 240 seconds.\n'
+                                + tailSmokeOutput(runServerOutput.toString(), 120))
+            }
+
+            List<String> commands = [
+                    'eventlens status',
+                    'eventlens listeners BlockBreakEvent',
+                    'eventlens trace list',
+                    'eventlens trace start BlockBreakEvent --max-events 5 --max-duration 10s',
+                    'eventlens trace stop',
+                    'stop'
+            ]
+            commands.each { line ->
+                process.outputStream.write((line + System.lineSeparator()).getBytes('UTF-8'))
+                process.outputStream.flush()
+                Thread.sleep(1_000L)
+            }
+
+            boolean stopped = process.waitFor(180, java.util.concurrent.TimeUnit.SECONDS)
+            if (!stopped) {
+                process.destroyForcibly()
+                throw new GradleException('Paper smoke test timed out while stopping the server.')
+            }
+
+            outputThread.join(10_000L)
+            if (process.exitValue() != 0) {
+                throw new GradleException(
+                        "Paper smoke server exited with code ${process.exitValue()}.\n"
+                                + tailSmokeOutput(runServerOutput.toString(), 120))
+            }
+
+            String logText = latestLog.exists() ? latestLog.getText('UTF-8') : runServerOutput.toString()
+            List<String> requiredMarkers = [
+                    'Done (',
+                    'EventLens v',
+                    'EventLensTestTarget enabled',
+                    'EventLens disabled.'
+            ]
+            List<String> missing = requiredMarkers.findAll { marker -> !logText.contains(marker) }
+            if (!missing.isEmpty()) {
+                throw new GradleException(
+                        'Paper smoke log validation failed. Missing markers: '
+                                + missing.join(', ')
+                                + '\n'
+                                + tailSmokeOutput(logText, 160))
+            }
+
+            if (logText.contains('Command exception: /eventlens')
+                    || logText.contains('Unhandled exception executing command')) {
+                throw new GradleException('Paper smoke test detected command exceptions in run/logs/latest.log.')
+            }
+        } finally {
+            if (process.isAlive()) {
+                try {
+                    process.outputStream.write(("stop" + System.lineSeparator()).getBytes('UTF-8'))
+                    process.outputStream.flush()
+                    process.waitFor(15, java.util.concurrent.TimeUnit.SECONDS)
+                } catch (Exception ignored) {
+                }
+                if (process.isAlive()) {
+                    process.destroyForcibly()
+                }
+            }
+        }
+    }
+}
+
+List<String> smokeRunServerCommand() {
+    boolean isWindows = System.getProperty('os.name').toLowerCase(java.util.Locale.ROOT).contains('win')
+    if (isWindows) {
+        return ['cmd', '/c', 'gradlew.bat', ':eventlens-paper:runServer', '--no-daemon', '--console=plain']
+    }
+    return ['./gradlew', ':eventlens-paper:runServer', '--no-daemon', '--console=plain']
+}
+
+boolean waitForLogContent(File file, String token, long timeoutMs) {
+    long started = System.currentTimeMillis()
+    while (System.currentTimeMillis() - started < timeoutMs) {
+        if (file.exists() && file.getText('UTF-8').contains(token)) {
+            return true
+        }
+        Thread.sleep(500L)
+    }
+    return false
+}
+
+String tailSmokeOutput(String text, int maxLines) {
+    List<String> lines = text.readLines()
+    if (lines.size() <= maxLines) {
+        return text
+    }
+    return lines.subList(lines.size() - maxLines, lines.size()).join(System.lineSeparator())
+}
+
+sonarLint {
+    failOnSeverity('WARNING')
+    languages {
+        include('java')
+    }
+    logging {
+        withDescription = false
+    }
+}

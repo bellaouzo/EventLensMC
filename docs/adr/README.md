@@ -25,4 +25,6 @@ Create `docs/adr/NNNN-short-title.md` with:
 
 ## Index
 
-No ADRs yet.
+- [0001 — Java agent for per-listener timing](0001-java-agent-listener-timing.md)
+- [0002 — Multi-artifact monorepo split](0002-multi-artifact-monorepo-split.md)
+- [0003 — Client Java agent for per-mod handler timing](0003-client-java-agent.md)

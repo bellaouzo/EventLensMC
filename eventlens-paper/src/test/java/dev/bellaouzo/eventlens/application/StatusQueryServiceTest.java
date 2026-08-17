@@ -29,11 +29,11 @@ class StatusQueryServiceTest {
             }
         };
         StatusQueryService service =
-                new StatusQueryService(manager, instrumentationPort, testPort, "0.1-SNAPSHOT", "Paper 26.2");
+                new StatusQueryService(manager, instrumentationPort, testPort, "1.0.0", "Paper 26.2");
 
         EventLensStatus status = service.queryStatus("Paper 1.21", "1.21.1");
 
-        assertEquals("0.1-SNAPSHOT", status.version());
+        assertEquals("1.0.0", status.version());
         assertEquals("Paper 26.2", status.targetPlatform());
         assertFalse(status.tracingEnabled());
         assertEquals(0, status.activeSessionCount());

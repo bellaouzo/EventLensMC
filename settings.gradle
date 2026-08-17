@@ -1,6 +1,36 @@
+pluginManagement {
+    repositories {
+        mavenCentral()
+        gradlePluginPortal()
+        maven {
+            name = 'neoforged'
+            url = 'https://maven.neoforged.net/releases'
+        }
+        maven {
+            name = 'fabricmc'
+            url = 'https://maven.fabricmc.net/'
+        }
+        maven {
+            name = 'minecraftforge'
+            url = 'https://maven.minecraftforge.net/'
+        }
+    }
+}
+
 rootProject.name = 'EventLens'
 
-include 'eventlens-observability', 'eventlens-agent', 'eventlens-testkit'
+include(
+        'eventlens-core',
+        'eventlens-paper',
+        'eventlens-observability',
+        'eventlens-agent',
+        'eventlens-client-agent',
+        'eventlens-testkit',
+        'eventlens-mod-common',
+        'eventlens-neoforge',
+        'eventlens-forge',
+        'eventlens-fabric'
+)
 
 dependencyResolutionManagement {
     repositories {
@@ -8,6 +38,18 @@ dependencyResolutionManagement {
         maven {
             name = 'papermc'
             url = 'https://repo.papermc.io/repository/maven-public/'
+        }
+        maven {
+            name = 'neoforged'
+            url = 'https://maven.neoforged.net/releases'
+        }
+        maven {
+            name = 'fabricmc'
+            url = 'https://maven.fabricmc.net/'
+        }
+        maven {
+            name = 'minecraftforge'
+            url = 'https://maven.minecraftforge.net/'
         }
     }
 }

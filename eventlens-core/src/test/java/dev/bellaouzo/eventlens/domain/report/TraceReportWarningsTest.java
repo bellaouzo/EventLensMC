@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.bellaouzo.eventlens.domain.conflict.SessionConflictSummary;
+import dev.bellaouzo.eventlens.domain.instrumentation.InstrumentationCapabilities;
+import dev.bellaouzo.eventlens.domain.instrumentation.InstrumentationMode;
 import dev.bellaouzo.eventlens.domain.observability.DurationStats;
 import dev.bellaouzo.eventlens.domain.observability.SessionTimingSummary;
 import dev.bellaouzo.eventlens.domain.trace.TraceDispatchRecord;
@@ -42,6 +44,26 @@ class TraceReportWarningsTest {
                 "dev.bellaouzo.eventlens.paper.PaperTraceHookManager$1",
                 "dev.bellaouzo.eventlens.paper.PaperTraceHookManager$$Lambda/0x1@abc");
         assertEquals("EventLens trace checkpoint", display);
+    }
+
+    @Test
+    void suppressesStaleAgentAbsentWarningsWhenAgentPresent() {
+        TraceReportDocument document = documentWithAgentAbsentTiming();
+        TraceReportDocument withAgent = new TraceReportDocument(
+                document.reportVersion(),
+                document.redactionMode(),
+                document.environment(),
+                new TraceReportInstrumentation(
+                        InstrumentationMode.PRECISE, true, 2, true, true, InstrumentationCapabilities.precise()),
+                document.summary(),
+                document.sessionTimingSummary(),
+                document.filter(),
+                document.warnings(),
+                document.dispatches());
+
+        List<String> warnings = TraceReportWarnings.collect(withAgent);
+
+        assertTrue(warnings.stream().noneMatch(warning -> warning.contains("Java agent absent")));
     }
 
     private static TraceReportDocument documentWithAgentAbsentTiming() {
@@ -94,13 +116,7 @@ class TraceReportWarningsTest {
                 timing,
                 new SessionConflictSummary(0, 0, "No conflicts detected.", Map.of(), List.of(), List.of()));
         TraceReportEnvironment environment = new TraceReportEnvironment(
-                "Paper test",
-                "25",
-                "Paper 26.2",
-                "0.1-SNAPSHOT",
-                "Paper 26.2",
-                Map.of("EventLens", "0.1-SNAPSHOT"),
-                3L);
+                "Paper test", "25", "Paper 26.2", "1.0.0", "Paper 26.2", Map.of("EventLens", "1.0.0"), 3L);
         return new TraceReportDocument(
                 ExportLimits.REPORT_VERSION,
                 ExportRedactionMode.SHARE_SAFE,

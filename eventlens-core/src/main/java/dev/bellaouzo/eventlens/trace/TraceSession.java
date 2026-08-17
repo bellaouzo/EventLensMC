@@ -65,6 +65,10 @@ final class TraceSession {
         return state == TraceSessionState.ACTIVE || state == TraceSessionState.THROTTLED;
     }
 
+    boolean isOpen() {
+        return isActive() || state == TraceSessionState.PAUSED;
+    }
+
     long getStartedAtMillis() {
         return startedAtMillis;
     }
@@ -203,11 +207,25 @@ final class TraceSession {
         return Optional.of(dispatchRecord);
     }
 
+    boolean pause(long nowMillis) {
+        return setState(isActive(), TraceSessionState.PAUSED, nowMillis);
+    }
+
+    boolean resume(long nowMillis) {
+        return setState(state == TraceSessionState.PAUSED, TraceSessionState.ACTIVE, nowMillis);
+    }
+
     void stop(TraceSessionState stopState, long nowMillis) {
-        if (state == TraceSessionState.ACTIVE || state == TraceSessionState.THROTTLED) {
-            state = stopState;
-            lastActivityAtMillis = nowMillis;
+        setState(isOpen(), stopState, nowMillis);
+    }
+
+    private boolean setState(boolean allowed, TraceSessionState next, long nowMillis) {
+        if (!allowed) {
+            return false;
         }
+        state = next;
+        lastActivityAtMillis = nowMillis;
+        return true;
     }
 
     private boolean hasNarrowingFilter() {

@@ -27,6 +27,20 @@ class PerformanceBudgetControllerTest {
         PerformanceBudgetController.BudgetEvaluation evaluation =
                 controller.recordOverhead(PerformanceBudget.EMERGENCY_STOP_NANOS);
 
+        assertEquals(PerformanceBudgetController.Decision.THROTTLE, evaluation.decision());
+    }
+
+    @Test
+    void stopsOnEmergencyOverheadAfterWarmup() {
+        PerformanceBudgetController controller = new PerformanceBudgetController();
+
+        for (int index = 0; index < PerformanceBudget.WARMUP_DISPATCHES; index++) {
+            controller.recordOverhead(100_000L);
+        }
+
+        PerformanceBudgetController.BudgetEvaluation evaluation =
+                controller.recordOverhead(PerformanceBudget.EMERGENCY_STOP_NANOS);
+
         assertEquals(PerformanceBudgetController.Decision.STOP, evaluation.decision());
     }
 

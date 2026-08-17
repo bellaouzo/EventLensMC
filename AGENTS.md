@@ -29,20 +29,22 @@ Planned capabilities are not implemented until source and tests prove they exist
 | Development server | run-paper 3.0.2 |
 | Operating system baseline | Windows |
 | Base package | `dev.bellaouzo.eventlens` |
-| Main class | `dev.bellaouzo.eventlens.EventLens` |
-| Plugin metadata file | `src/main/resources/plugin.yml` |
-| Current version | `0.1-SNAPSHOT` |
+| Main class | `dev.bellaouzo.eventlens.EventLens` (in `eventlens-paper`) |
+| Plugin metadata file | `eventlens-paper/src/main/resources/plugin.yml` |
+| Paper plugin JAR | `eventlens-paper/build/libs/EventLens-*.jar` |
+| Current version | `1.0.0` |
 | Gradle group | `dev.bellaouzo` |
 | Paper API dependency | `26.2.build.92-stable` (pinned in `gradle.properties`) |
 | Current commands | `/eventlens status`, `listeners`, `trace` (alias `el`) |
 | Current permissions | `eventlens.command.status`, `.listeners`, `.trace` (default op) |
-| Gradle subprojects | `eventlens-observability`, `eventlens-agent` |
+| Gradle subprojects | `eventlens-core`, `eventlens-paper`, `eventlens-mod-common`, `eventlens-neoforge`, `eventlens-forge`, `eventlens-fabric`, `eventlens-observability`, `eventlens-agent`, `eventlens-client-agent`, `eventlens-testkit` |
+| Client mods (optional) | NeoForge/Forge/Fabric — `/eventlens` status/listeners/trace with clickable chat; 33 client events |
 | Test framework | JUnit 5 |
-| Current tests | Session/trace, timing analyzers, budget controller, sampling, command permissions (MockBukkit), agent load (forked JVM), ArchUnit |
+| Current tests | Session/trace, timing analyzers, budget controller, sampling, command permissions (MockBukkit), Paper/client agent load (forked JVM), ArchUnit |
 | CI workflows | `.github/workflows/ci.yml` (`check` + `paperSmokeTest` on push/PR) |
 | ArchUnit / JaCoCo / Spotless | Configured |
 | MockBukkit | Configured (`mockbukkit-v26.1.2`) |
-| License | UNSPECIFIED — inspect repository |
+| License | MIT |
 
 Update this table when repository facts change. Do not guess missing values.
 
@@ -68,10 +70,17 @@ Tracing and snapshot capture are limited to these event types until expanded exp
 - Optional Java agent for per-listener timing (`eventlens-agent`; dev `runServer` attaches automatically)
 - Performance budget controller, hot-event sampling, timing output in `trace view`
 - Gradle `runServer` and `runServerDebug` with `-javaagent`
+- Optional NeoForge and Minecraft Forge 1.21.1 client mods (`:eventlens-neoforge:runClient`, `:eventlens-forge:runClient`) plus Fabric chat commands; 33 client events
+- Client session pause/resume (`/eventlens trace pause|resume`) and Screen hover details on live/idle and precise/dispatch
+- NeoForge client lists `@SubscribeEvent` subscribers and flags multi-mod overlap
+- Optional client Java agent (`eventlens-client-agent`) times NeoForge and Forge game-bus handlers; both `runClient` tasks attach it
+- NeoForge/Forge in-game Screen and optional HUD (`/eventlens ui`); chat remains a fallback
 
 **Not implemented**
 
 - Export timing aggregates and structured reports (Milestone 6)
+- Fabric client Java agent (deferred; see `docs/adr/0003-client-java-agent.md`)
+- Fabric in-game Screen/HUD (deferred; see `docs/CLIENT_UI.md`)
 
 ## Source-of-truth order
 
@@ -109,7 +118,7 @@ $env:Path = "$env:JAVA_HOME\bin;" + $env:Path
 
 ### Expected output
 
-Plugin JAR: `build/libs/EventLens-0.1-SNAPSHOT.jar`
+Plugin JAR: `eventlens-paper/build/libs/EventLens-1.0.0.jar`
 
 Local Paper server directory: `run/` (gitignored)
 
@@ -217,8 +226,6 @@ A change is complete when relevant tests pass, `.\gradlew.bat check` passes, Pap
 ### Repository foundation — **partial**
 
 Cursor rules, AGENTS.md, docs skeleton, Gradle wrapper, JUnit foundation, ArchUnit, JaCoCo, CI, CHANGELOG, and local Paper server verified.
-
-Remaining: license file.
 
 ### Listener inventory — **not started**
 

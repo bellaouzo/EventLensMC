@@ -14,8 +14,15 @@ public final class TraceReportWarnings {
 
     public static List<String> collect(TraceReportDocument document) {
         List<String> warnings = new ArrayList<>();
-        TraceSessionSummary summary = document.summary();
+        boolean agentPresent = document.instrumentation().agentPresent();
+        appendSessionSummaryWarnings(warnings, document.summary());
+        Set<TracePartialReason> sessionReasons =
+                appendTimingPartialReasons(warnings, document.summary().timingSummary(), agentPresent);
+        appendDispatchPartialReasons(warnings, document.dispatches(), sessionReasons, agentPresent);
+        return warnings.stream().distinct().toList();
+    }
 
+    private static void appendSessionSummaryWarnings(List<String> warnings, TraceSessionSummary summary) {
         if (summary.droppedEvents() > 0) {
             warnings.add(summary.droppedEvents() + " dispatches dropped (session record limit).");
         }
@@ -25,26 +32,39 @@ public final class TraceReportWarnings {
         if ("THROTTLED".equals(summary.state().name())) {
             warnings.add("Session throttled due to EventLens overhead budget.");
         }
+    }
 
-        SessionTimingSummary timing = summary.timingSummary();
-        Set<TracePartialReason> sessionReasons = Set.of();
-        if (timing != null) {
-            sessionReasons = timing.sessionPartialReasons();
-            for (TracePartialReason reason : sessionReasons) {
+    private static Set<TracePartialReason> appendTimingPartialReasons(
+            List<String> warnings, SessionTimingSummary timing, boolean agentPresent) {
+        if (timing == null) {
+            return Set.of();
+        }
+        Set<TracePartialReason> sessionReasons = timing.sessionPartialReasons();
+        for (TracePartialReason reason : sessionReasons) {
+            if (!shouldSuppressPartialReason(reason, agentPresent)) {
                 warnings.add(describePartialReason(reason));
             }
         }
+        return sessionReasons;
+    }
 
-        for (TraceDispatchRecord dispatch : document.dispatches()) {
+    private static void appendDispatchPartialReasons(
+            List<String> warnings,
+            List<TraceDispatchRecord> dispatches,
+            Set<TracePartialReason> sessionReasons,
+            boolean agentPresent) {
+        for (TraceDispatchRecord dispatch : dispatches) {
             for (TracePartialReason reason : dispatch.partialReasons()) {
-                if (sessionReasons.contains(reason)) {
+                if (sessionReasons.contains(reason) || shouldSuppressPartialReason(reason, agentPresent)) {
                     continue;
                 }
                 warnings.add("Dispatch #" + dispatch.sequence() + ": " + describePartialReason(reason));
             }
         }
+    }
 
-        return warnings.stream().distinct().toList();
+    private static boolean shouldSuppressPartialReason(TracePartialReason reason, boolean agentPresent) {
+        return agentPresent && reason == TracePartialReason.AGENT_ABSENT;
     }
 
     public static String describePartialReason(TracePartialReason reason) {

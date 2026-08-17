@@ -76,7 +76,35 @@
       "label": "EventLens: Run Paper Server",
       "type": "process",
       "command": "${workspaceFolder}\\gradlew.bat",
-      "args": ["runServer"],
+      "args": [":eventlens-paper:runServer"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated", "clear": true, "focus": true }
+    },
+    {
+      "label": "EventLens: Build Client Agent",
+      "type": "process",
+      "command": "${workspaceFolder}\\gradlew.bat",
+      "args": [":eventlens-client-agent:jar", ":eventlens-observability:jar"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "group": "build",
+      "problemMatcher": ["$javac"],
+      "presentation": { "reveal": "silent", "panel": "shared", "clear": false }
+    },
+    {
+      "label": "EventLens: Run Forge Client",
+      "type": "process",
+      "command": "${workspaceFolder}\\gradlew.bat",
+      "args": [":eventlens-forge:runClient"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated", "clear": true, "focus": true }
+    },
+    {
+      "label": "EventLens: Run NeoForge Client",
+      "type": "process",
+      "command": "${workspaceFolder}\\gradlew.bat",
+      "args": [":eventlens-neoforge:runClient"],
       "options": { "cwd": "${workspaceFolder}" },
       "problemMatcher": [],
       "presentation": { "reveal": "always", "panel": "dedicated", "clear": true, "focus": true }
@@ -85,7 +113,7 @@
       "label": "EventLens: Run Paper Server (Debug)",
       "type": "process",
       "command": "${workspaceFolder}\\gradlew.bat",
-      "args": ["runServerDebug"],
+      "args": [":eventlens-paper:runServerDebug"],
       "options": { "cwd": "${workspaceFolder}" },
       "problemMatcher": [],
       "presentation": { "reveal": "always", "panel": "dedicated", "clear": true, "focus": true }

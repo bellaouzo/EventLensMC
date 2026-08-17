@@ -26,7 +26,21 @@ Gradle subproject: `eventlens-agent`
 - Fail closed if target method signature mismatches (Paper 26.2 assumption)
 - See `docs/adr/0001-java-agent-listener-timing.md`
 
-Build output: `eventlens-agent/build/libs/eventlens-agent-0.1-SNAPSHOT.jar`
+Build output: `eventlens-agent/build/libs/eventlens-agent-1.0.0.jar`
+
+## Client Java agent (NeoForge / Forge)
+
+Gradle subproject: `eventlens-client-agent`
+
+- Separate JAR from the Paper agent (Java 21, Minecraft 1.21.1)
+- Transforms NeoForge `ConsumerEventHandler.invoke(Event)`, `ConsumerEventHandler$WithPredicate.invoke(Event)`, and `SubscribeEventListener.invoke(Event)`
+- Transforms Forge `ASMEventHandler.invoke(Event)` (Event Bus 6.2.33) plus `EventBus$$Lambda` `addListener` wrappers
+- Reuses `eventlens-observability` (Java 21 bytecode)
+- NeoForge and Forge `runClient` attach `-javaagent` automatically
+- Fabric is not implemented; do not share NeoForge/Forge transforms
+- See `docs/adr/0003-client-java-agent.md` and `docs/CLIENT_AGENT.md`
+
+Build output: `eventlens-client-agent/build/libs/eventlens-client-agent-1.0.0.jar`
 
 ## Instrumentation SPI
 

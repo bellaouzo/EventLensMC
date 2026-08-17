@@ -19,25 +19,30 @@ Requires an architecture decision record with:
 
 Do not spread reflection across hot event paths.
 
-# Java agent (future, optional)
+# Java agent (optional)
 
-The standard plugin must remain useful without an agent.
+The standard plugin and client mods must remain useful without an agent.
 
-A future agent must:
+An agent must:
 
-- Be a separate artifact (`eventlens-agent` subproject when justified)
+- Be a separate artifact (`eventlens-agent` on Paper, `eventlens-client-agent` on NeoForge/Forge)
 - Load only with `-javaagent` at JVM startup
 - Never self-attach by default
 - Transform only exact allowlisted targets with signature verification
 - Perform additive observation-only changes
 - Fail closed on mismatch
-- Expose a narrow versioned protocol to the plugin
+- Expose a narrow versioned protocol via `eventlens-observability`
 - Stop producing data when no trace session requires it
+
+Do not attach the Paper agent to Minecraft, or share NeoForge transforms with Fabric.
 
 Agent tests must run in forked JVMs.
 
 # Current status
 
-No agent, no instrumentation SPI implementation, and no NMS usage in the repository.
+- Paper: `eventlens-agent` wraps `RegisteredListener.callEvent` (ADR 0001)
+- Client: `eventlens-client-agent` wraps NeoForge game-bus `invoke(Event)` and Forge `ASMEventHandler.invoke(Event)` (ADR 0003); Fabric is not implemented
+- Shared protocol: `eventlens-observability` (Java 21 bytecode)
+- No NMS usage
 
-Do not implement agent or NMS code without an approved ADR and preservation tests.
+A new transform requires an approved ADR and preservation tests.

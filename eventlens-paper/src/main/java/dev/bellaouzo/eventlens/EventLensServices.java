@@ -1,6 +1,7 @@
 package dev.bellaouzo.eventlens;
 
 import dev.bellaouzo.eventlens.application.BaselineCommandService;
+import dev.bellaouzo.eventlens.application.DashboardQueryService;
 import dev.bellaouzo.eventlens.application.EventLensCommandConfig;
 import dev.bellaouzo.eventlens.application.EventLensCommandContext;
 import dev.bellaouzo.eventlens.application.ExportCommandService;
@@ -14,6 +15,7 @@ import dev.bellaouzo.eventlens.application.StatusQueryService;
 import dev.bellaouzo.eventlens.application.TraceCommandService;
 import dev.bellaouzo.eventlens.application.TraceLiveFeedService;
 import dev.bellaouzo.eventlens.command.EventLensCommand;
+import dev.bellaouzo.eventlens.paper.dashboard.PaperDashboardHttpServer;
 import org.bukkit.plugin.java.JavaPlugin;
 
 final class EventLensServices {
@@ -31,6 +33,8 @@ final class EventLensServices {
             InstrumentationTestService instrumentationTestService,
             ReportRetentionService reportRetentionService,
             PlayerPreferencesService playerPreferencesService,
+            DashboardQueryService dashboardQueryService,
+            PaperDashboardHttpServer dashboardHttpServer,
             EventLensCommandConfig commandConfig,
             LiveFeedConfig liveFeedConfig) {}
 

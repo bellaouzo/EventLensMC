@@ -1,0 +1,56 @@
+plugins {
+    id 'java-library'
+}
+
+group = 'dev.bellaouzo'
+version = rootProject.version
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+dependencies {
+    api project(':eventlens-core')
+    compileOnly project(':eventlens-observability')
+    compileOnly 'org.jspecify:jspecify:1.0.0'
+
+    testImplementation project(':eventlens-observability')
+    testImplementation platform('org.junit:junit-bom:5.11.4')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 21
+}
+
+tasks.withType(Test).configureEach {
+    useJUnitPlatform()
+}
+
+tasks.register('checkFileLengths') {
+    group = 'verification'
+    def srcDir = layout.projectDirectory.dir('src')
+    def projectDir = layout.projectDirectory.asFile
+    doLast {
+        def violations = []
+        fileTree(srcDir) { include '**/java/**/*.java' }.each { File file ->
+            int lines = file.readLines().size()
+            String relPath = projectDir.toPath().relativize(file.toPath()).toString().replace('\\', '/')
+            def limit = rootProject.ext.resolveFileLengthLimit(relPath, file.name)
+            if (lines > limit.max) {
+                violations << [relPath, lines, limit.max, limit.category]
+            }
+        }
+        if (!violations.isEmpty()) {
+            throw new GradleException("File length check failed: ${violations.size()} file(s)")
+        }
+    }
+}
+
+tasks.named('check') {
+    dependsOn 'checkFileLengths'
+}

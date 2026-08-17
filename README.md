@@ -29,7 +29,7 @@ Set `JAVA_HOME` to your Java 25 installation. Windows PowerShell is the primary 
 
 On first server start, accept the Minecraft EULA in `run/eula.txt` when prompted.
 
-Built plugin JAR: `build/libs/EventLens-0.1-SNAPSHOT.jar`
+Built plugin JAR: `eventlens-paper/build/libs/EventLens-1.0.0.jar`
 
 Development server directory: `run/` (gitignored)
 
@@ -157,7 +157,8 @@ Stop the test server with `stop` in the console — never `/reload`.
 |---|---|
 | `src/main/java` | Paper plugin (commands, application services, domain) |
 | `eventlens-observability` | Shared observation DTOs and SPI |
-| `eventlens-agent` | Optional `-javaagent` for per-listener instrumentation |
+| `eventlens-agent` | Optional Paper `-javaagent` for per-listener instrumentation |
+| `eventlens-client-agent` | Optional NeoForge client `-javaagent` for per-mod handler timing |
 | `docs/` | Architecture, setup, testing, performance, privacy |
 | `AGENTS.md` | Agent and contributor handbook |
 
@@ -178,4 +179,4 @@ Stop the test server with `stop` in the console — never `/reload`.
 
 ## License
 
-See repository license terms when added.
+MIT. See [LICENSE](LICENSE).

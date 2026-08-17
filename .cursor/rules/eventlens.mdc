@@ -5,23 +5,23 @@ alwaysApply: true
 
 # EventLens project identity
 
-EventLens is a server-side diagnostics plugin for **Paper 26.2**.
+EventLens is a **Paper-first** diagnostics plugin for **Paper 26.2**, with **optional** client mods (NeoForge/Forge/Fabric).
 
 Required stack (verify in build files before changing):
 
-- Java 25
+- Java 25 (Paper plugin); Java 21 bytecode in `eventlens-core` and client mods
 - Gradle Wrapper 9.6.1
 - Groovy Gradle DSL
 - run-paper 3.0.2
 - Windows-first development workflow
-- Paper server plugin; no required client mod
+- Paper server plugin; optional client mods in `eventlens-neoforge`, `eventlens-forge`, `eventlens-fabric`
 
 Discovered repository facts (re-inspect before relying on these):
 
 - Base package: `dev.bellaouzo.eventlens`
-- Main class: `dev.bellaouzo.eventlens.EventLens`
-- Plugin metadata: `src/main/resources/plugin.yml`
-- Gradle project name: `EventLens`
+- Main class: `dev.bellaouzo.eventlens.EventLens` (`eventlens-paper`)
+- Plugin metadata: `eventlens-paper/src/main/resources/plugin.yml`
+- Gradle project name: `EventLens` (multi-subproject monorepo)
 
 Before editing:
 
@@ -31,7 +31,7 @@ Before editing:
 4. Clearly distinguish current behavior from proposed behavior.
 5. Check git status and do not overwrite unrelated user changes.
 
-Do not introduce Forge, NeoForge, Fabric, proxy, or client-side code.
+Do not introduce Forge, NeoForge, Fabric, proxy, or client-side code in `eventlens-core` or `eventlens-paper`. Client loader code belongs only in `eventlens-mod-common` and loader subprojects.
 
 # Product purpose
 

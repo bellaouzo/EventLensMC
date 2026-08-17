@@ -17,10 +17,15 @@ public final class PerformanceBudgetController {
 
     private final List<Long> overheadWindow = new ArrayList<>();
     private int consecutiveOverBudgetWindows;
+    private int completedDispatches;
 
     public BudgetEvaluation recordOverhead(long overheadNanos) {
+        completedDispatches++;
+        boolean warmup = completedDispatches <= PerformanceBudget.WARMUP_DISPATCHES;
+
         if (overheadNanos >= PerformanceBudget.EMERGENCY_STOP_NANOS) {
-            return new BudgetEvaluation(Decision.STOP, overheadNanos, overheadNanos);
+            Decision decision = warmup ? Decision.THROTTLE : Decision.STOP;
+            return new BudgetEvaluation(decision, overheadNanos, overheadNanos);
         }
 
         overheadWindow.add(overheadNanos);
@@ -36,7 +41,7 @@ public final class PerformanceBudgetController {
                 DurationStatsCalculator.compute(List.copyOf(overheadWindow)).p95Nanos();
         if (windowP95 > PerformanceBudget.AUTO_STOP_P95_NANOS) {
             consecutiveOverBudgetWindows++;
-            if (consecutiveOverBudgetWindows >= PerformanceBudget.AUTO_STOP_CONSECUTIVE_WINDOWS) {
+            if (!warmup && consecutiveOverBudgetWindows >= PerformanceBudget.AUTO_STOP_CONSECUTIVE_WINDOWS) {
                 return new BudgetEvaluation(Decision.STOP, overheadNanos, windowP95);
             }
             return new BudgetEvaluation(Decision.THROTTLE, overheadNanos, windowP95);

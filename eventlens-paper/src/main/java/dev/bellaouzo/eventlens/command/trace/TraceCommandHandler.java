@@ -10,6 +10,7 @@ import dev.bellaouzo.eventlens.application.TraceLiveFeedService;
 import dev.bellaouzo.eventlens.command.CommandLiterals;
 import dev.bellaouzo.eventlens.command.CommandMessages;
 import dev.bellaouzo.eventlens.command.EventLensPermissions;
+import dev.bellaouzo.eventlens.domain.trace.TraceRestartResult;
 import dev.bellaouzo.eventlens.domain.trace.TraceStopResult;
 import dev.bellaouzo.eventlens.domain.trace.TraceViewResult;
 import java.util.List;
@@ -57,7 +58,7 @@ public final class TraceCommandHandler {
 
         if (args.length < 2) {
             sender.sendMessage(Component.text(
-                    "Usage: /eventlens trace <start|stop|list|view|live|export|copy|compare|baseline|history|favorite|presets>",
+                    "Usage: /eventlens trace <start|stop|restart|list|view|live|export|copy|compare|baseline|history|favorite|presets>",
                     NamedTextColor.YELLOW));
             return;
         }
@@ -65,6 +66,7 @@ public final class TraceCommandHandler {
         switch (args[1].toLowerCase(Locale.ROOT)) {
             case TraceCommandTabCompleter.SUBCOMMAND_START -> traceStartCommandHandler.handle(sender, args);
             case "stop" -> handleStop(sender);
+            case TraceCommandTabCompleter.SUBCOMMAND_RESTART -> handleRestart(sender, args);
             case "list" -> handleList(sender);
             case "view" -> handleView(sender, args);
             case TraceLiveCommandHandler.SUBCOMMAND -> liveCommandHandler.handle(sender, args);
@@ -77,7 +79,7 @@ public final class TraceCommandHandler {
             case "presets" -> preferenceCommandHandler.handlePresets(sender, commandConfig);
             default ->
                 sender.sendMessage(Component.text(
-                        "Usage: /eventlens trace <start|stop|list|view|live|export|copy|compare|baseline|history|favorite|presets>",
+                        "Usage: /eventlens trace <start|stop|restart|list|view|live|export|copy|compare|baseline|history|favorite|presets>",
                         NamedTextColor.YELLOW));
         }
     }
@@ -98,6 +100,35 @@ public final class TraceCommandHandler {
                         "Stopped trace session(s): " + String.join(", ", stoppedSessionIds), NamedTextColor.GREEN));
             case TraceStopResult.NoActiveSessions _ ->
                 sender.sendMessage(Component.text("No active trace sessions to stop.", NamedTextColor.YELLOW));
+        }
+    }
+
+    private void handleRestart(CommandSender sender, String[] args) {
+        if (!EventLensPermissions.hasTrace(sender, TraceCommandTabCompleter.SUBCOMMAND_RESTART)) {
+            sender.sendMessage(Component.text(CommandMessages.PERMISSION_DENIED, NamedTextColor.RED));
+            return;
+        }
+        if (args.length < 3) {
+            sender.sendMessage(Component.text("Usage: /eventlens trace restart <session>", NamedTextColor.YELLOW));
+            return;
+        }
+        switch (traceCommandService.restartTrace(args[2])) {
+            case TraceRestartResult.Success success ->
+                sender.sendMessage(Component.text(
+                        "Restarted "
+                                + success.sourceSessionId()
+                                + " as "
+                                + success.sessionId()
+                                + ". Previous session remains available for view/export.",
+                        NamedTextColor.GREEN));
+            case TraceRestartResult.NotFound(var sessionId) ->
+                sender.sendMessage(Component.text("No trace session \"" + sessionId + "\".", NamedTextColor.RED));
+            case TraceRestartResult.StillOpen(var sessionId, var state) ->
+                sender.sendMessage(Component.text(
+                        "Session " + sessionId + " is still " + state + ". Use resume or stop first.",
+                        NamedTextColor.YELLOW));
+            case TraceRestartResult.SessionLimit(var message) ->
+                sender.sendMessage(Component.text(message, NamedTextColor.RED));
         }
     }
 

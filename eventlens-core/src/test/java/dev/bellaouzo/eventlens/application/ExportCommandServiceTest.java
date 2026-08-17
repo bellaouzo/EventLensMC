@@ -64,7 +64,7 @@ class ExportCommandServiceTest {
                 manager,
                 new TraceReportBuilder(
                         (plugins, now) -> new TraceReportEnvironment(
-                                "test", "25", "Paper 26.2", "0.1-SNAPSHOT", "Paper 26.2", Map.of(), now),
+                                "test", "25", "Paper 26.2", "1.0.0", "Paper 26.2", Map.of(), now),
                         NO_OP_INSTRUMENTATION,
                         "Paper 26.2"),
                 exportPort,
@@ -93,7 +93,7 @@ class ExportCommandServiceTest {
                 manager,
                 new TraceReportBuilder(
                         (plugins, now) -> new TraceReportEnvironment(
-                                "test", "25", "Paper 26.2", "0.1-SNAPSHOT", "Paper 26.2", Map.of(), now),
+                                "test", "25", "Paper 26.2", "1.0.0", "Paper 26.2", Map.of(), now),
                         NO_OP_INSTRUMENTATION,
                         "Paper 26.2"),
                 new FakeExportPort(),

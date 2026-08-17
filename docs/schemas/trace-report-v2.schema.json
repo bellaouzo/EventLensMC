@@ -24,11 +24,10 @@
       "required": [
         "serverVersion",
         "javaVersion",
-        "paperVersion",
         "eventLensVersion",
         "platformLabel",
         "generatedAtMillis",
-        "pluginVersions"
+        "runtimeKind"
       ],
       "properties": {
         "serverVersion": {
@@ -46,10 +45,23 @@
         "platformLabel": {
           "type": "string"
         },
+        "runtimeKind": {
+          "type": "string",
+          "enum": ["paper", "neoforge", "forge", "fabric"]
+        },
+        "loaderVersion": {
+          "type": "string"
+        },
         "generatedAtMillis": {
           "type": "integer"
         },
         "pluginVersions": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "modVersions": {
           "type": "object",
           "additionalProperties": {
             "type": "string"

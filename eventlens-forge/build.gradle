@@ -1,0 +1,135 @@
+plugins {
+    id 'java-library'
+    id 'net.minecraftforge.gradle' version '[7.0.3,8)'
+}
+
+evaluationDependsOn(':eventlens-mod-common')
+evaluationDependsOn(':eventlens-core')
+evaluationDependsOn(':eventlens-client-agent')
+
+group = 'dev.bellaouzo'
+version = rootProject.version
+
+base {
+    archivesName = 'eventlens-forge'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir 'src/main/java'
+            srcDir project(':eventlens-neoforge').file('src/main/java')
+            exclude 'dev/bellaouzo/eventlens/neoforge/*.java'
+            exclude 'dev/bellaouzo/eventlens/neoforge/ui/EventLensKeybinds.java'
+            exclude 'dev/bellaouzo/eventlens/neoforge/ui/EventLensClientEvents.java'
+        }
+        resources {
+            srcDir project(':eventlens-neoforge').file('src/main/resources')
+        }
+    }
+}
+
+def unifiedOutput = layout.buildDirectory.dir('sourceSets/main')
+sourceSets.main.java.destinationDirectory.set(unifiedOutput)
+sourceSets.main.output.resourcesDir = unifiedOutput.get().asFile
+
+minecraft {
+    mappings channel: 'official', version: minecraft_version
+
+    runs {
+        configureEach {
+            workingDir = layout.projectDirectory.dir('run')
+        }
+        register('client') {
+            jvmArgs.add(clientAgentArgument())
+            mods {
+                eventlens {
+                    source sourceSets.main
+                }
+            }
+        }
+    }
+}
+
+repositories {
+    minecraft.mavenizer(it)
+    maven fg.forgeMaven
+    maven fg.minecraftLibsMaven
+    mavenCentral()
+}
+
+dependencies {
+    implementation minecraft.dependency("net.minecraftforge:forge:${minecraft_version}-${forge_version}")
+    implementation project(':eventlens-mod-common')
+    implementation project(':eventlens-core')
+    compileOnly project(':eventlens-observability')
+    compileOnly 'org.spongepowered:mixin:0.8.5'
+}
+
+def clientAgentArgument() {
+    return project.provider {
+        def agentJar = project(':eventlens-client-agent').tasks.named('jar', Jar).get().archiveFile.get().asFile
+        "-javaagent:${agentJar.absolutePath}"
+    }
+}
+
+tasks.configureEach { task ->
+    if (task.name == 'runClient' || task.name == 'prepareClient') {
+        task.dependsOn ':eventlens-client-agent:jar', ':eventlens-observability:jar'
+    }
+}
+
+var generateModMetadata = tasks.register('generateModMetadata', Copy) {
+    def replaceProperties = [
+            minecraft_version      : minecraft_version,
+            minecraft_version_range: minecraft_version_range,
+            forge_version          : forge_version,
+            forge_version_range    : forge_version_range,
+            loader_version_range   : loader_version_range,
+            mod_id                 : mod_id,
+            mod_name               : mod_name,
+            mod_license            : mod_license,
+            mod_version            : mod_version,
+    ]
+    inputs.properties replaceProperties
+    from 'src/main/templates'
+    into layout.buildDirectory.dir('generated/sources/modMetadata')
+    expand replaceProperties
+}
+
+sourceSets.main.resources.srcDir generateModMetadata
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 21
+}
+
+tasks.register('checkFileLengths') {
+    group = 'verification'
+    def srcDir = layout.projectDirectory.dir('src')
+    def projectDir = layout.projectDirectory.asFile
+    doLast {
+        def violations = []
+        fileTree(srcDir) { include '**/java/**/*.java' }.each { File file ->
+            int lines = file.readLines().size()
+            String relPath = projectDir.toPath().relativize(file.toPath()).toString().replace('\\', '/')
+            def limit = rootProject.ext.resolveFileLengthLimit(relPath, file.name)
+            if (lines > limit.max) {
+                violations << [relPath, lines, limit.max, limit.category]
+            }
+        }
+        if (!violations.isEmpty()) {
+            throw new GradleException("File length check failed: ${violations.size()} file(s)")
+        }
+    }
+}
+
+tasks.named('check') {
+    dependsOn 'checkFileLengths'
+}

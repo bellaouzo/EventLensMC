@@ -1,0 +1,85 @@
+plugins {
+    id 'java'
+}
+
+group = 'dev.bellaouzo'
+version = rootProject.version
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 21
+}
+
+dependencies {
+    implementation project(':eventlens-observability')
+    implementation 'net.bytebuddy:byte-buddy:1.17.5'
+    implementation 'net.bytebuddy:byte-buddy-agent:1.17.5'
+
+    testImplementation platform('org.junit:junit-bom:5.11.4')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.withType(Test).configureEach {
+    useJUnitPlatform()
+    dependsOn 'jar'
+}
+
+def observabilityJarPath = project(':eventlens-observability').layout.buildDirectory.file(
+        "libs/${project(':eventlens-observability').name}-${project.version}.jar")
+
+tasks.register('stageObservabilityJar', Copy) {
+    dependsOn ':eventlens-observability:jar'
+    from observabilityJarPath
+    into layout.buildDirectory.dir('libs')
+}
+
+tasks.named('jar', Jar) {
+    dependsOn ':eventlens-observability:jar', tasks.named('stageObservabilityJar')
+
+    manifest {
+        attributes(
+                'Premain-Class': 'dev.bellaouzo.eventlens.clientagent.EventLensClientAgent',
+                'Can-Redefine-Classes': 'false',
+                'Can-Retransform-Classes': 'true',
+                'Implementation-Title': 'EventLens Client Agent',
+                'Implementation-Version': project.version)
+    }
+
+    from {
+        configurations.runtimeClasspath.collect { entry ->
+            entry.isDirectory() ? entry : zipTree(entry)
+        }
+    }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+tasks.register('checkFileLengths') {
+    group = 'verification'
+    def srcDir = layout.projectDirectory.dir('src')
+    def projectDir = layout.projectDirectory.asFile
+    doLast {
+        def violations = []
+        fileTree(srcDir) { include '**/java/**/*.java' }.each { File file ->
+            int lines = file.readLines().size()
+            String relPath = projectDir.toPath().relativize(file.toPath()).toString().replace('\\', '/')
+            def limit = rootProject.ext.resolveFileLengthLimit(relPath, file.name)
+            if (lines > limit.max) {
+                violations << [relPath, lines, limit.max, limit.category]
+            }
+        }
+        if (!violations.isEmpty()) {
+            throw new GradleException("File length check failed: ${violations.size()} file(s)")
+        }
+    }
+}
+
+tasks.named('check') {
+    dependsOn 'checkFileLengths'
+}

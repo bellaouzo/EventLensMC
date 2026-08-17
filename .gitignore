@@ -43,3 +43,6 @@ Thumbs.db
 
 # Local backups and machine-specific patches
 docs/pre-setup-backup.patch
+
+# Dashboard SPA tooling
+eventlens-viewer/node_modules/

@@ -5,8 +5,14 @@ public final class AgentRuntime {
     private static volatile long slowThresholdNanos = 1_000_000L;
     private static volatile boolean captureStacks;
     private static volatile ListenerSnapshotBridge listenerSnapshotBridge;
+    private static volatile OwnerIdResolver ownerIdResolver;
 
     private AgentRuntime() {}
+
+    @FunctionalInterface
+    public interface OwnerIdResolver {
+        String resolve(Object listener);
+    }
 
     public static long slowThresholdNanos() {
         return slowThresholdNanos;
@@ -42,5 +48,22 @@ public final class AgentRuntime {
 
     public static boolean listenerSnapshotsEnabled() {
         return listenerSnapshotBridge != null;
+    }
+
+    public static void setOwnerIdResolver(OwnerIdResolver resolver) {
+        ownerIdResolver = resolver;
+    }
+
+    public static String resolveOwnerId(Object listener) {
+        OwnerIdResolver resolver = ownerIdResolver;
+        if (resolver == null || listener == null) {
+            return "unknown";
+        }
+        try {
+            String ownerId = resolver.resolve(listener);
+            return ownerId == null || ownerId.isBlank() ? "unknown" : ownerId;
+        } catch (RuntimeException ignored) {
+            return "unknown";
+        }
     }
 }

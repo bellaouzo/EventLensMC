@@ -12,6 +12,7 @@ import dev.bellaouzo.eventlens.domain.trace.TraceFilter;
 import dev.bellaouzo.eventlens.domain.trace.TraceLimits;
 import dev.bellaouzo.eventlens.domain.trace.TraceListenerSnapshot;
 import dev.bellaouzo.eventlens.domain.trace.TracePartialReason;
+import dev.bellaouzo.eventlens.domain.trace.TraceRestartResult;
 import dev.bellaouzo.eventlens.domain.trace.TraceSessionConfig;
 import dev.bellaouzo.eventlens.domain.trace.TraceSessionState;
 import dev.bellaouzo.eventlens.paper.instrumentation.NoOpInstrumentationAdapter;
@@ -136,6 +137,74 @@ class TraceSessionManagerTest {
                         .orElseThrow()
                         .summary()
                         .state());
+    }
+
+    @Test
+    void pauseStopsCaptureAndResumeContinues() {
+        String sessionId = manager.startSession(defaultConfig("org.example.TestEvent"), "admin", 1_000L);
+        assertTrue(manager.pauseSession(sessionId, 1_100L).isPresent());
+        assertEquals(
+                TraceSessionState.PAUSED,
+                manager.getSessionDetail(sessionId).orElseThrow().summary().state());
+        assertFalse(manager.isTracingEnabled());
+
+        EventFilterContext context = new EventFilterContext(
+                "org.example.TestEvent",
+                false,
+                false,
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                List.of());
+        manager.beginEventDispatch(sessionId, 1L, context, 1_200L, 1_200_000_000L);
+        assertTrue(manager.getSessionDetail(sessionId).orElseThrow().records().isEmpty());
+
+        assertTrue(manager.resumeSession(sessionId, 1_300L).isPresent());
+        assertTrue(manager.isTracingEnabled());
+        manager.beginEventDispatch(sessionId, 2L, context, 1_400L, 1_400_000_000L);
+        manager.completeEventDispatch(
+                sessionId,
+                2L,
+                new DispatchCompletion(
+                        context,
+                        1_450L,
+                        1_450_000_000L,
+                        10_000L,
+                        false,
+                        List.of(),
+                        snapshot("LOWEST"),
+                        snapshot("MONITOR"),
+                        List.of(),
+                        List.of(),
+                        EnumSet.noneOf(TracePartialReason.class)));
+        assertEquals(
+                1, manager.getSessionDetail(sessionId).orElseThrow().records().size());
+        assertEquals(List.of(sessionId), manager.stopSessionsForOwner("admin", 2_000L));
+    }
+
+    @Test
+    void restartClonesStoppedSessionIntoNewId() {
+        String sourceId = manager.startSession(defaultConfig("org.example.TestEvent"), "admin", 1_000L);
+        assertEquals(List.of(sourceId), manager.stopSessionsForOwner("admin", 2_000L));
+
+        TraceRestartResult result = manager.restartSession(sourceId, 3_000L);
+        assertTrue(result instanceof TraceRestartResult.Success);
+        TraceRestartResult.Success success = (TraceRestartResult.Success) result;
+        assertEquals(sourceId, success.sourceSessionId());
+        assertEquals("org.example.TestEvent", success.eventClassName());
+        assertTrue(manager.isTracingEnabled());
+        assertEquals(
+                TraceSessionState.STOPPED,
+                manager.getSessionDetail(sourceId).orElseThrow().summary().state());
+        assertEquals(
+                TraceSessionState.ACTIVE,
+                manager.getSessionDetail(success.sessionId())
+                        .orElseThrow()
+                        .summary()
+                        .state());
+        assertTrue(manager.restartSession(success.sessionId(), 4_000L) instanceof TraceRestartResult.StillOpen);
     }
 
     @Test

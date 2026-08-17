@@ -72,7 +72,7 @@ final class BaselineCodec {
                     decodeMap(fields.getOrDefault("pluginDispatchCounts", "")),
                     decodeMap(fields.getOrDefault("pluginInvocationCounts", "")),
                     decodeList(fields.getOrDefault("dispatchFingerprints", ""))));
-        } catch (RuntimeException _) {
+        } catch (RuntimeException ignored) {
             return Optional.empty();
         }
     }

@@ -1,0 +1,17 @@
+name: EventLensTestTarget
+version: '${version}'
+main: dev.bellaouzo.eventlens.testkit.EventLensTestTarget
+api-version: '1.21'
+description: Deterministic listener scenarios for EventLens development and smoke tests.
+author: bellaouzo
+
+commands:
+  eltest:
+    description: Control EventLens testkit behavior
+    usage: /eltest mode <passive|trace|exception|slow>
+    permission: eventlenstestkit.command
+
+permissions:
+  eventlenstestkit.command:
+    description: Control EventLens testkit modes
+    default: op

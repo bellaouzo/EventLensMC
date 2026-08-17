@@ -21,6 +21,8 @@
   "java.project.explorer.showNonJavaResources": true,
   "java.saveActions.organizeImports": true,
 
+  "workbench.activityBar.orientation": "vertical",
+
   "gradle.reuseTerminals": "task",
   "gradle.nestedProjects": true,
 

@@ -30,7 +30,7 @@ Expected:
 .\gradlew.bat test
 ```
 
-The plugin JAR is written to `build/libs/EventLens-0.1-SNAPSHOT.jar`.
+The plugin JAR is written to `eventlens-paper/build/libs/EventLens-1.0.0.jar`.
 
 ## Run the Paper test server
 

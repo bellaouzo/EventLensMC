@@ -25,8 +25,6 @@ final class TraceDispatchWriter {
         EnumSet<TracePartialReason> partialReasons = EnumSet.copyOf(completion.partialReasons());
         if (!completion.listenerTimings().isEmpty()) {
             partialReasons.remove(TracePartialReason.AGENT_ABSENT);
-        } else {
-            partialReasons.add(TracePartialReason.AGENT_ABSENT);
         }
 
         List<TraceListenerSnapshot> boundedListeners =

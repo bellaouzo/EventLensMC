@@ -11,6 +11,7 @@ import java.util.Locale;
 final class TraceCommandTabCompleter {
 
     static final String SUBCOMMAND_START = "start";
+    static final String SUBCOMMAND_RESTART = "restart";
     static final String SUBCOMMAND_LIVE = "live";
     private static final String SUBCOMMAND_EXPORT = CommandLiterals.SUBCOMMAND_EXPORT;
     private static final String SUBCOMMAND_COPY = "copy";
@@ -32,6 +33,7 @@ final class TraceCommandTabCompleter {
     private static final List<String> TRACE_SUBCOMMANDS = List.of(
             SUBCOMMAND_START,
             "stop",
+            SUBCOMMAND_RESTART,
             "list",
             SUBCOMMAND_VIEW,
             SUBCOMMAND_EXPORT,
@@ -104,6 +106,14 @@ final class TraceCommandTabCompleter {
         }
         if (args[1].equalsIgnoreCase(SUBCOMMAND_FAVORITE)) {
             return CommandText.filterPrefix(FAVORITE_SUBCOMMANDS, prefix);
+        }
+        if (args[1].equalsIgnoreCase(SUBCOMMAND_RESTART)) {
+            return CommandText.filterPrefix(
+                    traceCommandService.listSessions().stream()
+                            .filter(session -> session.state().isTerminal())
+                            .map(dev.bellaouzo.eventlens.domain.trace.TraceSessionSummary::sessionId)
+                            .toList(),
+                    prefix);
         }
         if (isSessionSubcommand(args[1]) || args[1].equalsIgnoreCase(SUBCOMMAND_COMPARE)) {
             return CommandText.filterPrefix(traceCommandService.listSessionIds(), prefix);

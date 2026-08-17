@@ -1,0 +1,119 @@
+plugins {
+    id 'java-library'
+    id 'jacoco'
+    id 'com.diffplug.spotless'
+    id 'name.remal.sonarlint'
+    id 'net.ltgt.errorprone'
+}
+
+group = 'dev.bellaouzo'
+version = rootProject.version
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+    withSourcesJar()
+}
+
+dependencies {
+    compileOnly 'org.jspecify:jspecify:1.0.0'
+
+    errorprone 'com.google.errorprone:error_prone_core:2.36.0'
+
+    testImplementation platform('org.junit:junit-bom:5.11.4')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.junit.jupiter:junit-jupiter-params'
+    testImplementation 'com.tngtech.archunit:archunit-junit5:1.4.1'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 21
+    options.compilerArgs.addAll([
+        '-Xlint:deprecation',
+        '-Xlint:unchecked',
+    ])
+    options.errorprone {
+        enabled.set(true)
+        disableWarningsInGeneratedCode.set(true)
+    }
+}
+
+tasks.withType(Test).configureEach {
+    useJUnitPlatform()
+    finalizedBy jacocoTestReport
+}
+
+jacoco {
+    toolVersion = '0.8.13'
+}
+
+tasks.named('jacocoTestReport') {
+    dependsOn tasks.named('test')
+    reports {
+        xml.required = true
+        html.required = true
+    }
+}
+
+spotless {
+    java {
+        target 'src/*/java/**/*.java'
+        palantirJavaFormat('2.74.0')
+        removeUnusedImports()
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
+}
+
+tasks.named('check') {
+    dependsOn 'spotlessCheck'
+    dependsOn 'checkFileLengths'
+    dependsOn tasks.matching { it.name.startsWith('sonarLint') && !it.name.endsWith('Rules') && !it.name.endsWith('Properties') }
+}
+
+tasks.register('checkFileLengths') {
+    group = 'verification'
+    description = 'Fails when Java source files exceed line limits from file-organization.mdc.'
+
+    def srcDir = layout.projectDirectory.dir('src')
+    def projectDir = layout.projectDirectory.asFile
+
+    doLast {
+        def violations = []
+        fileTree(srcDir) {
+            include '**/java/**/*.java'
+        }.each { File file ->
+            int lines = file.readLines().size()
+            String relPath = projectDir.toPath().relativize(file.toPath()).toString().replace('\\', '/')
+            def limit = rootProject.ext.resolveFileLengthLimit(relPath, file.name)
+            if (lines > limit.max) {
+                violations << [relPath, lines, limit.max, limit.category]
+            }
+        }
+
+        if (!violations.isEmpty()) {
+            violations.sort { a, b -> b[1] <=> a[1] }
+            def report = new StringBuilder()
+            report.append("File length check failed (${violations.size()} file(s) exceed limits):\n")
+            violations.each { entry ->
+                report.append(String.format(
+                        '  %s: %d lines (max %d for %s)%n', entry[0], entry[1], entry[2], entry[3]))
+            }
+            report.append('\nLimits are defined in .cursor/rules/file-organization.mdc')
+            throw new GradleException(report.toString())
+        }
+    }
+}
+
+sonarLint {
+    failOnSeverity('WARNING')
+    languages {
+        include('java')
+    }
+    logging {
+        withDescription = false
+    }
+}

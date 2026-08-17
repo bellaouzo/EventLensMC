@@ -51,7 +51,8 @@ public final class EventLensCommand implements CommandExecutor, TabCompleter {
     public boolean onCommand(
             @NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length == 0) {
-            return false;
+            statusCommandHandler.handle(sender);
+            return true;
         }
 
         return switch (args[0].toLowerCase(Locale.ROOT)) {

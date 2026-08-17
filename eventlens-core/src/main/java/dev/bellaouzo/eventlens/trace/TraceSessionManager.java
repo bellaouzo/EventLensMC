@@ -3,6 +3,7 @@ package dev.bellaouzo.eventlens.trace;
 import dev.bellaouzo.eventlens.application.port.InstrumentationPort;
 import dev.bellaouzo.eventlens.domain.trace.EventFilterContext;
 import dev.bellaouzo.eventlens.domain.trace.TraceLimits;
+import dev.bellaouzo.eventlens.domain.trace.TraceRestartResult;
 import dev.bellaouzo.eventlens.domain.trace.TraceSessionConfig;
 import dev.bellaouzo.eventlens.domain.trace.TraceSessionDetail;
 import dev.bellaouzo.eventlens.domain.trace.TraceSessionExportBundle;
@@ -33,18 +34,16 @@ public final class TraceSessionManager {
 
     public synchronized String startSession(TraceSessionConfig config, String ownerName, long nowMillis) {
         expireSessions(nowMillis);
-
-        long activeCount =
-                sessions.values().stream().filter(TraceSession::isActive).count();
-        if (activeCount >= TraceLimits.MAX_CONCURRENT_SESSIONS) {
+        if (sessions.values().stream().filter(TraceSession::isOpen).count() >= TraceLimits.MAX_CONCURRENT_SESSIONS) {
             throw new IllegalStateException("Concurrent session limit reached.");
         }
-
         String sessionId = UUID.randomUUID().toString().substring(0, 8);
-        TraceSession session = new TraceSession(sessionId, config, ownerName, nowMillis);
-        sessions.put(sessionId, session);
+        sessions.put(sessionId, new TraceSession(sessionId, config, ownerName, nowMillis));
         pendingDispatches.put(sessionId, new ConcurrentHashMap<>());
         refreshInstrumentationState();
+        if (dispatchCaptureListener instanceof SessionLifecycleListener listener) {
+            listener.onSessionStarted(sessionId);
+        }
         return sessionId;
     }
 
@@ -83,7 +82,7 @@ public final class TraceSessionManager {
     public synchronized List<String> stopSessionsForOwner(String ownerName, long nowMillis) {
         List<String> stopped = new ArrayList<>();
         for (TraceSession session : sessions.values()) {
-            if (session.isActive() && session.getOwnerName().equalsIgnoreCase(ownerName)) {
+            if (session.isOpen() && session.getOwnerName().equalsIgnoreCase(ownerName)) {
                 session.stop(TraceSessionState.STOPPED, nowMillis);
                 stopped.add(session.getSessionId());
                 clearPending(session.getSessionId());
@@ -96,7 +95,7 @@ public final class TraceSessionManager {
 
     public synchronized Optional<String> stopSession(String sessionId, long nowMillis) {
         TraceSession session = sessions.get(sessionId);
-        if (session == null || !session.isActive()) {
+        if (session == null || !session.isOpen()) {
             return Optional.empty();
         }
         session.stop(TraceSessionState.STOPPED, nowMillis);
@@ -106,33 +105,53 @@ public final class TraceSessionManager {
         return Optional.of(sessionId);
     }
 
+    public synchronized List<String> pauseSessionsForOwner(String ownerName, long nowMillis) {
+        List<String> paused = TraceSessionControl.changeOwner(
+                sessions.values(), ownerName, nowMillis, TraceSession::pause, this::clearPending);
+        refreshInstrumentationState();
+        return paused;
+    }
+
+    public synchronized Optional<String> pauseSession(String sessionId, long nowMillis) {
+        Optional<String> paused =
+                TraceSessionControl.changeOne(sessions.get(sessionId), nowMillis, TraceSession::pause);
+        paused.ifPresent(this::clearPending);
+        refreshInstrumentationState();
+        return paused;
+    }
+
+    public synchronized List<String> resumeSessionsForOwner(String ownerName, long nowMillis) {
+        List<String> resumed = TraceSessionControl.changeOwner(
+                sessions.values(), ownerName, nowMillis, TraceSession::resume, ignored -> {});
+        refreshInstrumentationState();
+        return resumed;
+    }
+
+    public synchronized Optional<String> resumeSession(String sessionId, long nowMillis) {
+        Optional<String> resumed =
+                TraceSessionControl.changeOne(sessions.get(sessionId), nowMillis, TraceSession::resume);
+        refreshInstrumentationState();
+        return resumed;
+    }
+
+    public synchronized TraceRestartResult restartSession(String sessionId, long nowMillis) {
+        return TraceSessionRestart.restart(this, sessions, sessionId, nowMillis);
+    }
+
     public synchronized List<String> getActiveSessionIdsForEvent(String eventClassName) {
-        return sessions.values().stream()
-                .filter(session ->
-                        session.isActive() && session.getEventClassName().equals(eventClassName))
-                .map(TraceSession::getSessionId)
-                .toList();
+        return TraceSessionQueries.activeSessionIdsForEvent(sessions.values(), eventClassName);
     }
 
     public synchronized List<String> getActiveEventClassNames() {
-        return sessions.values().stream()
-                .filter(TraceSession::isActive)
-                .map(TraceSession::getEventClassName)
-                .distinct()
-                .toList();
+        return TraceSessionQueries.activeEventClassNames(sessions.values());
     }
 
-    public boolean isTracingEnabled() {
-        synchronized (this) {
-            return sessions.values().stream().anyMatch(TraceSession::isActive);
-        }
+    public synchronized boolean isTracingEnabled() {
+        return sessions.values().stream().anyMatch(TraceSession::isActive);
     }
 
-    public int getActiveSessionCount() {
-        synchronized (this) {
-            return (int)
-                    sessions.values().stream().filter(TraceSession::isActive).count();
-        }
+    public synchronized int getActiveSessionCount() {
+        return (int) sessions.values().stream().filter(TraceSession::isActive).count();
     }
 
     public synchronized Optional<TraceSession> getActiveSession(String sessionId) {
@@ -144,23 +163,11 @@ public final class TraceSessionManager {
     }
 
     public synchronized boolean isThrottledCaptureForEvent(String eventClassName) {
-        for (TraceSession session : sessions.values()) {
-            if (session.isActive()
-                    && session.getEventClassName().equals(eventClassName)
-                    && session.isThrottledCapture()) {
-                return true;
-            }
-        }
-        return false;
+        return TraceSessionQueries.throttledCaptureForEvent(sessions.values(), eventClassName);
     }
 
     public synchronized long minSlowThresholdForEvent(String eventClassName) {
-        return sessions.values().stream()
-                .filter(session ->
-                        session.isActive() && session.getEventClassName().equals(eventClassName))
-                .mapToLong(session -> session.getConfig().slowThresholdNanos())
-                .min()
-                .orElse(dev.bellaouzo.eventlens.domain.observability.PerformanceBudget.DEFAULT_SLOW_THRESHOLD_NANOS);
+        return TraceSessionQueries.minSlowThresholdForEvent(sessions.values(), eventClassName);
     }
 
     public void beginEventDispatch(
@@ -207,7 +214,7 @@ public final class TraceSessionManager {
     public synchronized void closeAll() {
         long nowMillis = System.currentTimeMillis();
         for (TraceSession session : sessions.values()) {
-            if (session.isActive()) {
+            if (session.isOpen()) {
                 session.stop(TraceSessionState.STOPPED, nowMillis);
             }
         }
