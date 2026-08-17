@@ -163,6 +163,13 @@ final class EventLensUi {
         }
     }
 
+    static void rowSlot(GuiGraphics graphics, int listX, int listW, int top, int rowH, boolean selected, boolean hovering) {
+        if (!selected && !hovering) {
+            return;
+        }
+        graphics.fill(listX, top - 2, listX + listW, top + rowH + 2, selected ? ROW : HOVER);
+    }
+
     static void card(
             GuiGraphics graphics,
             Font font,
