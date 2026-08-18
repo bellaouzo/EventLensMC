@@ -2,10 +2,12 @@
 
 **See how Minecraft events travel through plugins and mods — without changing them.**
 
-[![Version](https://img.shields.io/badge/version-1.10.6--beta-1f6feb)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.10.7--beta-1f6feb)](CHANGELOG.md)
 [![Paper](https://img.shields.io/badge/Paper-26.2-00aa00)](#quick-start)
 [![Java](https://img.shields.io/badge/Java-25-orange)](#development)
-[![Minecraft](https://img.shields.io/badge/client-26.2%20(NeoForge)-green)](#client-mods)
+[![NeoForge](https://img.shields.io/badge/NeoForge-26.2-green)](#client-mods)
+[![Forge](https://img.shields.io/badge/Forge-26.2-red)](#client-mods)
+[![Fabric](https://img.shields.io/badge/Fabric-26.2-yellow)](#client-mods)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 EventLens is a **preview/beta** diagnostics plugin for **Paper 26.2**, with optional **NeoForge**, **Forge**, and **Fabric** **26.2** client mods. It answers the questions chat logs and spark usually cannot: who listened, in what order, who cancelled or threw, which handler was slow, and what a single click actually did.
