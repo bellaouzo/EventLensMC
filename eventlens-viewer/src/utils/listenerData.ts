@@ -4,7 +4,7 @@ import { formatMillis } from './format';
 export type { ListenerChainEntry };
 
 export function resolveListenerTimings(dispatch: TraceDispatch): ListenerTiming[] {
-  if (dispatch.listenerTimings.length > 0) {
+  if ((dispatch.listenerTimings?.length ?? 0) > 0) {
     return dispatch.listenerTimings;
   }
 

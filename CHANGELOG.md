@@ -5,6 +5,22 @@ All notable changes to EventLens are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.4] - 2026-08-17
+
+### Changed
+
+- Bundle `report.json` is a viewer summary (session, timings, dispatch facts). Use `--format json` for the full snapshot dump
+
+## [1.2.3] - 2026-08-17
+
+### Changed
+
+- Bundle export is two files: open `index.html` (self-contained viewer) and inspect `report.json` (pretty-printed)
+
+### Fixed
+
+- Bundle `index.html` now embeds the viewer and report so it opens from `file://` instead of a blank dark page
+
 ## [1.2.2] - 2026-08-17
 
 ### Added

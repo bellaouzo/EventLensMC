@@ -1,22 +1,19 @@
 package dev.bellaouzo.eventlens.paper;
 
 import dev.bellaouzo.eventlens.application.port.ExportPort;
+import dev.bellaouzo.eventlens.domain.report.TraceReportJsonSupport;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 
 final class PaperBundleExporter {
 
     private static final String DASHBOARD_PREFIX = "dashboard/";
     private static final String INDEX_HTML = "index.html";
+    private static final String STYLE_CSS = "assets/style.css";
+    private static final String INDEX_JS = "assets/index.js";
 
     private PaperBundleExporter() {}
 
@@ -29,84 +26,56 @@ final class PaperBundleExporter {
             }
             Files.createDirectories(target);
             Files.writeString(target.resolve("report.json"), reportJson, StandardCharsets.UTF_8);
-            Files.writeString(
-                    target.resolve("report.js"),
-                    "window.__EVENTLENS_REPORT__=" + reportJson + ";\n",
-                    StandardCharsets.UTF_8);
-            copyDashboard(target);
-            rewriteIndex(target.resolve(INDEX_HTML));
+            String css = readDashboardResource(STYLE_CSS);
+            String js = readDashboardResource(INDEX_JS);
+            if (css.isBlank() || js.isBlank()) {
+                writeFallback(target);
+            } else {
+                Files.writeString(target.resolve(INDEX_HTML), buildIndex(css, reportJson, js), StandardCharsets.UTF_8);
+            }
             return ExportPort.ExportWriteResult.success(target);
-        } catch (IOException | URISyntaxException | IllegalArgumentException ex) {
+        } catch (IOException ex) {
             return ExportPort.ExportWriteResult.failure(
                     ex.getMessage() == null ? "I/O error writing bundle." : ex.getMessage());
         }
     }
 
-    private static void copyDashboard(Path target) throws IOException, URISyntaxException {
-        URL index = PaperBundleExporter.class.getClassLoader().getResource(DASHBOARD_PREFIX + INDEX_HTML);
-        if (index == null) {
-            writeFallback(target);
-            return;
-        }
-        if ("jar".equalsIgnoreCase(index.getProtocol())) {
-            copyFromJar(index, target);
-            return;
-        }
-        Path dashboard = Path.of(index.toURI()).getParent();
-        copyTree(dashboard, target);
+    private static String buildIndex(String css, String reportJson, String js) {
+        String payload = escapeEmbedded(TraceReportJsonSupport.minifyJson(reportJson));
+        return "<!doctype html>\n"
+                + "<html lang=\"en\">\n"
+                + "  <head>\n"
+                + "    <meta charset=\"UTF-8\" />\n"
+                + "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n"
+                + "    <title>EventLens Diagnostics</title>\n"
+                + "    <style>\n"
+                + css
+                + "\n    </style>\n"
+                + "    <script>window.__EVENTLENS_REPORT__="
+                + payload
+                + ";</script>\n"
+                + "  </head>\n"
+                + "  <body>\n"
+                + "    <div id=\"app\"></div>\n"
+                + "    <script>\n"
+                + escapeEmbedded(js)
+                + "\n    </script>\n"
+                + "  </body>\n"
+                + "</html>\n";
     }
 
-    static void copyFromJar(URL index, Path target) throws IOException, URISyntaxException {
-        Path jarPath = jarFilePath(index);
-        try (ZipFile zip = new ZipFile(jarPath.toFile())) {
-            var entries = zip.stream()
-                    .filter(entry -> !entry.isDirectory() && entry.getName().startsWith(DASHBOARD_PREFIX))
-                    .toList();
-            if (entries.isEmpty()) {
-                writeFallback(target);
-                return;
+    private static String readDashboardResource(String relativePath) throws IOException {
+        String name = DASHBOARD_PREFIX + relativePath;
+        try (InputStream input = PaperBundleExporter.class.getClassLoader().getResourceAsStream(name)) {
+            if (input == null) {
+                return "";
             }
-            for (ZipEntry entry : entries) {
-                Path dest = target.resolve(entry.getName().substring(DASHBOARD_PREFIX.length()));
-                Files.createDirectories(dest.getParent());
-                try (InputStream input = zip.getInputStream(entry)) {
-                    Files.copy(input, dest, StandardCopyOption.REPLACE_EXISTING);
-                }
-            }
+            return new String(input.readAllBytes(), StandardCharsets.UTF_8);
         }
     }
 
-    static Path jarFilePath(URL index) throws URISyntaxException {
-        String raw = index.toURI().getRawSchemeSpecificPart();
-        int bang = raw.indexOf('!');
-        return Path.of(URI.create(bang < 0 ? raw : raw.substring(0, bang)));
-    }
-
-    private static void copyTree(Path source, Path target) throws IOException {
-        try (var walk = Files.walk(source)) {
-            for (Path file : walk.toList()) {
-                Path dest = target.resolve(source.relativize(file).toString());
-                if (Files.isDirectory(file)) {
-                    Files.createDirectories(dest);
-                } else {
-                    Files.createDirectories(dest.getParent());
-                    Files.copy(file, dest, StandardCopyOption.REPLACE_EXISTING);
-                }
-            }
-        }
-    }
-
-    private static void rewriteIndex(Path index) throws IOException {
-        if (!Files.isRegularFile(index)) {
-            return;
-        }
-        String html = Files.readString(index, StandardCharsets.UTF_8)
-                .replace("type=\"module\"", "")
-                .replace(" crossorigin", "");
-        if (!html.contains("report.js")) {
-            html = html.replaceFirst("<head>", "<head>\n    <script src=\"./report.js\"></script>");
-        }
-        Files.writeString(index, html, StandardCharsets.UTF_8);
+    private static String escapeEmbedded(String value) {
+        return value.replace("</", "<\\/");
     }
 
     private static void writeFallback(Path target) throws IOException {

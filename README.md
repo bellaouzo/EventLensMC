@@ -29,7 +29,7 @@ Set `JAVA_HOME` to your Java 25 installation. Windows PowerShell is the primary 
 
 On first server start, accept the Minecraft EULA in `run/eula.txt` when prompted.
 
-Built plugin JAR: `eventlens-paper/build/libs/EventLens-1.2.2.jar`
+Built plugin JAR: `eventlens-paper/build/libs/EventLens-1.2.4.jar`
 
 Development server directory: `run/` (gitignored)
 
@@ -104,7 +104,7 @@ Joins Paper and client reports by correlation key. Live linking uses the optiona
 /eventlens trace compare <sessionA> <sessionB>
 ```
 
-Exports are redacted by default. `--full` requires `eventlens.command.trace.export.full`. A `bundle` export is a folder: open `index.html` in a browser (JS/CSS and a compact `report.json` are included).
+Exports are redacted by default. `--full` requires `eventlens.command.trace.export.full`. A `bundle` export is a folder with `index.html` (open this) and a pretty-printed viewer `report.json`. Use `--format json` for the full snapshot dump.
 
 #### Live feed
 

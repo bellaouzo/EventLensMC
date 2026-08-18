@@ -94,7 +94,7 @@ function severityFor(timing: ListenerTiming, tickPercent: number): 'critical' | 
 }
 
 function traceEntryFromDispatch(dispatch: TraceDispatch): RecentTraceEntry {
-  const slowest = [...dispatch.listenerTimings].sort((a, b) => b.durationNanos - a.durationNanos)[0];
+  const slowest = [...(dispatch.listenerTimings ?? [])].sort((a, b) => b.durationNanos - a.durationNanos)[0];
   const tickPercent = (dispatch.durationNanos / TICK_BUDGET_NANOS) * 100;
   let severity: 'critical' | 'warn' | 'ok' = 'ok';
   if (tickPercent >= 15 || slowest?.exceedsSlowThreshold) {

@@ -558,6 +558,11 @@ function renderActiveView(showLoading = true): Promise<void> {
     }
 
     if (!currentReport) {
+      if (!isLiveMode()) {
+        root.innerHTML =
+          '<section class="page"><p class="empty">No report loaded. Open <span class="mono">report.json</span> with the file picker, or re-export the bundle.</p></section>';
+        return;
+      }
       if (serverStatus?.activeTraceSessionId) {
         const uptimeMillis =
           serverStatus.activeTraceStartedAtMillis > 0
@@ -602,8 +607,8 @@ function renderActiveView(showLoading = true): Promise<void> {
 }
 
 ensureShell();
-void maybeLoadBundledReport();
-bootstrapLiveData()
+void maybeLoadBundledReport()
+  .then(() => bootstrapLiveData())
   .then(() => renderActiveView(false))
   .catch((error) => {
     const root = app.querySelector('#view-root');
