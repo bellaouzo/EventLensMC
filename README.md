@@ -2,27 +2,32 @@
 
 **See how Minecraft events travel through plugins and mods — without changing them.**
 
-EventLens is a diagnostics tool for Paper servers, with optional client mods for NeoForge, Minecraft Forge, and Fabric. It answers the questions that chat logs and spark profilers usually cannot:
+[![Version](https://img.shields.io/badge/version-1.3.2-1f6feb)](CHANGELOG.md)
+[![Paper](https://img.shields.io/badge/Paper-26.2-00aa00)](#quick-start)
+[![Java](https://img.shields.io/badge/Java-25-orange)](#development)
+[![Minecraft](https://img.shields.io/badge/client-1.21.1-green)](#client-mods)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-- Which plugins or mods listen to this event, and in what order?
-- Who cancelled it, changed a field, or threw?
-- Which listener is slow?
-- What did a single click, break, chat line, or inventory action actually do?
+EventLens is a diagnostics plugin for **Paper 26.2**, with optional client mods for NeoForge, Minecraft Forge, and Fabric. It answers the questions chat logs and spark usually cannot: who listened, in what order, who cancelled or threw, which handler was slow, and what a single click actually did.
 
 It observes. It does not cancel, reorder, re-fire, or hide exceptions.
 
-| | |
-|---|---|
-| **Version** | 1.3.2 |
-| **Paper plugin** | Paper **26.2** · Java **25** · alias `/el` |
-| **Client mods** | Minecraft **1.21.1** · NeoForge · Forge · Fabric |
-| **License** | [MIT](LICENSE) |
+| Paper plugin | Client mods | License |
+|---|---|---|
+| Paper **26.2** · Java **25** · `/eventlens` (`/el`) | Minecraft **1.21.1** · NeoForge · Forge · Fabric | [MIT](LICENSE) |
 
-**[Install](#install)** · **[Use it on a server](#use-it-on-a-paper-server)** · **[Client mods](#client-mods)** · **[Dashboard](#dashboard-and-shareable-viewer)** · **[Developers](#for-developers)**
+**[Features](#features)** · **[Quick start](#quick-start)** · **[Commands](#commands)** · **[Client mods](#client-mods)** · **[Dashboard](#dashboard)** · **[Configuration](#configuration)** · **[Development](#development)**
 
 ---
 
-## What you get
+## Features
+
+- **Listener inventory** — any registered Bukkit event, with priority and order
+- **Trace sessions** — snapshots, diffs, cancellation, exceptions, and timing
+- **Optional Java agents** — per-listener timing on Paper; per-mod timing on NeoForge and Forge
+- **Live dashboard** — graphs, timeline, and compare at `http://127.0.0.1:8765`
+- **Shareable bundles** — export a self-contained `index.html` report
+- **Client mods** — the other half of a click, plus an in-game Screen and HUD
 
 | Piece | Who it is for | Required? |
 |---|---|---|
@@ -33,18 +38,27 @@ It observes. It does not cancel, reorder, re-fire, or hide exceptions.
 | **Dashboard** at `http://127.0.0.1:8765` | Live graphs, timeline, compare | Ships with the Paper plugin |
 | **Bundle export** | Share a self-contained `index.html` report | Paper command |
 
-The plugin is useful without any agent or client mod. Agents add precise per-listener / per-mod timings. Client mods add the other half of a click (what the client fired before the server saw it).
+The plugin is useful without any agent or client mod. Agents add precise timings. Client mods add what the client fired before the server saw it.
 
 ---
 
-## Install
+## Quick start
 
-### Paper plugin
+1. Run **Java 25**. Drop `eventlens-paper/build/libs/EventLens-1.3.2.jar` into `plugins/`.
+2. Restart the server (`stop`, then start — do not `/reload`). Commands default to **op**.
+3. Trace a click, then open the dashboard or an exported bundle.
 
-1. Run **Java 25** on the server.
-2. Drop `eventlens-paper/build/libs/EventLens-1.3.2.jar` into `plugins/`.
-3. Restart the server (`stop`, then start — do not `/reload`).
-4. Commands default to **op**.
+```
+/eventlens status
+/eventlens listeners PlayerInteractEvent --detail verbose
+/eventlens trace start PlayerInteractEvent,BlockBreakEvent --preset block-flow
+# reproduce the bug
+/eventlens trace view <sessionId>
+/eventlens trace export <sessionId> --format bundle
+/eventlens trace stop
+```
+
+Then open the exported folder’s `index.html`, or the live dashboard at [http://127.0.0.1:8765](http://127.0.0.1:8765) on the server machine.
 
 Built artifact after `.\gradlew.bat build`:
 
@@ -52,7 +66,8 @@ Built artifact after `.\gradlew.bat build`:
 eventlens-paper/build/libs/EventLens-1.3.2.jar
 ```
 
-### Optional Paper Java agent
+<details>
+<summary><strong>Optional Paper Java agent</strong></summary>
 
 Without the agent, EventLens still lists listeners and reports **dispatch-level** timing. With it, `/eventlens status` shows `precise` and `trace view` lists each listener’s time, field changes, and exceptions.
 
@@ -64,7 +79,10 @@ Add a JVM argument on the **same** Paper process:
 
 Development `runServer` / `runServerDebug` attach this automatically.
 
-### Optional client mods (Minecraft 1.21.1)
+</details>
+
+<details>
+<summary><strong>Optional client mods (Minecraft 1.21.1)</strong></summary>
 
 Install **one** loader jar that matches your client:
 
@@ -76,7 +94,7 @@ Install **one** loader jar that matches your client:
 
 Put the jar in the client `mods/` folder. Chat commands work on all three. Screen, HUD, and keybinds work on all three (Fabric’s Screen is a lighter list UI). Precise per-mod timing needs the **client agent** on NeoForge and Forge only.
 
-#### Optional client Java agent (NeoForge and Forge)
+**Client Java agent (NeoForge and Forge)**
 
 ```
 -javaagent:eventlens-client-agent-1.3.2.jar
@@ -84,26 +102,11 @@ Put the jar in the client `mods/` folder. Chat commands work on all three. Scree
 
 Place `eventlens-observability-1.3.2.jar` in the **same folder** as the agent jar. Dev tasks `:eventlens-neoforge:runClient` and `:eventlens-forge:runClient` attach it automatically. Fabric `runClient` does not — Fabric stays `dispatch-only` until a stable invoker exists.
 
+</details>
+
 ---
 
-## Use it on a Paper server
-
-Typical loop:
-
-```
-/eventlens status
-/eventlens events Player
-/eventlens listeners PlayerInteractEvent --detail verbose
-/eventlens trace start PlayerInteractEvent,BlockBreakEvent --preset block-flow
-# reproduce the bug
-/eventlens trace view <sessionId>
-/eventlens trace export <sessionId> --format bundle
-/eventlens trace stop
-```
-
-Then open the exported folder’s `index.html`, or the live dashboard at [http://127.0.0.1:8765](http://127.0.0.1:8765) on the server machine.
-
-### Commands
+## Commands
 
 Alias: `/el`. All commands default to **op**.
 
@@ -119,7 +122,8 @@ Alias: `/el`. All commands default to **op**.
 | `/eventlens instrumentation test` | Agent / snapshot-bridge self-check | `eventlens.command.instrumentation` |
 | `/eventlens trace …` | Sessions, live feed, export, compare | `eventlens.command.trace` (+ children) |
 
-#### Trace sessions
+<details>
+<summary><strong>Trace command reference</strong></summary>
 
 ```
 /eventlens trace start <Event[,Event…]> [--preset <name>] [--plugin <name>] [--player <name>]
@@ -146,7 +150,12 @@ Alias: `/el`. All commands default to **op**.
 /eventlens trace presets
 ```
 
-Notes:
+Built-in presets: `dev-debug`, `quick-interact`, `plugin-focus`, `block-flow`, `inventory-flow`, `chat-flow`.
+
+</details>
+
+<details>
+<summary><strong>Trace notes</strong></summary>
 
 - **Allowlisted** types get first-class snapshots (see [Supported Paper events](#supported-paper-events)). Any other **registered** Bukkit event needs `--generic` (common fields only). `listeners` still resolves every registered event.
 - Several types in one session: `/eventlens trace start Interact,Break` or `--preset block-flow`.
@@ -156,9 +165,9 @@ Notes:
 - Exports are **redacted** by default. `--full` needs `eventlens.command.trace.export.full`.
 - `bundle` writes a folder: open `index.html`. `json` is the full snapshot dump.
 
-Built-in presets: `dev-debug`, `quick-interact`, `plugin-focus`, `block-flow`, `inventory-flow`, `chat-flow`.
+</details>
 
-#### Live feed
+### Live feed
 
 Attach while a session is running (in-game player required):
 
@@ -170,7 +179,7 @@ Attach while a session is running (in-game player required):
 
 Channels: aggregated frequency, slow listeners, cancellation, exceptions, plugin bursts. Filters and pause/resume do not restart the trace.
 
-#### Client–server correlation
+### Client–server correlation
 
 A right-click is two traces today. After you export both sides:
 
@@ -182,11 +191,14 @@ A right-click is two traces today. After you export both sides:
 
 ### Supported Paper events
 
-First-class snapshots (22 types):
+First-class snapshots (22 types). Add more names in `config.yml` under `trace.additional-events`, or start a registered custom event with `--generic`.
+
+<details>
+<summary><strong>Allowlisted event types</strong></summary>
 
 `BlockBreakEvent`, `BlockPlaceEvent`, `PlayerInteractEvent`, `PlayerMoveEvent`, `PlayerTeleportEvent`, `PlayerCommandPreprocessEvent`, `InventoryClickEvent`, `InventoryOpenEvent`, `InventoryCloseEvent`, `InventoryDragEvent`, `EntityDamageEvent`, `EntityDeathEvent`, `EntitySpawnEvent`, `CreatureSpawnEvent`, `PlayerJoinEvent`, `PlayerQuitEvent`, `PlayerDropItemEvent`, `EntityPickupItemEvent`, `ProjectileLaunchEvent`, `ProjectileHitEvent`, `ServerCommandEvent`, `AsyncChatEvent`
 
-Add more names in `config.yml` under `trace.additional-events`, or start a registered custom event with `--generic`.
+</details>
 
 ---
 
@@ -211,7 +223,8 @@ Same `/eventlens` family in client chat, plus an in-game Screen.
 
 `/eventlens trace live` on a client does not start a Paper-style channelled feed. It tells you that the HUD and command toasts are the local equivalent.
 
-### Client commands
+<details>
+<summary><strong>Client commands</strong></summary>
 
 ```
 /eventlens
@@ -234,7 +247,10 @@ Clickable chat: session ids, **[Open UI]**, **Saved to** / **Folder** (click cop
 
 `/eventlens mod` on NeoForge and Forge uses scanned `@SubscribeEvent` rows. `addListener()` consumers stay invisible without the client agent. Fabric lists EventLens plus a short set of other loaded mod ids — not a full callback inventory.
 
-### In-game Screen and HUD
+</details>
+
+<details>
+<summary><strong>In-game Screen and HUD</strong></summary>
 
 **NeoForge and Forge** share the full diagnostic panel:
 
@@ -255,9 +271,12 @@ Hover the **live** / **paused** / **idle** and **precise** / **dispatch** pills 
 
 **Fabric** has `/eventlens ui`, HUD, and the same keybinds, with a lighter Screen (Home / Events / Sessions lists). It does not persist last tab or show the NeoForge Session detail panel. Chat commands are the complete Fabric workflow.
 
-Flame graphs stay in the [dashboard](#dashboard-and-shareable-viewer) after you export.
+Flame graphs stay in the [dashboard](#dashboard) after you export.
 
-### Supported client events (33)
+</details>
+
+<details>
+<summary><strong>Supported client events (33)</strong></summary>
 
 Not traced: per-frame render events (`RenderGuiEvent`, `RenderLivingEvent`, and similar) and one-shot mod-bus registration events.
 
@@ -286,9 +305,11 @@ Not traced: per-frame render events (`RenderGuiEvent`, `RenderLivingEvent`, and 
 | `ClientChunkLoadEvent` / `ClientChunkUnloadEvent` | yes | Chunk loaded / unloaded |
 | `ClientRecipesUpdatedEvent` | | Recipe book synced |
 
+</details>
+
 ---
 
-## Dashboard and shareable viewer
+## Dashboard
 
 Two ways to open the same viewer:
 
@@ -305,7 +326,21 @@ The event graph needs the live `/api` when you are on the dashboard; a bare bund
 
 ## Configuration
 
-`plugins/EventLens/config.yml` (defaults merge on startup):
+`plugins/EventLens/config.yml` (defaults merge on startup). NeoForge / Forge UI prefs live in `config/eventlens/ui.properties`.
+
+| Key | Default | Purpose |
+|---|---|---|
+| `dashboard.enabled` | `true` | Local HTTP viewer |
+| `dashboard.port` | `8765` | |
+| `dashboard.bind-address` | `127.0.0.1` | Loopback only unless you change it |
+| `output.detail-level` | `normal` | Default chat verbosity |
+| `trace.slow-threshold-default` | `1ms` | Slow-listener flag |
+| `trace.additional-events` | `[]` | Extra allowlisted class names |
+| `trace.require-hot-event-confirmation` | `true` | Gate `PlayerMoveEvent` and friends |
+| `reports.retention-days` | `30` | How long export files stay |
+
+<details>
+<summary><strong>All config keys</strong></summary>
 
 | Key | Default | Purpose |
 |---|---|---|
@@ -323,9 +358,10 @@ The event graph needs the live `/api` when you are on the dashboard; a bare bund
 | `preferences.max-recent-traces` | `20` | |
 | `preferences.max-favorites` | `32` | |
 
-NeoForge / Forge UI prefs: `config/eventlens/ui.properties` (last tab, session, HUD).
+</details>
 
-### Resource limits
+<details>
+<summary><strong>Resource limits</strong></summary>
 
 | Limit | Default |
 |---:|---:|
@@ -343,6 +379,8 @@ Design targets per observed dispatch: average ≤ 0.25 ms, p95 ≤ 0.75 ms. Even
 
 These are EventLens defaults, not Paper guarantees.
 
+</details>
+
 ### Privacy
 
 No external telemetry. Shareable exports redact player names, world names, exact coordinates, and paths unless an operator passes `--full`. The dashboard binds to localhost by default.
@@ -351,7 +389,7 @@ EventLens must not change observed events, reorder listeners, invoke listeners t
 
 ---
 
-## For developers
+## Development
 
 ### Requirements
 
@@ -376,7 +414,8 @@ $env:Path = "$env:JAVA_HOME\bin;" + $env:Path
 .\gradlew.bat --stop
 ```
 
-### Gradle tasks
+<details>
+<summary><strong>Gradle tasks</strong></summary>
 
 ```powershell
 .\gradlew.bat check              # tests, Spotless, SonarLint, ArchUnit, file-length
@@ -393,7 +432,10 @@ Helpers: `.\scripts\smoke-test.ps1` (build, checklist, `runServer`) and `.\scrip
 
 Cursor tasks: Clean Build, Build, Test, Run Paper Server, Run Paper Server (Debug), Stop Gradle Daemons. Attach debugger with **Java: Attach to EventLens Paper Server**.
 
-### Layout
+</details>
+
+<details>
+<summary><strong>Repository layout</strong></summary>
 
 | Path | Role |
 |---|---|
@@ -436,16 +478,18 @@ flowchart TD
 
 Domain code must not import Paper, Fabric, Forge, file APIs, or JSON libraries.
 
+</details>
+
 ### Tests and CI
 
 JUnit 5, ArchUnit, MockBukkit (`mockbukkit-v26.1.2`), forked-JVM agent load tests, Spotless, JaCoCo. CI (`.github/workflows/ci.yml`) runs `./gradlew check` and Windows `paperSmokeTest` on push/PR to `main` or `master`.
 
-### What is not in this repo yet
+### Not in this repo yet
 
 - Fabric client Java agent (deferred until a stable invoker is verified)
 - Folia, Velocity, packet sniffing, Paper chest GUIs, event replay, network telemetry
 
-Changelog: [CHANGELOG.md](CHANGELOG.md).
+See [CHANGELOG.md](CHANGELOG.md) for release history.
 
 ---
 
