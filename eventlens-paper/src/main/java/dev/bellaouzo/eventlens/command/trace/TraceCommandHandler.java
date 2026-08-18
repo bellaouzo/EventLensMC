@@ -57,7 +57,7 @@ public final class TraceCommandHandler {
 
         switch (args[1].toLowerCase(Locale.ROOT)) {
             case TraceCommandTabCompleter.SUBCOMMAND_START -> traceStartCommandHandler.handle(sender, args);
-            case "stop" -> handleStop(sender);
+            case TraceCommandTabCompleter.SUBCOMMAND_STOP -> handleStop(sender, args);
             case TraceCommandTabCompleter.SUBCOMMAND_RESTART -> handleRestart(sender, args);
             case "list" -> handleList(sender);
             case "view" -> handleView(sender, args);
@@ -82,18 +82,22 @@ public final class TraceCommandHandler {
         return TraceCommandTabCompleter.complete(traceCommandService, args, prefix);
     }
 
-    private void handleStop(CommandSender sender) {
+    private void handleStop(CommandSender sender, String[] args) {
         if (!EventLensPermissions.hasTrace(sender, "stop")) {
             sender.sendMessage(Component.text(CommandMessages.PERMISSION_DENIED, NamedTextColor.RED));
             return;
         }
-        TraceStopResult result = traceCommandService.stopTrace(sender.getName());
+        TraceStopResult result = args.length >= 3
+                ? traceCommandService.stopSession(args[2])
+                : traceCommandService.stopTrace(sender.getName());
         switch (result) {
             case TraceStopResult.Success(var stoppedSessionIds) ->
                 sender.sendMessage(Component.text(
                         "Stopped trace session(s): " + String.join(", ", stoppedSessionIds), NamedTextColor.GREEN));
             case TraceStopResult.NoActiveSessions _ ->
                 sender.sendMessage(Component.text("No active trace sessions to stop.", NamedTextColor.YELLOW));
+            case TraceStopResult.NotFound(var missingId) ->
+                sender.sendMessage(Component.text("No open trace session \"" + missingId + "\".", NamedTextColor.RED));
         }
     }
 

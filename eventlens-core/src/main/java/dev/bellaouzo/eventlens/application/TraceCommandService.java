@@ -85,6 +85,13 @@ public final class TraceCommandService {
         return new TraceStopResult.Success(stopped);
     }
 
+    public TraceStopResult stopSession(String sessionId) {
+        Optional<String> stopped = traceSessionManager.stopSession(sessionId, System.currentTimeMillis());
+        refreshHooks();
+        return stopped.<TraceStopResult>map(id -> new TraceStopResult.Success(List.of(id)))
+                .orElseGet(() -> new TraceStopResult.NotFound(sessionId));
+    }
+
     public TraceRestartResult restartTrace(String sessionId) {
         return TraceRestartService.restart(traceSessionManager, traceHookPort, sessionId);
     }
@@ -133,6 +140,13 @@ public final class TraceCommandService {
 
     public List<String> listSessionIds() {
         return listSessions().stream().map(TraceSessionSummary::sessionId).toList();
+    }
+
+    public List<String> listOpenSessionIds() {
+        return listSessions().stream()
+                .filter(session -> !session.state().isTerminal())
+                .map(TraceSessionSummary::sessionId)
+                .toList();
     }
 
     public List<String> listSupportedEventSimpleNames() {

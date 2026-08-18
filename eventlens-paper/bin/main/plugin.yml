@@ -32,7 +32,7 @@ permissions:
         description: Start trace sessions
         default: op
       eventlens.command.trace.stop:
-        description: Stop your trace sessions
+        description: Stop your trace sessions, or one session by id
         default: op
       eventlens.command.trace.restart:
         description: Restart a stopped trace session with the same filters

@@ -11,6 +11,7 @@ import java.util.Locale;
 final class TraceCommandTabCompleter {
 
     static final String SUBCOMMAND_START = "start";
+    static final String SUBCOMMAND_STOP = "stop";
     static final String SUBCOMMAND_RESTART = "restart";
     static final String SUBCOMMAND_LIVE = "live";
     private static final String SUBCOMMAND_EXPORT = CommandLiterals.SUBCOMMAND_EXPORT;
@@ -33,7 +34,7 @@ final class TraceCommandTabCompleter {
 
     private static final List<String> TRACE_SUBCOMMANDS = List.of(
             SUBCOMMAND_START,
-            "stop",
+            SUBCOMMAND_STOP,
             SUBCOMMAND_RESTART,
             "list",
             SUBCOMMAND_VIEW,
@@ -104,6 +105,9 @@ final class TraceCommandTabCompleter {
         }
         if (args[1].equalsIgnoreCase(SUBCOMMAND_FAVORITE)) {
             return CommandText.filterPrefix(FAVORITE_SUBCOMMANDS, prefix);
+        }
+        if (args[1].equalsIgnoreCase(SUBCOMMAND_STOP)) {
+            return CommandText.filterPrefix(traceCommandService.listOpenSessionIds(), prefix);
         }
         if (args[1].equalsIgnoreCase(SUBCOMMAND_RESTART)) {
             return CommandText.filterPrefix(

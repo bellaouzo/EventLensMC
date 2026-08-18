@@ -9,7 +9,9 @@ import dev.bellaouzo.eventlens.application.port.TraceHookPort;
 import dev.bellaouzo.eventlens.domain.listener.EventSearchResult;
 import dev.bellaouzo.eventlens.domain.listener.ListenerRegistration;
 import dev.bellaouzo.eventlens.domain.trace.TraceFilter;
+import dev.bellaouzo.eventlens.domain.trace.TraceSessionConfig;
 import dev.bellaouzo.eventlens.domain.trace.TraceStartResult;
+import dev.bellaouzo.eventlens.domain.trace.TraceStopResult;
 import dev.bellaouzo.eventlens.trace.TraceSessionManager;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -85,6 +87,39 @@ class TraceCommandServiceTest {
         assertTrue(hooks.registered.contains("org.bukkit.event.player.PlayerInteractEvent"));
         assertTrue(hooks.registered.contains("org.bukkit.event.block.BlockBreakEvent"));
         assertEquals(2, manager.listSessions().getFirst().eventClassNames().size());
+    }
+
+    @Test
+    void stopTraceStopsOnlyTheRequestedSession() {
+        TraceSessionManager manager = new TraceSessionManager();
+        TraceCommandService service =
+                new TraceCommandService(manager, new StubListenerRegistry(), new NoOpTraceHookPort());
+        TraceSessionConfig config = new TraceSessionConfig(
+                "org.bukkit.event.block.BlockBreakEvent",
+                TraceFilter.Builder.unrestricted().build(),
+                Optional.empty(),
+                Optional.empty());
+        long nowMillis = System.currentTimeMillis();
+        String keep = manager.startSession(config, "admin", nowMillis);
+        String stop = manager.startSession(config, "admin", nowMillis);
+
+        TraceStopResult result = service.stopSession(stop);
+
+        TraceStopResult.Success success = assertInstanceOf(TraceStopResult.Success.class, result);
+        assertEquals(List.of(stop), success.stoppedSessionIds());
+        assertEquals(1, service.listOpenSessionIds().size());
+        assertEquals(keep, service.listOpenSessionIds().getFirst());
+    }
+
+    @Test
+    void stopTraceReportsMissingSession() {
+        TraceCommandService service =
+                new TraceCommandService(new TraceSessionManager(), new StubListenerRegistry(), new NoOpTraceHookPort());
+
+        TraceStopResult result = service.stopSession("missing");
+
+        TraceStopResult.NotFound notFound = assertInstanceOf(TraceStopResult.NotFound.class, result);
+        assertEquals("missing", notFound.sessionId());
     }
 
     @Test

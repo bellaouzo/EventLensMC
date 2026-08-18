@@ -5,6 +5,17 @@ All notable changes to EventLens are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.2] - 2026-08-17
+
+### Added
+
+- `/eventlens trace stop [sessionId]` stops one open session when an id is given; omit it to stop all of yours
+
+### Fixed
+
+- Tab-complete open session ids after `/eventlens trace stop`
+- Bundle export no longer crashes when the plugin JAR path contains a space
+
 ## [1.2.1] - 2026-08-17
 
 ### Fixed

@@ -4,6 +4,7 @@ import dev.bellaouzo.eventlens.application.port.ExportPort;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -35,13 +36,13 @@ final class PaperBundleExporter {
             copyDashboard(target);
             rewriteIndex(target.resolve(INDEX_HTML));
             return ExportPort.ExportWriteResult.success(target);
-        } catch (IOException | java.net.URISyntaxException ex) {
+        } catch (IOException | URISyntaxException | IllegalArgumentException ex) {
             return ExportPort.ExportWriteResult.failure(
                     ex.getMessage() == null ? "I/O error writing bundle." : ex.getMessage());
         }
     }
 
-    private static void copyDashboard(Path target) throws IOException, java.net.URISyntaxException {
+    private static void copyDashboard(Path target) throws IOException, URISyntaxException {
         URL index = PaperBundleExporter.class.getClassLoader().getResource(DASHBOARD_PREFIX + INDEX_HTML);
         if (index == null) {
             writeFallback(target);
@@ -55,10 +56,8 @@ final class PaperBundleExporter {
         copyTree(dashboard, target);
     }
 
-    private static void copyFromJar(URL index, Path target) throws IOException, java.net.URISyntaxException {
-        String spec = index.toURI().getSchemeSpecificPart();
-        int bang = spec.indexOf('!');
-        Path jarPath = Path.of(URI.create(bang < 0 ? spec : spec.substring(0, bang)));
+    static void copyFromJar(URL index, Path target) throws IOException, URISyntaxException {
+        Path jarPath = jarFilePath(index);
         try (ZipFile zip = new ZipFile(jarPath.toFile())) {
             var entries = zip.stream()
                     .filter(entry -> !entry.isDirectory() && entry.getName().startsWith(DASHBOARD_PREFIX))
@@ -75,6 +74,12 @@ final class PaperBundleExporter {
                 }
             }
         }
+    }
+
+    static Path jarFilePath(URL index) throws URISyntaxException {
+        String raw = index.toURI().getRawSchemeSpecificPart();
+        int bang = raw.indexOf('!');
+        return Path.of(URI.create(bang < 0 ? raw : raw.substring(0, bang)));
     }
 
     private static void copyTree(Path source, Path target) throws IOException {

@@ -29,7 +29,7 @@ Set `JAVA_HOME` to your Java 25 installation. Windows PowerShell is the primary 
 
 On first server start, accept the Minecraft EULA in `run/eula.txt` when prompted.
 
-Built plugin JAR: `eventlens-paper/build/libs/EventLens-1.2.1.jar`
+Built plugin JAR: `eventlens-paper/build/libs/EventLens-1.2.2.jar`
 
 Development server directory: `run/` (gitignored)
 
@@ -97,6 +97,7 @@ Joins Paper and client reports by correlation key. Live linking uses the optiona
 #### Trace view and export
 
 ```
+/eventlens trace stop [sessionId]
 /eventlens trace view <sessionId> [--detail brief|normal|verbose]
 /eventlens trace export <sessionId> [--format json|markdown|bundle] [--full]
 /eventlens trace copy <sessionId>
