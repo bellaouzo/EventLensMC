@@ -2,7 +2,7 @@
 
 **See how Minecraft events travel through plugins and mods — without changing them.**
 
-[![Version](https://img.shields.io/badge/version-1.10.6--beta-1f6feb)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.10.7--beta-1f6feb)](CHANGELOG.md)
 [![Paper](https://img.shields.io/badge/Paper-26.2-00aa00)](#quick-start)
 [![Java](https://img.shields.io/badge/Java-25-orange)](#development)
 [![Minecraft](https://img.shields.io/badge/client-26.2%20(NeoForge)-green)](#client-mods)
