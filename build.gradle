@@ -5,7 +5,7 @@ plugins {
 }
 
 group = 'dev.bellaouzo'
-version = '1.10.3-beta'
+version = '1.10.4-beta'
 
 ext {
     resolveFileLengthLimit = { String relPath, String fileName ->

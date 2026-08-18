@@ -39,13 +39,10 @@ final class NeoForgeCorrelationChannel implements ModCorrelationChannelPort {
         modBus.addListener((net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent event) -> event.registrar(
                         "1")
                 .optional()
-                .playToClient(
+                .playBidirectional(
                         NeoForgeCorrelationPayload.TYPE,
                         NeoForgeCorrelationPayload.STREAM_CODEC,
-                        (payload, context) -> channel.receive(payload))
-                .playToServer(
-                        NeoForgeCorrelationPayload.TYPE,
-                        NeoForgeCorrelationPayload.STREAM_CODEC,
-                        (payload, context) -> {}));
+                        (payload, context) -> {},
+                        (payload, context) -> channel.receive(payload)));
     }
 }
