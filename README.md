@@ -35,14 +35,14 @@ It **watches**. It does not cancel, reorder, re-fire, or hide exceptions.
 
 ```mermaid
 flowchart LR
-  click[Player click] --> client[Client EventLens]
-  click --> paper[Paper event]
-  paper --> plugins[Your plugins]
-  plugins --> el[Server EventLens]
-  client --> chat[In-game /eventlens]
-  el --> chat
-  el --> dash[Dashboard]
-  el --> html[Exported index.html]
+  playerClick["Player click"] --> clientMod["Client EventLens"]
+  playerClick --> paperEvent["Paper event"]
+  paperEvent --> plugins["Your plugins"]
+  plugins --> serverEl["Server EventLens"]
+  clientMod --> chatCmd["In-game command"]
+  serverEl --> chatCmd
+  serverEl --> dash["Dashboard"]
+  serverEl --> html["Exported index.html"]
 ```
 
 ---
