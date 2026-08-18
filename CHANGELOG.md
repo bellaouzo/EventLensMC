@@ -9,13 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- GitHub Releases created from `v*` tags attach the Paper plugin, agents, observability jar, and preview client mods
+- GitHub Releases created from `v*` tags attach the Paper plugin, agents, observability jar, and NeoForge / Forge / Fabric client mods
 - Public [SECURITY.md](SECURITY.md) for private vulnerability reports
 
 ### Changed
 
 - **Paper plugin is a stable 1.x release** (no `-beta`). Commands, permissions, export JSON `reportVersion` `2`, and agent protocol `2` are the 1.x compatibility contract
-- Optional NeoForge, Forge, and Fabric client mods remain **preview** (not part of the Paper 1.11 stability bar)
+- NeoForge, Forge, and Fabric **26.2** client mods ship in the same 1.x release as the Paper plugin (Screen, HUD, chat, client agent)
 - README documents agent protocol and export schema; client comparison table matches shipped Fabric last-tab restore and Fabric client-agent timing
 
 ### Fixed
