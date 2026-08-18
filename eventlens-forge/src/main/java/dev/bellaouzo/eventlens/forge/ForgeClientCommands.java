@@ -142,11 +142,12 @@ public final class ForgeClientCommands {
     }
 
     private SuggestionProvider<CommandSourceStack> suggestStartFlags() {
-        return (context, builder) -> SharedSuggestionProvider.suggest(
-                ModClientTabCompleter.complete(
-                        coordinator,
-                        List.of("trace", "start", StringArgumentType.getString(context, "event")),
-                        builder.getRemaining()),
-                builder);
+        return (context, builder) -> {
+            String event = StringArgumentType.getString(context, "event");
+            for (String suggestion : ModClientTabCompleter.completeStartFlagSuggestions(event, builder.getRemaining())) {
+                builder.suggest(suggestion);
+            }
+            return builder.buildFuture();
+        };
     }
 }

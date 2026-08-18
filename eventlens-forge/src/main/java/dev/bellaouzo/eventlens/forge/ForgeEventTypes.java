@@ -29,6 +29,12 @@ final class ForgeEventTypes {
         if (contains(name, "ScreenEvent$Closing") || contains(name, "ScreenEvent.Closing")) {
             return SupportedModEventTypes.CLIENT_SCREEN_CLOSE_EVENT;
         }
+        if (contains(name, "ScreenEvent$MouseButtonPressed") || contains(name, "ScreenEvent.MouseButtonPressed")) {
+            return SupportedModEventTypes.CLIENT_SCREEN_CLICK_EVENT;
+        }
+        if (contains(name, "ScreenEvent$KeyPressed") || contains(name, "ScreenEvent.KeyPressed")) {
+            return SupportedModEventTypes.CLIENT_SCREEN_KEY_EVENT;
+        }
         if (contains(name, "AttackEntityEvent") || contains(name, "LeftClickEmpty")) {
             return SupportedModEventTypes.CLIENT_ATTACK_EVENT;
         }

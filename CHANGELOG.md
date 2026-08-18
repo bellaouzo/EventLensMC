@@ -5,6 +5,18 @@ All notable changes to EventLens are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] - 2026-08-18
+
+### Added
+
+- First-class Paper snapshots for 95 more common events, including toggles, XP, advancements, pistons, redstone, breeding, potions, raids, weather, chunks, and anvil/enchant/brew prep
+- Thirteen more client events on all loaders: heal, food, air, XP, hotbar slot, sprint/sneak/jump, glide/swim/sleep, plus screen click and key
+
+### Fixed
+
+- Client `/eventlens trace start` keeps suggesting `--max-events`, `--mod`, and `--player` after `--confirm-hot`
+- Paper `trace start` also suggests the remaining flags after `--confirm-hot`
+
 ## [1.4.1] - 2026-08-17
 
 ### Fixed

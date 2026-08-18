@@ -9,16 +9,18 @@ import org.bukkit.Location;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.block.BlockEvent;
+import org.bukkit.event.block.BlockFertilizeEvent;
 import org.bukkit.event.block.BlockIgniteEvent;
 import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.entity.EntityEvent;
-import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryCloseEvent;
-import org.bukkit.event.inventory.InventoryOpenEvent;
+import org.bukkit.event.inventory.InventoryEvent;
 import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.event.vehicle.VehicleEnterEvent;
 import org.bukkit.event.vehicle.VehicleEvent;
 import org.bukkit.event.vehicle.VehicleExitEvent;
+import org.bukkit.event.weather.WeatherEvent;
+import org.bukkit.event.world.StructureGrowEvent;
+import org.bukkit.event.world.WorldEvent;
 
 final class TraceEventMetadataExtractor {
 
@@ -84,20 +86,18 @@ final class TraceEventMetadataExtractor {
         if (event instanceof BlockIgniteEvent igniteEvent && igniteEvent.getPlayer() != null) {
             return Optional.of(igniteEvent.getPlayer());
         }
+        if (event instanceof BlockFertilizeEvent fertilizeEvent && fertilizeEvent.getPlayer() != null) {
+            return Optional.of(fertilizeEvent.getPlayer());
+        }
+        if (event instanceof StructureGrowEvent growEvent && growEvent.getPlayer() != null) {
+            return Optional.of(growEvent.getPlayer());
+        }
         return extractVehiclePlayer(event);
     }
 
     private static Optional<org.bukkit.entity.Player> extractInventoryPlayer(Event event) {
-        if (event instanceof InventoryOpenEvent openEvent
-                && openEvent.getPlayer() instanceof org.bukkit.entity.Player player) {
-            return Optional.of(player);
-        }
-        if (event instanceof InventoryCloseEvent closeEvent
-                && closeEvent.getPlayer() instanceof org.bukkit.entity.Player player) {
-            return Optional.of(player);
-        }
-        if (event instanceof InventoryClickEvent clickEvent
-                && clickEvent.getWhoClicked() instanceof org.bukkit.entity.Player player) {
+        if (event instanceof InventoryEvent inventoryEvent
+                && inventoryEvent.getView().getPlayer() instanceof org.bukkit.entity.Player player) {
             return Optional.of(player);
         }
         return Optional.empty();
@@ -127,6 +127,12 @@ final class TraceEventMetadataExtractor {
         }
         if (event instanceof VehicleEvent vehicleEvent) {
             return Optional.of(vehicleEvent.getVehicle().getLocation());
+        }
+        if (event instanceof WorldEvent worldEvent) {
+            return Optional.of(worldEvent.getWorld().getSpawnLocation());
+        }
+        if (event instanceof WeatherEvent weatherEvent) {
+            return Optional.of(weatherEvent.getWorld().getSpawnLocation());
         }
         return Optional.empty();
     }

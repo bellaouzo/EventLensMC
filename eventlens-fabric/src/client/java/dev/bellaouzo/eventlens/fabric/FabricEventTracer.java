@@ -2,6 +2,7 @@ package dev.bellaouzo.eventlens.fabric;
 
 import dev.bellaouzo.eventlens.modcommon.ModDispatchRecorder;
 import dev.bellaouzo.eventlens.modcommon.ModLocalPlayerHurtDetector;
+import dev.bellaouzo.eventlens.modcommon.ModLocalPlayerStateDetector;
 import dev.bellaouzo.eventlens.modcommon.ModSnapshotFields;
 import dev.bellaouzo.eventlens.modcommon.SupportedModEventTypes;
 import java.util.List;
@@ -30,8 +31,9 @@ final class FabricEventTracer {
     static void register(ModDispatchRecorder recorder) {
         AtomicLong tickDispatchKey = new AtomicLong(-1L);
         ModLocalPlayerHurtDetector hurtDetector = new ModLocalPlayerHurtDetector();
+        ModLocalPlayerStateDetector stateDetector = new ModLocalPlayerStateDetector();
         ClientTickEvents.START_CLIENT_TICK.register(client -> {
-            recordHurt(recorder, hurtDetector);
+            recordLocalPlayer(recorder, hurtDetector, stateDetector);
             if (!recorder.isTracing()) {
                 return;
             }
@@ -142,16 +144,39 @@ final class FabricEventTracer {
             return InteractionResult.PASS;
         });
         FabricWorldTracer.register(recorder);
+        FabricScreenTracer.register(recorder);
     }
 
-    private static void recordHurt(ModDispatchRecorder recorder, ModLocalPlayerHurtDetector hurtDetector) {
+    private static void recordLocalPlayer(
+            ModDispatchRecorder recorder,
+            ModLocalPlayerHurtDetector hurtDetector,
+            ModLocalPlayerStateDetector stateDetector) {
         LocalPlayer player = Minecraft.getInstance().player;
         if (player == null) {
             hurtDetector.reset();
+            stateDetector.reset();
             return;
         }
         String source = player.getLastDamageSource() == null ? "unknown" : player.getLastDamageSource().getMsgId();
         hurtDetector.observe(recorder, player.getHealth(), player.hurtTime, source, playerName(), worldName());
+        stateDetector.observe(
+                recorder,
+                new ModLocalPlayerStateDetector.Sample(
+                        player.getHealth(),
+                        player.getFoodData().getFoodLevel(),
+                        player.getAirSupply(),
+                        player.experienceLevel,
+                        player.totalExperience,
+                        player.getInventory().selected,
+                        player.isSprinting(),
+                        player.isShiftKeyDown(),
+                        player.onGround(),
+                        player.getDeltaMovement().y,
+                        player.isFallFlying(),
+                        player.isSwimming(),
+                        player.isSleeping()),
+                playerName(),
+                worldName());
     }
 
     private static void recordMove(ModDispatchRecorder recorder) {

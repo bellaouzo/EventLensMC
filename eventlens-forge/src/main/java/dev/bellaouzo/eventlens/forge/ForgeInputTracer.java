@@ -8,6 +8,7 @@ import java.util.List;
 import net.minecraft.client.player.Input;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.client.event.MovementInputUpdateEvent;
+import net.minecraftforge.client.event.ScreenEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
@@ -82,6 +83,32 @@ public final class ForgeInputTracer {
                         ModSnapshotFields.number("strafe", input.leftImpulse),
                         ModSnapshotFields.bool("jump", input.jumping),
                         ModSnapshotFields.bool("sneak", input.shiftKeyDown)),
+                ForgeClientContext.playerName(),
+                ForgeClientContext.worldName(),
+                event);
+    }
+
+    @SubscribeEvent
+    public void onScreenClick(ScreenEvent.MouseButtonPressed.Pre event) {
+        recorder.recordImmediate(
+                SupportedModEventTypes.CLIENT_SCREEN_CLICK_EVENT,
+                List.of(
+                        ModSnapshotFields.text("screen", event.getScreen().getClass().getSimpleName()),
+                        ModSnapshotFields.number("button", event.getButton()),
+                        ModSnapshotFields.number("x", event.getMouseX()),
+                        ModSnapshotFields.number("y", event.getMouseY())),
+                ForgeClientContext.playerName(),
+                ForgeClientContext.worldName(),
+                event);
+    }
+
+    @SubscribeEvent
+    public void onScreenKey(ScreenEvent.KeyPressed.Pre event) {
+        recorder.recordImmediate(
+                SupportedModEventTypes.CLIENT_SCREEN_KEY_EVENT,
+                List.of(
+                        ModSnapshotFields.text("screen", event.getScreen().getClass().getSimpleName()),
+                        ModSnapshotFields.number("key", event.getKeyCode())),
                 ForgeClientContext.playerName(),
                 ForgeClientContext.worldName(),
                 event);

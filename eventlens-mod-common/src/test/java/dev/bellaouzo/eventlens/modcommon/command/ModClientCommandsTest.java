@@ -122,6 +122,15 @@ class ModClientCommandsTest {
         assertTrue(ModClientTabCompleter.complete(
                         coordinator, List.of("trace", "start", "ClientTickEvent"), "--c")
                 .contains("--confirm-hot"));
+        List<String> afterConfirm = ModClientTabCompleter.completeStartFlagSuggestions(
+                "ClientTickEvent", "--confirm-hot");
+        assertTrue(afterConfirm.contains("--confirm-hot --max-events"));
+        assertTrue(afterConfirm.contains("--confirm-hot --mod"));
+        assertTrue(afterConfirm.contains("--confirm-hot --player"));
+        assertTrue(afterConfirm.stream().noneMatch(value -> value.equals("--confirm-hot --confirm-hot")));
+        List<String> afterConfirmSpace = ModClientTabCompleter.completeStartFlagSuggestions(
+                "ClientTickEvent", "--confirm-hot ");
+        assertTrue(afterConfirmSpace.contains("--confirm-hot --max-events"));
     }
 
     @Test

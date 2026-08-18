@@ -2,7 +2,7 @@
 
 **See how Minecraft events travel through plugins and mods — without changing them.**
 
-[![Version](https://img.shields.io/badge/version-1.4.1-1f6feb)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.5.0-1f6feb)](CHANGELOG.md)
 [![Paper](https://img.shields.io/badge/Paper-26.2-00aa00)](#quick-start)
 [![Java](https://img.shields.io/badge/Java-25-orange)](#development)
 [![Minecraft](https://img.shields.io/badge/client-1.21.1-green)](#client-mods)
@@ -31,10 +31,10 @@ It observes. It does not cancel, reorder, re-fire, or hide exceptions.
 
 | Piece | Who it is for | Required? |
 |---|---|---|
-| **Paper plugin** `EventLens-1.4.1.jar` | Server operators and plugin authors | Yes, for server traces |
-| **Paper Java agent** `eventlens-agent-1.4.1.jar` | Per-listener timing and exception attribution | Optional |
+| **Paper plugin** `EventLens-1.5.0.jar` | Server operators and plugin authors | Yes, for server traces |
+| **Paper Java agent** `eventlens-agent-1.5.0.jar` | Per-listener timing and exception attribution | Optional |
 | **Client mods** NeoForge / Forge / Fabric | Client-side traces, Screen, HUD | Optional |
-| **Client Java agent** `eventlens-client-agent-1.4.1.jar` | Per-mod handler timing on NeoForge and Forge | Optional; not on Fabric yet |
+| **Client Java agent** `eventlens-client-agent-1.5.0.jar` | Per-mod handler timing on NeoForge and Forge | Optional; not on Fabric yet |
 | **Dashboard** at `http://127.0.0.1:8765` | Live graphs, timeline, compare | Ships with the Paper plugin |
 | **Bundle export** | Share a self-contained `index.html` report | Paper command |
 
@@ -44,7 +44,7 @@ The plugin is useful without any agent or client mod. Agents add precise timings
 
 ## Quick start
 
-1. Run **Java 25**. Drop `eventlens-paper/build/libs/EventLens-1.4.1.jar` into `plugins/`.
+1. Run **Java 25**. Drop `eventlens-paper/build/libs/EventLens-1.5.0.jar` into `plugins/`.
 2. Restart the server (`stop`, then start — do not `/reload`). Commands default to **op**.
 3. Trace a click, then open the dashboard or an exported bundle.
 
@@ -63,7 +63,7 @@ Then open the exported folder’s `index.html`, or the live dashboard at [http:/
 Built artifact after `.\gradlew.bat build`:
 
 ```
-eventlens-paper/build/libs/EventLens-1.4.1.jar
+eventlens-paper/build/libs/EventLens-1.5.0.jar
 ```
 
 <details>
@@ -74,7 +74,7 @@ Without the agent, EventLens still lists listeners and reports **dispatch-level*
 Add a JVM argument on the **same** Paper process:
 
 ```
--javaagent:eventlens-agent-1.4.1.jar
+-javaagent:eventlens-agent-1.5.0.jar
 ```
 
 Development `runServer` / `runServerDebug` attach this automatically.
@@ -88,19 +88,19 @@ Install **one** loader jar that matches your client:
 
 | Loader | Minecraft | Artifact |
 |---|---|---|
-| **NeoForge** 21.1.x | 1.21.1 | `eventlens-neoforge/build/libs/eventlens-neoforge-1.4.1.jar` |
-| **Minecraft Forge** 52.1.x | 1.21.1 | `eventlens-forge/build/libs/eventlens-forge-1.4.1.jar` |
-| **Fabric** Loader 0.16 + Fabric API | 1.21.1 | `eventlens-fabric/build/libs/eventlens-fabric-1.4.1.jar` |
+| **NeoForge** 21.1.x | 1.21.1 | `eventlens-neoforge/build/libs/eventlens-neoforge-1.5.0.jar` |
+| **Minecraft Forge** 52.1.x | 1.21.1 | `eventlens-forge/build/libs/eventlens-forge-1.5.0.jar` |
+| **Fabric** Loader 0.16 + Fabric API | 1.21.1 | `eventlens-fabric/build/libs/eventlens-fabric-1.5.0.jar` |
 
 Put the jar in the client `mods/` folder. Chat commands work on all three. Screen, HUD, and keybinds work on all three (Fabric’s Screen is a lighter list UI). Precise per-mod timing needs the **client agent** on NeoForge and Forge only.
 
 **Client Java agent (NeoForge and Forge)**
 
 ```
--javaagent:eventlens-client-agent-1.4.1.jar
+-javaagent:eventlens-client-agent-1.5.0.jar
 ```
 
-Place `eventlens-observability-1.4.1.jar` in the **same folder** as the agent jar. Dev tasks `:eventlens-neoforge:runClient` and `:eventlens-forge:runClient` attach it automatically. Fabric `runClient` does not — Fabric stays `dispatch-only` until a stable invoker exists.
+Place `eventlens-observability-1.5.0.jar` in the **same folder** as the agent jar. Dev tasks `:eventlens-neoforge:runClient` and `:eventlens-forge:runClient` attach it automatically. Fabric `runClient` does not — Fabric stays `dispatch-only` until a stable invoker exists.
 
 </details>
 
@@ -191,12 +191,12 @@ A right-click is two traces today. After you export both sides:
 
 ### Supported Paper events
 
-First-class snapshots (46 types). Add more names in `config.yml` under `trace.additional-events`, or start a registered custom event with `--generic`.
+First-class snapshots (141 types). Add more names in `config.yml` under `trace.additional-events`, or start a registered custom event with `--generic`.
 
 <details>
 <summary><strong>Allowlisted event types</strong></summary>
 
-`BlockBreakEvent`, `BlockPlaceEvent`, `BlockExplodeEvent`, `BlockIgniteEvent`, `BlockBurnEvent`, `SignChangeEvent`, `PlayerInteractEvent`, `PlayerInteractEntityEvent`, `PlayerInteractAtEntityEvent`, `PlayerMoveEvent`, `PlayerTeleportEvent`, `PlayerCommandPreprocessEvent`, `InventoryClickEvent`, `InventoryOpenEvent`, `InventoryCloseEvent`, `InventoryDragEvent`, `CraftItemEvent`, `EntityDamageEvent`, `EntityDamageByEntityEvent`, `EntityDeathEvent`, `EntitySpawnEvent`, `CreatureSpawnEvent`, `PlayerJoinEvent`, `PlayerQuitEvent`, `PlayerDropItemEvent`, `EntityPickupItemEvent`, `ProjectileLaunchEvent`, `ProjectileHitEvent`, `ServerCommandEvent`, `AsyncChatEvent`, `EntityExplodeEvent`, `ExplosionPrimeEvent`, `EntityChangeBlockEvent`, `EntityTargetEvent`, `FoodLevelChangeEvent`, `PlayerItemConsumeEvent`, `PlayerRespawnEvent`, `PlayerChangedWorldEvent`, `PlayerBucketEmptyEvent`, `PlayerBucketFillEvent`, `PlayerFishEvent`, `PlayerPortalEvent`, `PlayerKickEvent`, `PlayerSwapHandItemsEvent`, `VehicleEnterEvent`, `VehicleExitEvent`
+The original 46 combat/interact/inventory types, plus common player toggles and progress (`PlayerGameModeChangeEvent`, `PlayerExpChangeEvent`, `PlayerAdvancementDoneEvent`, …), block mechanics (`BlockPistonExtendEvent`, `BlockRedstoneEvent`, `TNTPrimeEvent`, …), entity lifecycle (`EntityBreedEvent`, `EntityPotionEffectEvent`, `EntityMountEvent`, …), world/weather/raid/chunk, and inventory prep (`PrepareAnvilEvent`, `EnchantItemEvent`, `BrewEvent`, …). Use `/eventlens events <text>` to search the full allowlist.
 
 </details>
 
@@ -261,7 +261,7 @@ Clickable chat: session ids, **[Open UI]**, **Saved to** / **Folder** (click cop
 | Tab | What you do |
 |---|---|
 | **Home** | Platform, tracing, precise vs dispatch-only, HUD toggle, jump to Events / Sessions |
-| **Events** | Search 42 client events, subscriber / overlap counts, Start (hot events confirm). Double-click starts. |
+| **Events** | Search 55 client events, subscriber / overlap counts, Start (hot events confirm). Double-click starts. |
 | **Sessions** | Search, View, Pause / Resume, Restart (stopped), Stop, Export. Double-click opens. |
 | **Session** | Dispatch list (sequence, time, player, field preview, cancel, handlers) and Fields / Handlers detail |
 
@@ -276,9 +276,9 @@ Flame graphs stay in the [dashboard](#dashboard) after you export.
 </details>
 
 <details>
-<summary><strong>Supported client events (42)</strong></summary>
+<summary><strong>Supported client events (55)</strong></summary>
 
-Not traced: per-frame render events (`RenderGuiEvent`, `RenderLivingEvent`, and similar) and one-shot mod-bus registration events. Item toss/pickup, death, hurt, use-entity-at, finish-use, container open/close, and break-speed record on NeoForge and Forge. Fabric lists them and can start a session; those game-bus hooks are not wired there yet.
+Not traced: per-frame render events (`RenderGuiEvent`, `RenderLivingEvent`, and similar) and one-shot mod-bus registration events. Item toss/pickup, death, hurt, use-entity-at, finish-use, container open/close, and break-speed record on NeoForge and Forge. Local-player vitals (heal, food, air, XP, slot, sprint/sneak/jump, glide/swim/sleep) and screen click/key record on NeoForge, Forge, and Fabric. Fabric still does not hook the remaining game-bus events.
 
 | Event | Hot? | Meaning |
 |---|---|---|
@@ -312,6 +312,12 @@ Not traced: per-frame render events (`RenderGuiEvent`, `RenderLivingEvent`, and 
 | `ClientUseItemFinishEvent` | | Finished using an item |
 | `ClientContainerOpenEvent` / `ClientContainerCloseEvent` | | Container menu opened / closed |
 | `ClientBreakSpeedEvent` | yes | Mining speed calculated |
+| `ClientHealEvent` | | Your health increased |
+| `ClientFoodEvent` / `ClientAirEvent` / `ClientXpEvent` | | Food, air, or XP changed |
+| `ClientSelectedSlotEvent` | | Hotbar slot changed |
+| `ClientSprintEvent` / `ClientSneakEvent` / `ClientJumpEvent` | | Movement state |
+| `ClientGlideEvent` / `ClientSwimEvent` / `ClientSleepEvent` | | Elytra, swim, or sleep |
+| `ClientScreenClickEvent` / `ClientScreenKeyEvent` | yes | Click or key inside a screen |
 
 </details>
 

@@ -91,8 +91,54 @@ public final class ModClientTabCompleter {
         return false;
     }
 
+    public static List<String> completeStartFlagSuggestions(String event, String remaining) {
+        String raw = remaining == null ? "" : remaining;
+        List<String> tokens = new ArrayList<>();
+        if (!raw.isBlank()) {
+            for (String part : raw.trim().split("\\s+")) {
+                if (!part.isEmpty()) {
+                    tokens.add(part);
+                }
+            }
+        }
+        boolean trailingSpace = raw.endsWith(" ") || raw.isEmpty();
+        String fragment = "";
+        List<String> completed = new ArrayList<>(tokens);
+        if (!trailingSpace && !completed.isEmpty()) {
+            fragment = completed.removeLast();
+        }
+        if (isExactStartFlag(fragment)) {
+            completed.add(fragment);
+            fragment = "";
+        }
+        List<String> args = new ArrayList<>();
+        args.add("trace");
+        args.add("start");
+        args.add(event);
+        args.addAll(completed);
+        List<String> options = completeStart(args, fragment.toLowerCase(Locale.ROOT));
+        String head = String.join(" ", completed);
+        List<String> replacements = new ArrayList<>();
+        for (String option : options) {
+            replacements.add(head.isEmpty() ? option : head + " " + option);
+        }
+        return replacements;
+    }
+
     public static List<String> matchingEventNames(String prefix) {
         return filter(SupportedModEventTypes.simpleNames(), prefix == null ? "" : prefix.toLowerCase(Locale.ROOT));
+    }
+
+    private static boolean isExactStartFlag(String token) {
+        if (token.isEmpty()) {
+            return false;
+        }
+        for (String flag : START_FLAGS) {
+            if (flag.equalsIgnoreCase(token)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static List<String> filter(List<String> values, String prefix) {

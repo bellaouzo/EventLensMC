@@ -46,6 +46,7 @@ public final class EventLensForgeMod {
         EventLensClientAccess.bind(coordinator, uiPreferences);
         ModDispatchRecorder recorder = instrumentation.recorder();
         MinecraftForge.EVENT_BUS.register(new ForgeEventTracer(recorder));
+        MinecraftForge.EVENT_BUS.register(new ForgePlayerStateTracer(recorder));
         MinecraftForge.EVENT_BUS.register(new ForgeInputTracer(recorder));
         MinecraftForge.EVENT_BUS.register(new ForgeWorldTracer(recorder));
         MinecraftForge.EVENT_BUS.register(new ForgeGameplayTracer(recorder));

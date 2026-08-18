@@ -20,7 +20,9 @@ class SupportedModEventTypesTest {
         assertTrue(SupportedModEventTypes.simpleNames().contains("ClientSoundEvent"));
         assertTrue(SupportedModEventTypes.simpleNames().contains("ClientItemTossEvent"));
         assertTrue(SupportedModEventTypes.simpleNames().contains("ClientBreakSpeedEvent"));
-        assertEquals(42, SupportedModEventTypes.simpleNames().size());
+        assertTrue(SupportedModEventTypes.simpleNames().contains("ClientJumpEvent"));
+        assertTrue(SupportedModEventTypes.simpleNames().contains("ClientScreenClickEvent"));
+        assertEquals(55, SupportedModEventTypes.simpleNames().size());
         assertEquals(
                 SupportedModEventTypes.CLIENT_USE_ITEM_EVENT,
                 SupportedModEventTypes.resolveClassName("clientuseitemevent"));
@@ -30,6 +32,8 @@ class SupportedModEventTypesTest {
         assertTrue(SupportedModEventTypes.isHot("ClientChunkLoadEvent"));
         assertTrue(SupportedModEventTypes.isHot("ClientHurtEvent"));
         assertTrue(SupportedModEventTypes.isHot("ClientBreakSpeedEvent"));
+        assertTrue(SupportedModEventTypes.isHot("ClientScreenClickEvent"));
+        assertTrue(SupportedModEventTypes.isHot("ClientScreenKeyEvent"));
         assertEquals("Chat you send", SupportedModEventTypes.summary("ClientChatEvent"));
         assertFalse(SupportedModEventTypes.isHot("ClientChatEvent"));
         assertFalse(SupportedModEventTypes.isHot("ClientKeyEvent"));

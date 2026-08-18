@@ -50,6 +50,19 @@ public final class SupportedModEventTypes {
     public static final String CLIENT_CONTAINER_OPEN_EVENT = "dev.bellaouzo.eventlens.runtime.ClientContainerOpenEvent";
     public static final String CLIENT_CONTAINER_CLOSE_EVENT = "dev.bellaouzo.eventlens.runtime.ClientContainerCloseEvent";
     public static final String CLIENT_BREAK_SPEED_EVENT = "dev.bellaouzo.eventlens.runtime.ClientBreakSpeedEvent";
+    public static final String CLIENT_HEAL_EVENT = "dev.bellaouzo.eventlens.runtime.ClientHealEvent";
+    public static final String CLIENT_FOOD_EVENT = "dev.bellaouzo.eventlens.runtime.ClientFoodEvent";
+    public static final String CLIENT_AIR_EVENT = "dev.bellaouzo.eventlens.runtime.ClientAirEvent";
+    public static final String CLIENT_XP_EVENT = "dev.bellaouzo.eventlens.runtime.ClientXpEvent";
+    public static final String CLIENT_SELECTED_SLOT_EVENT = "dev.bellaouzo.eventlens.runtime.ClientSelectedSlotEvent";
+    public static final String CLIENT_SPRINT_EVENT = "dev.bellaouzo.eventlens.runtime.ClientSprintEvent";
+    public static final String CLIENT_SNEAK_EVENT = "dev.bellaouzo.eventlens.runtime.ClientSneakEvent";
+    public static final String CLIENT_JUMP_EVENT = "dev.bellaouzo.eventlens.runtime.ClientJumpEvent";
+    public static final String CLIENT_GLIDE_EVENT = "dev.bellaouzo.eventlens.runtime.ClientGlideEvent";
+    public static final String CLIENT_SWIM_EVENT = "dev.bellaouzo.eventlens.runtime.ClientSwimEvent";
+    public static final String CLIENT_SLEEP_EVENT = "dev.bellaouzo.eventlens.runtime.ClientSleepEvent";
+    public static final String CLIENT_SCREEN_CLICK_EVENT = "dev.bellaouzo.eventlens.runtime.ClientScreenClickEvent";
+    public static final String CLIENT_SCREEN_KEY_EVENT = "dev.bellaouzo.eventlens.runtime.ClientScreenKeyEvent";
 
     private static final Map<String, EventType> BY_SIMPLE_NAME = new LinkedHashMap<>();
     private static final Map<String, EventType> BY_CLASS_NAME = new LinkedHashMap<>();
@@ -97,6 +110,19 @@ public final class SupportedModEventTypes {
         register(new EventType("ClientContainerOpenEvent", CLIENT_CONTAINER_OPEN_EVENT, false, "A container menu opened"));
         register(new EventType("ClientContainerCloseEvent", CLIENT_CONTAINER_CLOSE_EVENT, false, "A container menu closed"));
         register(new EventType("ClientBreakSpeedEvent", CLIENT_BREAK_SPEED_EVENT, true, "Mining speed calculated"));
+        register(new EventType("ClientHealEvent", CLIENT_HEAL_EVENT, false, "Your health increased"));
+        register(new EventType("ClientFoodEvent", CLIENT_FOOD_EVENT, false, "Your food level changed"));
+        register(new EventType("ClientAirEvent", CLIENT_AIR_EVENT, false, "Your air supply changed"));
+        register(new EventType("ClientXpEvent", CLIENT_XP_EVENT, false, "Your experience changed"));
+        register(new EventType("ClientSelectedSlotEvent", CLIENT_SELECTED_SLOT_EVENT, false, "Hotbar slot changed"));
+        register(new EventType("ClientSprintEvent", CLIENT_SPRINT_EVENT, false, "Sprint started or stopped"));
+        register(new EventType("ClientSneakEvent", CLIENT_SNEAK_EVENT, false, "Sneak started or stopped"));
+        register(new EventType("ClientJumpEvent", CLIENT_JUMP_EVENT, false, "You jumped"));
+        register(new EventType("ClientGlideEvent", CLIENT_GLIDE_EVENT, false, "Elytra glide started or stopped"));
+        register(new EventType("ClientSwimEvent", CLIENT_SWIM_EVENT, false, "Swimming started or stopped"));
+        register(new EventType("ClientSleepEvent", CLIENT_SLEEP_EVENT, false, "Sleep started or stopped"));
+        register(new EventType("ClientScreenClickEvent", CLIENT_SCREEN_CLICK_EVENT, true, "Clicked inside a screen"));
+        register(new EventType("ClientScreenKeyEvent", CLIENT_SCREEN_KEY_EVENT, true, "Key pressed inside a screen"));
     }
 
     private SupportedModEventTypes() {}

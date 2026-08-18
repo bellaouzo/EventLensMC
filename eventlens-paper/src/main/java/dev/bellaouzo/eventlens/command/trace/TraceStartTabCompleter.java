@@ -14,6 +14,21 @@ final class TraceStartTabCompleter {
 
     private static final List<String> DETAIL_VALUES = List.of("brief", "normal", "verbose");
     private static final List<String> CANCELLED_FILTER_VALUES = List.of("any", "yes", "no");
+    private static final List<String> START_FLAGS = List.of(
+            "--preset",
+            "--plugin",
+            "--player",
+            "--world",
+            "--region",
+            "--cancelled",
+            "--max-events",
+            "--max-duration",
+            "--slow-threshold",
+            "--capture-stacks",
+            "--confirm-hot",
+            "--generic",
+            "--detail");
+    private static final List<String> BOOLEAN_FLAGS = List.of("--capture-stacks", "--confirm-hot", "--generic");
 
     private TraceStartTabCompleter() {}
 
@@ -49,23 +64,8 @@ final class TraceStartTabCompleter {
         if (previous.equalsIgnoreCase("--detail")) {
             return CommandText.filterPrefix(DETAIL_VALUES, prefix);
         }
-        if (prefix.startsWith("-")) {
-            return CommandText.filterPrefix(
-                    List.of(
-                            "--preset",
-                            "--plugin",
-                            "--player",
-                            "--world",
-                            "--region",
-                            "--cancelled",
-                            "--max-events",
-                            "--max-duration",
-                            "--slow-threshold",
-                            "--capture-stacks",
-                            "--confirm-hot",
-                            "--generic",
-                            "--detail"),
-                    prefix);
+        if (prefix.startsWith("-") || isBooleanFlag(previous)) {
+            return CommandText.filterPrefix(START_FLAGS, prefix);
         }
         return completeEventQuery(traceCommandService.listSupportedEventSimpleNames(), prefix);
     }
@@ -89,5 +89,14 @@ final class TraceStartTabCompleter {
                         .toList(),
                 fragment);
         return matches.stream().map(name -> head + name).toList();
+    }
+
+    private static boolean isBooleanFlag(String token) {
+        for (String flag : BOOLEAN_FLAGS) {
+            if (flag.equalsIgnoreCase(token)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

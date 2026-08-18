@@ -1,7 +1,6 @@
 package dev.bellaouzo.eventlens.neoforge;
 
 import dev.bellaouzo.eventlens.modcommon.ModDispatchRecorder;
-import dev.bellaouzo.eventlens.modcommon.ModLocalPlayerHurtDetector;
 import dev.bellaouzo.eventlens.modcommon.ModSnapshotFields;
 import dev.bellaouzo.eventlens.modcommon.SupportedModEventTypes;
 import java.util.List;
@@ -21,7 +20,6 @@ import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 public final class NeoForgeEventTracer {
 
     private final ModDispatchRecorder recorder;
-    private final ModLocalPlayerHurtDetector hurtDetector = new ModLocalPlayerHurtDetector();
     private long tickDispatchKey = -1L;
 
     public NeoForgeEventTracer(ModDispatchRecorder recorder) {
@@ -30,7 +28,6 @@ public final class NeoForgeEventTracer {
 
     @SubscribeEvent
     public void onClientTickPre(ClientTickEvent.Pre event) {
-        recordHurt();
         if (!recorder.isTracing()) {
             return;
         }
@@ -195,16 +192,6 @@ public final class NeoForgeEventTracer {
                 playerName(),
                 worldName(),
                 event);
-    }
-
-    private void recordHurt() {
-        LocalPlayer player = Minecraft.getInstance().player;
-        if (player == null) {
-            hurtDetector.reset();
-            return;
-        }
-        String source = player.getLastDamageSource() == null ? "unknown" : player.getLastDamageSource().getMsgId();
-        hurtDetector.observe(recorder, player.getHealth(), player.hurtTime, source, playerName(), worldName());
     }
 
     private void recordMove() {

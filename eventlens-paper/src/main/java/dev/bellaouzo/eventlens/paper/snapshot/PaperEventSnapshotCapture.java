@@ -13,6 +13,9 @@ public final class PaperEventSnapshotCapture {
     private final List<EventSnapshotAdapter> adapters = List.of(
             new CommonEventSnapshotAdapter(),
             new PlayerEventSnapshotAdapter(),
+            new EntityEventSnapshotAdapter(),
+            new WorldEventSnapshotAdapter(),
+            new InventoryEventSnapshotAdapter(),
             new BlockEventSnapshotAdapter(),
             new EntityDamageEventSnapshotAdapter(),
             new EntityDeathEventSnapshotAdapter(),
@@ -37,7 +40,12 @@ public final class PaperEventSnapshotCapture {
             new CombatAndExplosionSnapshotAdapter(),
             new PlayerActionSnapshotAdapter(),
             new PlayerWorldSnapshotAdapter(),
-            new ProtectionAndMobSnapshotAdapter());
+            new ProtectionAndMobSnapshotAdapter(),
+            new PlayerStateSnapshotAdapter(),
+            new PlayerItemProgressSnapshotAdapter(),
+            new BlockMechanicSnapshotAdapter(),
+            new EntityMechanicSnapshotAdapter(),
+            new WorldInventoryMechanicSnapshotAdapter());
 
     public EventSnapshot capture(Event event, String checkpoint) {
         SnapshotFieldCollector collector = new SnapshotFieldCollector();

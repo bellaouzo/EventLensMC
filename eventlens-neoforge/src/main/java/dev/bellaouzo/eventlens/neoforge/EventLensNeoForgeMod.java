@@ -47,6 +47,7 @@ public final class EventLensNeoForgeMod {
         EventLensClientAccess.bind(coordinator, uiPreferences);
         ModDispatchRecorder recorder = instrumentation.recorder();
         NeoForge.EVENT_BUS.register(new NeoForgeEventTracer(recorder));
+        NeoForge.EVENT_BUS.register(new NeoForgePlayerStateTracer(recorder));
         NeoForge.EVENT_BUS.register(new NeoForgeInputTracer(recorder));
         NeoForge.EVENT_BUS.register(new NeoForgeWorldTracer(recorder));
         NeoForge.EVENT_BUS.register(new NeoForgeGameplayTracer(recorder));
