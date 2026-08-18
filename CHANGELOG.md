@@ -5,6 +5,23 @@ All notable changes to EventLens are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.11.0] - 2026-08-18
+
+### Added
+
+- GitHub Releases created from `v*` tags attach the Paper plugin, agents, observability jar, and preview client mods
+- Public [SECURITY.md](SECURITY.md) for private vulnerability reports
+
+### Changed
+
+- **Paper plugin is a stable 1.x release** (no `-beta`). Commands, permissions, export JSON `reportVersion` `2`, and agent protocol `2` are the 1.x compatibility contract
+- Optional NeoForge, Forge, and Fabric client mods remain **preview** (not part of the Paper 1.11 stability bar)
+- README documents agent protocol and export schema; client comparison table matches shipped Fabric last-tab restore and Fabric client-agent timing
+
+### Fixed
+
+- README no longer listed client mods as Minecraft 1.21.1 or claimed the Fabric client agent was unimplemented
+
 ## [1.10.7-beta] - 2026-08-18
 
 ### Added

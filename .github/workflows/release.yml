@@ -1,0 +1,71 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - name: Validate Gradle wrapper
+        uses: gradle/actions/wrapper-validation@v4
+
+      - name: Build artifacts
+        run: |
+          chmod +x ./gradlew
+          ./gradlew assemble --no-daemon --warning-mode all
+
+      - name: Stage artifacts
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          mkdir -p dist
+          cp "eventlens-paper/build/libs/EventLens-${VERSION}.jar" dist/
+          cp "eventlens-agent/build/libs/eventlens-agent-${VERSION}.jar" dist/
+          cp "eventlens-client-agent/build/libs/eventlens-client-agent-${VERSION}.jar" dist/
+          cp "eventlens-observability/build/libs/eventlens-observability-${VERSION}.jar" dist/
+          cp "eventlens-neoforge/build/libs/eventlens-neoforge-${VERSION}.jar" dist/
+          cp "eventlens-forge/build/libs/eventlens-forge-${VERSION}.jar" dist/
+          cp "eventlens-fabric/build/libs/eventlens-fabric-${VERSION}.jar" dist/
+          ls -la dist/
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          export VERSION
+          NOTES="$(python3 - <<'PY'
+          from pathlib import Path
+          import os
+          version = os.environ["VERSION"].removeprefix("v")
+          text = Path("CHANGELOG.md").read_text(encoding="utf-8")
+          heading = f"## [{version}]"
+          start = text.find(heading)
+          if start < 0:
+              print(f"See CHANGELOG.md for {version}.")
+              raise SystemExit(0)
+          rest = text[start:]
+          nxt = rest.find("\n## [", 1)
+          section = rest if nxt < 0 else rest[:nxt]
+          print(section.strip())
+          PY
+          )"
+          ARGS=(release create "$GITHUB_REF_NAME" dist/* --title "EventLens ${VERSION}" --notes "$NOTES")
+          if [[ "$VERSION" == *beta* ]]; then
+            ARGS+=(--prerelease)
+          fi
+          gh "${ARGS[@]}"

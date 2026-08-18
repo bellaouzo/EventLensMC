@@ -2,7 +2,7 @@
 
 **See how Minecraft events travel through plugins and mods — without changing them.**
 
-[![Version](https://img.shields.io/badge/version-1.10.7--beta-1f6feb)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.11.0-1f6feb)](CHANGELOG.md)
 [![Paper](https://img.shields.io/badge/Paper-26.2-00aa00)](#quick-start)
 [![Java](https://img.shields.io/badge/Java-25-orange)](#development)
 [![NeoForge](https://img.shields.io/badge/NeoForge-26.2-green)](#client-mods)
@@ -10,15 +10,17 @@
 [![Fabric](https://img.shields.io/badge/Fabric-26.2-yellow)](#client-mods)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-EventLens is a **preview/beta** diagnostics plugin for **Paper 26.2**, with optional **NeoForge**, **Forge**, and **Fabric** **26.2** client mods. It answers the questions chat logs and spark usually cannot: who listened, in what order, who cancelled or threw, which handler was slow, and what a single click actually did.
+EventLens is a diagnostics plugin for **Paper 26.2**, with optional **preview** **NeoForge**, **Forge**, and **Fabric** **26.2** client mods. It answers the questions chat logs and spark usually cannot: who listened, in what order, who cancelled or threw, which handler was slow, and what a single click actually did.
 
 It observes. It does not cancel, reorder, re-fire, or hide exceptions.
 
+**1.11.0** is a **Paper-stable** 1.x release. Client mods stay preview until they meet the same bar.
+
 | Paper plugin | Client mods | License |
 |---|---|---|
-| Paper **26.2** · Java **25** · `/eventlens` (`/el`) | Minecraft **26.2** · NeoForge / Forge / Fabric client mods | [MIT](LICENSE) |
+| Paper **26.2** · Java **25** · `/eventlens` (`/el`) · stable 1.x | Minecraft **26.2** · NeoForge / Forge / Fabric · **preview** | [MIT](LICENSE) |
 
-**[Features](#features)** · **[Quick start](#quick-start)** · **[Java agents](#java-agents-optional)** · **[Commands](#commands)** · **[Client mods](#client-mods)** · **[Dashboard](#dashboard)** · **[Configuration](#configuration)** · **[Development](#development)**
+**[Features](#features)** · **[Quick start](#quick-start)** · **[Java agents](#java-agents-optional)** · **[Commands](#commands)** · **[Client mods](#client-mods)** · **[Dashboard](#dashboard)** · **[Configuration](#configuration)** · **[Compatibility (1.x)](#compatibility-1x)** · **[Development](#development)**
 
 ---
 
@@ -26,19 +28,19 @@ It observes. It does not cancel, reorder, re-fire, or hide exceptions.
 
 - **Listener inventory** — any registered Bukkit event, with priority and order
 - **Trace sessions** — snapshots, diffs, cancellation, exceptions, and timing
-- **Optional Java agents** — per-listener timing on Paper; per-mod timing on NeoForge and Forge
+- **Optional Java agents** — per-listener timing on Paper; per-mod timing on NeoForge, Forge, and Fabric
 - **Live dashboard** — graphs, timeline, and compare at `http://127.0.0.1:8765`
 - **Shareable bundles** — export a self-contained `index.html` report
 - **Client mods** — the other half of a click, plus an in-game Screen and HUD
 
 | Piece | Who it is for | Required? |
 |---|---|---|
-| **Paper plugin** `EventLens-1.10.7-beta.jar` | Server operators and plugin authors | Yes, for server traces |
-| **Paper Java agent** `eventlens-agent-1.10.7-beta.jar` | Per-listener timing and exception attribution | Optional |
+| **Paper plugin** `EventLens-1.11.0.jar` | Server operators and plugin authors | Yes, for server traces |
+| **Paper Java agent** `eventlens-agent-1.11.0.jar` | Per-listener timing and exception attribution | Optional |
 | **NeoForge client mod** (26.2) | Client-side traces, Screen, HUD | Optional; preview |
 | **Forge client mod** (26.2) | Client-side traces, Screen, HUD | Optional; preview |
 | **Fabric client mod** (26.2) | Client-side traces, Screen, HUD | Optional; preview |
-| **Client Java agent** `eventlens-client-agent-1.10.7-beta.jar` | Per-mod handler timing on NeoForge, Forge, and Fabric | Optional |
+| **Client Java agent** `eventlens-client-agent-1.11.0.jar` | Per-mod handler timing on NeoForge, Forge, and Fabric | Optional |
 | **Dashboard** at `http://127.0.0.1:8765` | Live graphs, timeline, compare | Ships with the Paper plugin |
 | **Bundle export** | Share a self-contained `index.html` report | Paper command |
 
@@ -50,7 +52,7 @@ The plugin is useful without any agent or client mod. Agents add precise timings
 
 ## Quick start
 
-1. Run **Java 25**. Drop `eventlens-paper/build/libs/EventLens-1.10.7-beta.jar` into `plugins/`.
+1. Run **Java 25**. Drop `eventlens-paper/build/libs/EventLens-1.11.0.jar` into `plugins/`.
 2. Restart the server (`stop`, then start — do not `/reload`). Commands default to **op**.
 3. Trace a click, then open the dashboard or an exported bundle.
 
@@ -69,7 +71,7 @@ Then open the exported folder’s `index.html`, or the live dashboard at [http:/
 Built artifact after `.\gradlew.bat build`:
 
 ```
-eventlens-paper/build/libs/EventLens-1.10.7-beta.jar
+eventlens-paper/build/libs/EventLens-1.11.0.jar
 ```
 
 ---
@@ -90,24 +92,24 @@ If it says **dispatch-only**, you can keep using EventLens as-is, or follow the 
 | `eventlens-client-agent-*.jar` | A normal folder on disk + tell the **launcher** about it (below) | **`mods`** (launcher says “not a valid mod file”) |
 | `eventlens-observability-*.jar` | **Same folder** as the client agent jar | **`mods`** |
 
-Download all files from [GitHub Releases](https://github.com/bellaouzo/EventLensMC/releases). Use the **same version** as your EventLens mod (for example `1.10.7-beta`).
+Download all files from [GitHub Releases](https://github.com/bellaouzo/EventLensMC/releases). Use the **same version** as your EventLens mod (for example `1.11.0`).
 
-### Client agent (NeoForge and Forge) — step by step
+### Client agent (NeoForge, Forge, and Fabric) — step by step
 
 This is for **your Minecraft launcher**, not the server. Use the same client agent jar on NeoForge, Forge, and Fabric.
 
 **Step 1 — Download the client agent**
 
-From the release page, download `eventlens-client-agent-1.10.7-beta.jar`.
+From the release page, download `eventlens-client-agent-1.11.0.jar`.
 
-`eventlens-observability-*.jar` in the same folder is optional on **1.10.7-beta+** (the agent jar is fat). Older builds still want both jars side by side.
+`eventlens-observability-*.jar` in the same folder is optional on **1.10.7+** (the agent jar is fat). Older builds still want both jars side by side.
 
 **Step 2 — Put the agent jar in a normal folder**
 
 Example on Windows:
 
 ```
-C:\Users\You\AppData\Roaming\eventlens-agents\eventlens-client-agent-1.10.7-beta.jar
+C:\Users\You\AppData\Roaming\eventlens-agents\eventlens-client-agent-1.11.0.jar
 ```
 
 Do **not** put this file in `mods/`.
@@ -117,7 +119,7 @@ Do **not** put this file in `mods/`.
 Replace the path with **your** real path. Use forward slashes `/` even on Windows:
 
 ```
--javaagent:C:/Users/You/AppData/Roaming/eventlens-agents/eventlens-client-agent-1.10.7-beta.jar
+-javaagent:C:/Users/You/AppData/Roaming/eventlens-agents/eventlens-client-agent-1.11.0.jar
 ```
 
 Rules:
@@ -125,7 +127,7 @@ Rules:
 - One line, no line breaks.
 - Starts with `-javaagent:` then the **full path** to the jar.
 - If the path has spaces, wrap only the path in quotes:
-  `-javaagent:"C:/Users/You/My Agents/eventlens-client-agent-1.10.7-beta.jar"`
+  `-javaagent:"C:/Users/You/My Agents/eventlens-client-agent-1.11.0.jar"`
 - Do **not** use a relative path like `-javaagent:eventlens-client-agent.jar` unless you are sure the launcher’s working directory is that folder.
 
 **Step 4 — Paste into JVM arguments (not game arguments)**
@@ -174,7 +176,7 @@ Any launcher that lets you edit **JVM arguments** for the instance works the sam
 If you start Minecraft from a script, add the line to the `java` command **before** `-jar` or the main class, for example:
 
 ```
-java -javaagent:C:/path/to/eventlens-client-agent-1.10.7-beta.jar ... (rest of launch command)
+java -javaagent:C:/path/to/eventlens-client-agent-1.11.0.jar ... (rest of launch command)
 ```
 
 The official **Microsoft Minecraft Launcher** (vanilla) does not expose JVM args for modded profiles. Use Prism, CurseForge, or Modrinth for modded + agent setup.
@@ -201,7 +203,7 @@ The game window never opening usually means Java rejected the argument **before*
 Check these in order:
 
 1. **Wrong field** — The line must go in **JVM / Java arguments**, not “Game arguments”, not “Environment variables”, not the mods folder.
-2. **Bad path** — Java cannot find the jar. Open the path in File Explorer and confirm the file exists. Use a **full** path with forward slashes, e.g. `C:/Users/You/.../eventlens-client-agent-1.10.7-beta.jar`.
+2. **Bad path** — Java cannot find the jar. Open the path in File Explorer and confirm the file exists. Use a **full** path with forward slashes, e.g. `C:/Users/You/.../eventlens-client-agent-1.11.0.jar`.
 3. **Typo in the line** — Must be `-javaagent:` (colon), not `-javaagent=` or `-java-agent:`. No extra quotes around the whole line unless your path has spaces (quote only the path).
 4. **Wrong jar** — Use `eventlens-client-agent-*.jar` for the **client**, not `eventlens-agent-*.jar` (that one is for Paper servers).
 5. **Smart quotes** — Re-type the line manually if you copied from a web page and it still fails.
@@ -221,15 +223,15 @@ Once the game **does** start, run `/eventlens status` — EventLens reads your l
 
 For **server** operators who want per-listener timing on Paper (not the Minecraft client).
 
-1. Download `eventlens-agent-1.10.7-beta.jar` from [releases](https://github.com/bellaouzo/EventLensMC/releases).
+1. Download `eventlens-agent-1.11.0.jar` from [releases](https://github.com/bellaouzo/EventLensMC/releases).
 2. Put it somewhere stable (for example next to your server jar).
 3. Add this to **Paper’s startup JVM arguments** (however you normally start the server — `start.bat`, Pterodactyl, Docker, etc.):
 
 ```
--javaagent:/full/path/to/eventlens-agent-1.10.7-beta.jar
+-javaagent:/full/path/to/eventlens-agent-1.11.0.jar
 ```
 
-Use the real path on your machine. On Windows you can use `C:/server/eventlens-agent-1.10.7-beta.jar` style paths.
+Use the real path on your machine. On Windows you can use `C:/server/eventlens-agent-1.11.0.jar` style paths.
 
 4. **Restart the server** (`stop`, then start — do not `/reload`).
 5. Run `/eventlens status` → **Agent: attached**, **Mode: precise**.
@@ -251,11 +253,11 @@ Install **one** loader jar that matches your client:
 
 | Loader | Minecraft | Artifact |
 |---|---|---|
-| **NeoForge** 26.2.x | 26.2 | `eventlens-neoforge/build/libs/eventlens-neoforge-1.10.7-beta.jar` |
-| **Minecraft Forge** 65.1+ | 26.2 | `eventlens-forge/build/libs/eventlens-forge-1.10.7-beta.jar` |
-| **Fabric** Loader 0.19 + Fabric API 0.157+ | 26.2 | `eventlens-fabric/build/libs/eventlens-fabric-1.10.7-beta.jar` |
+| **NeoForge** 26.2.x | 26.2 | `eventlens-neoforge/build/libs/eventlens-neoforge-1.11.0.jar` |
+| **Minecraft Forge** 65.1+ | 26.2 | `eventlens-forge/build/libs/eventlens-forge-1.11.0.jar` |
+| **Fabric** Loader 0.19 + Fabric API 0.157+ | 26.2 | `eventlens-fabric/build/libs/eventlens-fabric-1.11.0.jar` |
 
-Put the jar in the client `mods/` folder. Chat commands work on all three. Screen, HUD, and keybinds work on all three. For **precise per-mod timing** on NeoForge or Forge, you also need the [client Java agent](#client-agent-neoforge-and-forge--step-by-step) (launcher JVM args — not another mod in `mods/`).
+Put the jar in the client `mods/` folder. Chat commands work on all three. Screen, HUD, and keybinds work on all three. For **precise per-mod timing**, you also need the [client Java agent](#client-agent-neoforge-forge-and-fabric--step-by-step) (launcher JVM args — not another mod in `mods/`).
 
 ---
 
@@ -344,7 +346,7 @@ A right-click is two traces today. After you export both sides:
 
 ### Supported Paper events
 
-First-class snapshots (141 types). Add more names in `config.yml` under `trace.additional-events`, or start a registered custom event with `--generic`.
+First-class snapshots (142 types). Add more names in `config.yml` under `trace.additional-events`, or start a registered custom event with `--generic`.
 
 <details>
 <summary><strong>Allowlisted event types</strong></summary>
@@ -367,10 +369,10 @@ Same `/eventlens` family in client chat, plus an in-game Screen.
 | `/eventlens exceptions` | yes | yes | yes |
 | `trace pause` / `resume` / `restart` | yes | yes | yes |
 | Start filters `--mod` / `--player` | yes | yes | yes |
-| Screen + HUD + keybinds (`/eventlens ui`) | full panel | full panel | simpler Screen |
-| Restores last tab / session | yes | yes | no |
+| Screen + HUD + keybinds (`/eventlens ui`) | full panel | full panel | full panel |
+| Restores last tab / session | yes | yes | yes |
 | `@SubscribeEvent` inventory + overlap | yes | yes | coarse loaded-mod list |
-| Client Java agent (`precise`) | yes | yes | **not yet** |
+| Client Java agent (`precise`) | yes | yes | yes |
 
 `/eventlens` on the client shows `Instrumentation  precise` when the client agent loaded, otherwise `dispatch-only`. When dispatch-only, status prints JVM setup steps and **[Copy JVM arg]** / **[Agent guide]** links. Chat stays a fallback if you never open the Screen.
 
@@ -544,7 +546,7 @@ The event graph needs the live `/api` when you are on the dashboard; a bare bund
 
 Design targets per observed dispatch: average ≤ 0.25 ms, p95 ≤ 0.75 ms. EventLens throttles if p95 stays above 1 ms, stops the session if p95 stays above 2.5 ms for three windows, and emergency-stops after any single EventLens operation over 10 ms.
 
-These are EventLens defaults, not Paper guarantees.
+These are EventLens **design defaults**, not Paper guarantees. There is no published soak number that operators should treat as a measured SLA.
 
 </details>
 
@@ -553,6 +555,20 @@ These are EventLens defaults, not Paper guarantees.
 No external telemetry. Shareable exports redact player names, world names, exact coordinates, and paths unless an operator passes `--full`. The dashboard binds to localhost by default.
 
 EventLens must not change observed events, reorder listeners, invoke listeners twice, hide exceptions, or retain live Bukkit / Minecraft objects off the main thread.
+
+---
+
+## Compatibility (1.x)
+
+These stay compatible across **1.x**. Breaking them is a **major** version.
+
+| Contract | Current | Notes |
+|---|---|---|
+| Commands, permissions, `/el` alias | as documented above | |
+| Export JSON `reportVersion` | `2` | Extra optional fields may appear without bumping |
+| Agent protocol | `2` (minimum supported `1`) | Mismatch → `/eventlens status` shows incompatible / degraded, not silent wrong timings |
+| Paper | **26.2** · Java **25** | No multi-version artifact |
+| Client mods | Minecraft **26.2** | **Preview** — not part of the Paper 1.11 stability bar |
 
 ---
 
@@ -610,11 +626,11 @@ Cursor tasks: Clean Build, Build, Test, Run Paper Server, Run Paper Server (Debu
 | `eventlens-paper` | Paper 26.2 plugin, commands, dashboard HTTP, bundle export |
 | `eventlens-observability` | Shared agent protocol (Java 21 bytecode) |
 | `eventlens-agent` | Optional Paper `-javaagent` (`RegisteredListener.callEvent`) |
-| `eventlens-client-agent` | Optional NeoForge / Forge `-javaagent` (game-bus `invoke`) |
+| `eventlens-client-agent` | Optional NeoForge / Forge / Fabric `-javaagent` (game-bus `invoke` / Fabric API callbacks) |
 | `eventlens-mod-common` | Shared client command / trace logic (no loader Screen types) |
-| `eventlens-neoforge` | NeoForge 1.21.1 client mod |
-| `eventlens-forge` | Minecraft Forge 1.21.1 client mod |
-| `eventlens-fabric` | Fabric 1.21.1 client mod (Screen lives here, not in mod-common) |
+| `eventlens-neoforge` | NeoForge 26.2 client mod |
+| `eventlens-forge` | Minecraft Forge 26.2 client mod |
+| `eventlens-fabric` | Fabric 26.2 client mod (Screen lives here, not in mod-common) |
 | `eventlens-viewer` | Dashboard TypeScript (built into the plugin `dashboard/` resources) |
 | `eventlens-testkit` | Fixture plugin for tests |
 | `docs/`, `AGENTS.md` | Local handbook (gitignored — not on the remote) |
@@ -653,13 +669,14 @@ JUnit 5, ArchUnit, MockBukkit (`mockbukkit-v26.1.2`), forked-JVM agent load test
 
 ### Not in this repo yet
 
-- Fabric client agent hooks Fabric API array-backed event registration for per-mod callback timing
 - Folia, Velocity, packet sniffing, Paper chest GUIs, event replay, network telemetry
+- Full Fabric callback inventory parity with NeoForge `@SubscribeEvent` scan
+- Hangar / Modrinth / CurseForge publishing
 
-See [CHANGELOG.md](CHANGELOG.md) for release history.
+See [CHANGELOG.md](CHANGELOG.md) for release history. See [SECURITY.md](SECURITY.md) to report a vulnerability.
 
 ---
 
 ## License
 
-MIT. See [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE). Report vulnerabilities in [SECURITY.md](SECURITY.md).

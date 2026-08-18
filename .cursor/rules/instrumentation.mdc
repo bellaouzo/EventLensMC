@@ -25,7 +25,7 @@ The standard plugin and client mods must remain useful without an agent.
 
 An agent must:
 
-- Be a separate artifact (`eventlens-agent` on Paper, `eventlens-client-agent` on NeoForge/Forge)
+- Be a separate artifact (`eventlens-agent` on Paper, `eventlens-client-agent` on NeoForge/Forge/Fabric)
 - Load only with `-javaagent` at JVM startup
 - Never self-attach by default
 - Transform only exact allowlisted targets with signature verification
@@ -34,14 +34,14 @@ An agent must:
 - Expose a narrow versioned protocol via `eventlens-observability`
 - Stop producing data when no trace session requires it
 
-Do not attach the Paper agent to Minecraft, or share NeoForge transforms with Fabric.
+Do not attach the Paper agent to Minecraft, or share NeoForge `invoke` transforms with Fabric.
 
 Agent tests must run in forked JVMs.
 
 # Current status
 
 - Paper: `eventlens-agent` wraps `RegisteredListener.callEvent` (ADR 0001)
-- Client: `eventlens-client-agent` wraps NeoForge game-bus `invoke(Event)` and Forge `ASMEventHandler.invoke(Event)` (ADR 0003); Fabric is not implemented
+- Client: `eventlens-client-agent` wraps NeoForge game-bus `invoke(Event)`, Forge `ASMEventHandler.invoke(Event)`, and Fabric `ArrayBackedEvent.register` (ADR 0003)
 - Shared protocol: `eventlens-observability` (Java 21 bytecode)
 - No NMS usage
 
