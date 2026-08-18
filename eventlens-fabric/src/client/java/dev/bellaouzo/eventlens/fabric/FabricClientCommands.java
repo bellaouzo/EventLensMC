@@ -35,13 +35,49 @@ final class FabricClientCommands {
                 .then(ClientCommandManager.literal("status")
                         .executes(context -> run(coordinator, context, List.of("status"))))
                 .then(listeners(coordinator))
+                .then(mod(coordinator))
+                .then(exceptions(coordinator))
                 .then(trace(coordinator))
                 .then(ClientCommandManager.literal("ui")
                         .executes(context -> {
                             net.minecraft.client.Minecraft.getInstance()
-                                    .execute(() -> dev.bellaouzo.eventlens.fabric.ui.EventLensScreen.open());
+                                    .execute(() -> dev.bellaouzo.eventlens.neoforge.ui.EventLensScreen.open());
                             return 1;
                         }));
+    }
+
+    private static LiteralArgumentBuilder<FabricClientCommandSource> mod(ModTraceCoordinator coordinator) {
+        return ClientCommandManager.literal("mod")
+                .executes(context -> run(coordinator, context, List.of("mod")))
+                .then(ClientCommandManager.literal("compare")
+                        .then(ClientCommandManager.argument("left", StringArgumentType.word())
+                                .suggests(suggestMods(coordinator))
+                                .then(ClientCommandManager.argument("right", StringArgumentType.word())
+                                        .suggests(suggestMods(coordinator))
+                                        .executes(context -> run(
+                                                coordinator,
+                                                context,
+                                                List.of(
+                                                        "mod",
+                                                        "compare",
+                                                        StringArgumentType.getString(context, "left"),
+                                                        StringArgumentType.getString(context, "right")))))))
+                .then(ClientCommandManager.argument("id", StringArgumentType.word())
+                        .suggests(suggestMods(coordinator))
+                        .executes(context -> run(
+                                coordinator, context, List.of("mod", StringArgumentType.getString(context, "id")))));
+    }
+
+    private static LiteralArgumentBuilder<FabricClientCommandSource> exceptions(ModTraceCoordinator coordinator) {
+        return ClientCommandManager.literal("exceptions")
+                .executes(context -> run(coordinator, context, List.of("exceptions")))
+                .then(ClientCommandManager.argument("page", IntegerArgumentType.integer(1))
+                        .executes(context -> run(
+                                coordinator,
+                                context,
+                                List.of(
+                                        "exceptions",
+                                        Integer.toString(IntegerArgumentType.getInteger(context, "page"))))));
     }
 
     private static LiteralArgumentBuilder<FabricClientCommandSource> listeners(ModTraceCoordinator coordinator) {
@@ -121,14 +157,25 @@ final class FabricClientCommands {
 
     private static LiteralArgumentBuilder<FabricClientCommandSource> sessionCommand(
             ModTraceCoordinator coordinator, String name) {
+        var session = ClientCommandManager.argument("session", StringArgumentType.word())
+                .suggests(suggestSessions(coordinator))
+                .executes(context -> run(
+                        coordinator,
+                        context,
+                        List.of("trace", name, StringArgumentType.getString(context, "session"))));
+        if ("export".equals(name)) {
+            session.then(ClientCommandManager.argument("flags", StringArgumentType.greedyString())
+                    .suggests(suggestExportFlags())
+                    .executes(context -> run(
+                            coordinator,
+                            context,
+                            ModClientTabCompleter.exportArgs(
+                                    StringArgumentType.getString(context, "session"),
+                                    StringArgumentType.getString(context, "flags")))));
+        }
         return ClientCommandManager.literal(name)
                 .executes(context -> run(coordinator, context, List.of("trace", name)))
-                .then(ClientCommandManager.argument("session", StringArgumentType.word())
-                        .suggests(suggestSessions(coordinator))
-                        .executes(context -> run(
-                                coordinator,
-                                context,
-                                List.of("trace", name, StringArgumentType.getString(context, "session")))));
+                .then(session);
     }
 
     private static int run(
@@ -157,6 +204,11 @@ final class FabricClientCommands {
         };
     }
 
+    private static SuggestionProvider<FabricClientCommandSource> suggestMods(ModTraceCoordinator coordinator) {
+        return (context, builder) -> SharedSuggestionProvider.suggest(
+                ModClientTabCompleter.complete(coordinator, List.of("mod"), builder.getRemaining()), builder);
+    }
+
     private static SuggestionProvider<FabricClientCommandSource> suggestSessions(ModTraceCoordinator coordinator) {
         return (context, builder) -> SharedSuggestionProvider.suggest(
                 ModClientTabCompleter.complete(coordinator, List.of("trace", "view"), builder.getRemaining()), builder);
@@ -166,6 +218,17 @@ final class FabricClientCommands {
         return (context, builder) -> {
             String event = StringArgumentType.getString(context, "event");
             for (String suggestion : ModClientTabCompleter.completeStartFlagSuggestions(event, builder.getRemaining())) {
+                builder.suggest(suggestion);
+            }
+            return builder.buildFuture();
+        };
+    }
+
+    private static SuggestionProvider<FabricClientCommandSource> suggestExportFlags() {
+        return (context, builder) -> {
+            String session = StringArgumentType.getString(context, "session");
+            for (String suggestion :
+                    ModClientTabCompleter.completeExportFlagSuggestions(session, builder.getRemaining())) {
                 builder.suggest(suggestion);
             }
             return builder.buildFuture();

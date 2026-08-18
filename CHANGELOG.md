@@ -5,6 +5,64 @@ All notable changes to EventLens are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.10.1] - 2026-08-18
+
+### Fixed
+
+- Client `/eventlens trace export <session>` accepts `--format json|ndjson|text|html`, `--shareable`, and `--full` again (Brigadier no longer rejects tokens after the session id)
+- Client export still writes a single file; `--format bundle` is Paper-only
+
+## [1.10.0] - 2026-08-18
+
+### Added
+
+- Dashboard Compare lists paired client/Paper dispatches side by side when both sides have correlation keys
+- Bundle `index.html` accepts `?dispatch=n` and `?view=timeline` to open a specific dispatch
+- Bundle export embeds the listener-registry event graph so Event graph stays complete offline
+- Client HUD shows last cancel state and `linked` when the last dispatch has a peer
+- Session title `linked {peer}` jumps to that peer dispatch when the session is loaded
+- Screen export toast reports `Peer found` or `No peer`; the file path still goes to chat
+
+## [1.9.0] - 2026-08-18
+
+### Changed
+
+- Fabric `/eventlens ui` now uses the same Home / Events / Sessions / Session Screen as NeoForge and Forge
+- Fabric HUD on/off persists in `ui.properties` and the Screen restores the last tab and session
+
+## [1.8.0] - 2026-08-18
+
+### Added
+
+- Client `/eventlens trace start` accepts comma-separated events and `--preset click-flow` (use / use-block / use-entity / attack / attack-block)
+- Events tab **Start click-flow** on NeoForge, Forge, and Fabric
+
+## [1.7.0] - 2026-08-18
+
+### Added
+
+- `/eventlens trace start --preset protection-flow` (and `block-flow`, `inventory-flow`, `chat-flow`, `login-flow`, `command-flow`, `plugin-watch`) can omit the event name; the preset supplies the list
+- First-class snapshot fields for `AsyncPlayerPreLoginEvent`, richer `PrepareItemCraftEvent` matrix/result, and `PlayerLoginEvent` kick/result
+- `trace view` names both plugins when two plugins wrote cancel; `trace stop --compare-baseline <name>` prints the existing compare after stop
+
+### Changed
+
+- `plugin-watch` requires `--plugin` (or a preset `plugin:` value)
+
+## [1.6.0] - 2026-08-18
+
+### Added
+
+- Client `/eventlens mod` and `/eventlens exceptions` on Fabric, NeoForge, and Forge
+- Paper command-handler tests for `events`, `exceptions`, and `trace correlate`
+- `paperSmokeTest` drives EventLensTestTarget in trace mode
+- CI inspects the plugin JAR for `plugin.yml`, the main class, and shaded core classes
+
+### Changed
+
+- Fabric `/eventlens mod` says the list is a coarse loaded-mod view, not a `@SubscribeEvent` inventory
+- `/eventlens ui` chat fallback names the Screen on all three loaders
+
 ## [1.5.0] - 2026-08-18
 
 ### Added

@@ -55,6 +55,27 @@ public final class BaselineCommandService {
         return DeleteResult.success(safeName);
     }
 
+    public CompareResult compareSession(String sessionId, String baselineName, Optional<String> pluginScope) {
+        Optional<TraceReportDocument> session =
+                exportCommandService.buildReport(sessionId, ExportRedactionMode.SHARE_SAFE);
+        if (session.isEmpty()) {
+            return CompareResult.leftNotFound(sessionId);
+        }
+        Optional<TraceRegressionData> baseline = readBaseline(baselineName, pluginScope);
+        if (baseline.isEmpty()) {
+            return CompareResult.rightNotFound(baselineName);
+        }
+        TraceRegressionData left = TraceReportComparer.toRegressionData(session.get(), pluginScope);
+        TraceRegressionReport report = TraceReportComparer.compare(left, baseline.get());
+        return CompareResult.success(new TraceRegressionReport(
+                report.leftSourceId(),
+                report.rightSourceId(),
+                pluginScope.map(name -> "plugin=" + name).orElse("session vs baseline"),
+                report.sameEventClass(),
+                report.differences(),
+                report.notes()));
+    }
+
     public CompareResult compare(String leftBaseline, String rightBaseline, Optional<String> pluginScope) {
         Optional<TraceRegressionData> left = readBaseline(leftBaseline, pluginScope);
         if (left.isEmpty()) {

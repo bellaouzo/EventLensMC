@@ -306,6 +306,22 @@ async function selectReport(fileName: string): Promise<void> {
   await renderActiveView(false);
 }
 
+function applyQueryDeepLink(): void {
+  const params = new URLSearchParams(window.location.search);
+  const view = params.get('view');
+  const dispatchRaw = params.get('dispatch');
+  if (view === 'timeline' || dispatchRaw) {
+    activeView = 'timeline';
+  }
+  if (!dispatchRaw || !currentReport) {
+    return;
+  }
+  const sequence = Number.parseInt(dispatchRaw, 10);
+  if (Number.isFinite(sequence)) {
+    selectDispatchBySequence(currentReport, sequence);
+  }
+}
+
 async function maybeLoadBundledReport(): Promise<void> {
   if (isLiveMode()) {
     return;
@@ -315,7 +331,9 @@ async function maybeLoadBundledReport(): Promise<void> {
     currentReport = injected as TraceReport;
     dataSource = 'offline';
     applyReportMetadata(currentReport);
+    applyQueryDeepLink();
     ensureShell();
+    setActiveNav(activeView);
     await renderActiveView(false);
     return;
   }
@@ -329,7 +347,9 @@ async function maybeLoadBundledReport(): Promise<void> {
     currentReport = parseReportJson(await response.text());
     dataSource = 'offline';
     applyReportMetadata(currentReport);
+    applyQueryDeepLink();
     ensureShell();
+    setActiveNav(activeView);
     await renderActiveView(false);
   } catch {
     // file picker remains available

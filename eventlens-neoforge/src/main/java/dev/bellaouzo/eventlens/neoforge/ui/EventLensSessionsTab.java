@@ -27,7 +27,7 @@ final class EventLensSessionsTab {
             refresh(screen);
         });
         list = new SessionList(
-                screen.getMinecraft(), frame.contentW(), frame.contentH() - 22, frame.contentY() + 22, 28);
+                screen.client(), frame.contentW(), frame.contentH() - 22, frame.contentY() + 22, 28);
         list.setX(frame.contentX());
         refresh(screen);
         screen.add(list);

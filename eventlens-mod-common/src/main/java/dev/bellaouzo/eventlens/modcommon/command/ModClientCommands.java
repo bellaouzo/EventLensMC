@@ -65,29 +65,34 @@ public final class ModClientCommands {
         }
         boolean confirmHot = false;
         Optional<Integer> maxEvents = Optional.empty();
+        String eventQuery = args.get(2).startsWith("--") ? "" : args.get(2);
         var filter = dev.bellaouzo.eventlens.domain.trace.TraceFilter.Builder.unrestricted();
-        for (int i = 3; i < args.size(); i++) {
-            String token = args.get(i);
+        int index = eventQuery.isEmpty() ? 2 : 3;
+        while (index < args.size()) {
+            String token = args.get(index);
             if ("--confirm-hot".equalsIgnoreCase(token)) {
                 confirmHot = true;
-            } else if ("--max-events".equalsIgnoreCase(token) && i + 1 < args.size()) {
+            } else if ("--preset".equalsIgnoreCase(token) && index + 1 < args.size()) {
+                eventQuery = args.get(++index);
+            } else if ("--max-events".equalsIgnoreCase(token) && index + 1 < args.size()) {
                 try {
-                    maxEvents = Optional.of(Integer.parseInt(args.get(++i)));
+                    maxEvents = Optional.of(Integer.parseInt(args.get(++index)));
                 } catch (NumberFormatException ignored) {
                     return List.of(ModChatLine.text("--max-events requires a number.", ModChatColor.RED));
                 }
             } else if (("--mod".equalsIgnoreCase(token) || "--player".equalsIgnoreCase(token))
-                    && i + 1 < args.size()) {
-                String value = args.get(++i);
+                    && index + 1 < args.size()) {
+                String value = args.get(++index);
                 if ("--mod".equalsIgnoreCase(token)) {
                     filter.pluginName(value);
                 } else {
                     filter.playerName(value);
                 }
             }
+            index++;
         }
         coordinator.setStartFilter(filter.build());
-        return ModTraceFormatter.start(coordinator.startTrace(args.get(2), ownerName, confirmHot, maxEvents));
+        return ModTraceFormatter.start(coordinator.startTrace(eventQuery, ownerName, confirmHot, maxEvents));
     }
 
     private static List<ModChatLine> stop(ModTraceCoordinator coordinator, String ownerName, List<String> args) {
@@ -163,6 +168,14 @@ public final class ModClientCommands {
 
     private static List<ModChatLine> export(ModTraceCoordinator coordinator, List<String> args) {
         String sessionId = args.size() >= 3 ? args.get(2) : "";
-        return ModTraceFormatter.export(coordinator.exportSession(sessionId, Optional.empty()));
+        ModClientExportParser.Result parsed = ModClientExportParser.parse(args);
+        if (parsed.error().isPresent()) {
+            return List.of(ModChatLine.text(parsed.error().orElseThrow(), ModChatColor.RED));
+        }
+        return ModTraceFormatter.export(coordinator.exportSession(
+                sessionId,
+                Optional.empty(),
+                parsed.format().orElseThrow(),
+                parsed.redaction().orElseThrow()));
     }
 }

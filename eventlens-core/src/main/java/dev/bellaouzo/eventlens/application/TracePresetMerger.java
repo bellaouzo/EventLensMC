@@ -16,7 +16,7 @@ public final class TracePresetMerger {
     public static MergeResult merge(EventLensCommandConfig config, List<String> tokens) {
         Optional<String> presetName = findPresetName(tokens);
         if (presetName.isEmpty()) {
-            return new MergeResult(tokens, Optional.empty(), Optional.empty());
+            return new MergeResult(tokens, Optional.empty(), Optional.empty(), List.of());
         }
 
         Optional<TracePreset> preset = config.preset(presetName.get());
@@ -51,7 +51,7 @@ public final class TracePresetMerger {
                 index++;
             }
         }
-        return new MergeResult(merged, presetName, Optional.empty());
+        return new MergeResult(merged, presetName, Optional.empty(), resolved.eventSimpleNames());
     }
 
     private static void addIfAbsent(List<String> merged, Map<String, String> explicitFlags, String flag, String value) {
@@ -106,15 +106,23 @@ public final class TracePresetMerger {
         return index + 1;
     }
 
-    public record MergeResult(List<String> tokens, Optional<String> presetName, Optional<String> presetNotFoundError) {
+    public record MergeResult(
+            List<String> tokens,
+            Optional<String> presetName,
+            Optional<String> presetNotFoundError,
+            List<String> eventSimpleNames) {
 
         public MergeResult {
             tokens = tokens == null ? List.of() : List.copyOf(tokens);
+            eventSimpleNames = eventSimpleNames == null ? List.of() : List.copyOf(eventSimpleNames);
         }
 
         static MergeResult presetNotFound(String presetName) {
             return new MergeResult(
-                    List.of(), Optional.of(presetName), Optional.of("Unknown trace preset \"" + presetName + "\"."));
+                    List.of(),
+                    Optional.of(presetName),
+                    Optional.of("Unknown trace preset \"" + presetName + "\"."),
+                    List.of());
         }
 
         public boolean hasError() {

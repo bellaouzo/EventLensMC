@@ -76,7 +76,8 @@ public final class EventLensConfigLoader {
                 config.getBoolean("trace.show-performance-warnings", defaults.showPerformanceWarnings()),
                 config.getInt("preferences.max-recent-traces", defaults.maxRecentTraces()),
                 config.getInt("preferences.max-favorites", defaults.maxFavorites()),
-                parsePresets(config.getConfigurationSection("trace.presets")));
+                parsePresets(config.getConfigurationSection("trace.presets")),
+                optionalStringValue(config.getString("trace.auto-baseline-compare")));
     }
 
     public static LiveFeedConfig loadLiveFeedConfig(FileConfiguration config) {
@@ -114,7 +115,8 @@ public final class EventLensConfigLoader {
                             optionalInt(presetSection, "max-events"),
                             optionalLong(presetSection, "slow-threshold-ns"),
                             presetSection.getBoolean("capture-stacks", false),
-                            Collections.emptyList()));
+                            Collections.emptyList(),
+                            presetSection.getStringList("events")));
         }
         return Map.copyOf(parsed);
     }
@@ -133,6 +135,10 @@ public final class EventLensConfigLoader {
         }
         double millis = Double.parseDouble(normalized);
         return Math.max(1L, Math.round(millis * 1_000_000L));
+    }
+
+    private static Optional<String> optionalStringValue(String value) {
+        return value == null || value.isBlank() ? Optional.empty() : Optional.of(value.trim());
     }
 
     private static Optional<String> optionalString(ConfigurationSection section, String key) {

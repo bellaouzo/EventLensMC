@@ -47,7 +47,8 @@ class TraceCommandServiceTest {
                 true,
                 20,
                 32,
-                EventLensCommandConfig.defaults().presets());
+                EventLensCommandConfig.defaults().presets(),
+                java.util.Optional.empty());
         TraceCommandService service =
                 new TraceCommandService(new TraceSessionManager(), registry, new NoOpTraceHookPort(), config);
 
@@ -127,7 +128,7 @@ class TraceCommandServiceTest {
         TraceCommandService service =
                 new TraceCommandService(new TraceSessionManager(), new StubListenerRegistry(), new NoOpTraceHookPort());
 
-        assertEquals(141, service.listSupportedEventSimpleNames().size());
+        assertEquals(142, service.listSupportedEventSimpleNames().size());
         assertTrueContains(service.listSupportedEventSimpleNames(), "BlockBreakEvent");
         assertTrueContains(service.listSupportedEventSimpleNames(), "EntityExplodeEvent");
     }

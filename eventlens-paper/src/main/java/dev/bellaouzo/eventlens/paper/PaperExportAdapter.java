@@ -9,6 +9,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 import org.bukkit.plugin.Plugin;
 
@@ -19,11 +20,16 @@ public final class PaperExportAdapter implements ExportPort {
     private final Plugin plugin;
     private final Path reportsDirectory;
     private final Path baselinesDirectory;
+    private Supplier<String> eventGraphJson = () -> "";
 
     public PaperExportAdapter(Plugin plugin) {
         this.plugin = plugin;
         this.reportsDirectory = plugin.getDataFolder().toPath().resolve("reports");
         this.baselinesDirectory = plugin.getDataFolder().toPath().resolve("baselines");
+    }
+
+    public void setEventGraphSupplier(Supplier<String> supplier) {
+        this.eventGraphJson = supplier == null ? () -> "" : supplier;
     }
 
     @Override
@@ -39,7 +45,8 @@ public final class PaperExportAdapter implements ExportPort {
     @Override
     public ExportWriteResult writeReport(String safeBaseName, ExportFormat format, String content) {
         if (format == ExportFormat.BUNDLE) {
-            return PaperBundleExporter.write(reportsDirectory, sanitizeFileName(safeBaseName), content);
+            return PaperBundleExporter.write(
+                    reportsDirectory, sanitizeFileName(safeBaseName), content, eventGraphJson.get());
         }
         try {
             Files.createDirectories(reportsDirectory);

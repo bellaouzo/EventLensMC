@@ -79,6 +79,7 @@ public final class SupportedEventTypes {
             "org.bukkit.event.player.PlayerAttemptPickupItemEvent",
             "org.bukkit.event.player.PlayerPickupArrowEvent",
             "org.bukkit.event.player.PlayerLoginEvent",
+            "org.bukkit.event.player.AsyncPlayerPreLoginEvent",
             "org.bukkit.event.player.PlayerResourcePackStatusEvent",
             "org.bukkit.event.player.PlayerEditBookEvent",
             "org.bukkit.event.player.PlayerTakeLecternBookEvent",

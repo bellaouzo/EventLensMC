@@ -3,10 +3,8 @@ package dev.bellaouzo.eventlens.command.trace;
 import dev.bellaouzo.eventlens.application.TraceCommandService;
 import dev.bellaouzo.eventlens.command.CommandLiterals;
 import dev.bellaouzo.eventlens.command.CommandText;
-import dev.bellaouzo.eventlens.domain.preferences.OutputDetailLevel;
 import dev.bellaouzo.eventlens.domain.report.ExportFormat;
 import java.util.List;
-import java.util.Locale;
 
 final class TraceCommandTabCompleter {
 
@@ -32,21 +30,6 @@ final class TraceCommandTabCompleter {
     private static final String SLOW_FLAG = "--slow";
     private static final String CONFLICT_FLAG = "--conflict";
 
-    private static final List<String> TRACE_SUBCOMMANDS = List.of(
-            SUBCOMMAND_START,
-            SUBCOMMAND_STOP,
-            SUBCOMMAND_RESTART,
-            "list",
-            SUBCOMMAND_VIEW,
-            SUBCOMMAND_EXPORT,
-            SUBCOMMAND_COPY,
-            SUBCOMMAND_COMPARE,
-            "correlate",
-            SUBCOMMAND_BASELINE,
-            "history",
-            SUBCOMMAND_FAVORITE,
-            "presets",
-            SUBCOMMAND_LIVE);
     private static final List<String> FAVORITE_SUBCOMMANDS = List.of("list", "add", "remove");
     private static final List<String> SESSION_SUBCOMMANDS =
             List.of(SUBCOMMAND_VIEW, SUBCOMMAND_EXPORT, SUBCOMMAND_COPY);
@@ -55,8 +38,7 @@ final class TraceCommandTabCompleter {
     private static final List<String> COMPARE_FLAGS = List.of(PLUGIN_FLAG, SHAREABLE_FLAG, REDACTED_FLAG, FULL_FLAG);
     private static final List<String> TRACE_VIEW_FLAGS = List.of(
             UNCHANGED_FLAG, DETAIL_FLAG, DISPATCH_FLAG, RUN_FLAG, PLUGIN_FLAG, CHANGED_FLAG, SLOW_FLAG, CONFLICT_FLAG);
-    private static final List<String> DETAIL_VALUES =
-            List.of(OutputDetailLevel.BRIEF.name().toLowerCase(Locale.ROOT), "normal", "verbose");
+    private static final List<String> DETAIL_VALUES = List.of("brief", "normal", "verbose");
 
     private TraceCommandTabCompleter() {}
 
@@ -73,6 +55,15 @@ final class TraceCommandTabCompleter {
         }
         if (args.length >= 4 && args[1].equalsIgnoreCase(SUBCOMMAND_COMPARE)) {
             return completeCompare(traceCommandService, args, prefix);
+        }
+        if (args.length >= 4 && args[1].equalsIgnoreCase(TraceCommandNames.CORRELATE)) {
+            return CommandText.filterPrefix(traceCommandService.listSessionIds(), prefix);
+        }
+        if (args.length >= 4 && args[1].equalsIgnoreCase(SUBCOMMAND_STOP)) {
+            if (previousToken(args).equalsIgnoreCase(TraceCommandNames.COMPARE_BASELINE)) {
+                return List.of();
+            }
+            return CommandText.filterPrefix(List.of(TraceCommandNames.COMPARE_BASELINE), prefix);
         }
         if (args.length >= 3 && args[1].equalsIgnoreCase(SUBCOMMAND_BASELINE)) {
             return TraceBaselineTabCompleter.complete(traceCommandService, args, prefix);
@@ -95,7 +86,7 @@ final class TraceCommandTabCompleter {
     }
 
     private static List<String> completeSecondToken(String prefix) {
-        return CommandText.filterPrefix(TRACE_SUBCOMMANDS, prefix);
+        return CommandText.filterPrefix(TraceCommandNames.TRACE_SUBCOMMANDS, prefix);
     }
 
     private static List<String> completeThirdToken(
@@ -107,6 +98,9 @@ final class TraceCommandTabCompleter {
             return CommandText.filterPrefix(FAVORITE_SUBCOMMANDS, prefix);
         }
         if (args[1].equalsIgnoreCase(SUBCOMMAND_STOP)) {
+            if (prefix.startsWith("-")) {
+                return CommandText.filterPrefix(List.of(TraceCommandNames.COMPARE_BASELINE), prefix);
+            }
             return CommandText.filterPrefix(traceCommandService.listOpenSessionIds(), prefix);
         }
         if (args[1].equalsIgnoreCase(SUBCOMMAND_RESTART)) {
@@ -119,7 +113,7 @@ final class TraceCommandTabCompleter {
         }
         if (isSessionSubcommand(args[1])
                 || args[1].equalsIgnoreCase(SUBCOMMAND_COMPARE)
-                || args[1].equalsIgnoreCase("correlate")) {
+                || args[1].equalsIgnoreCase(TraceCommandNames.CORRELATE)) {
             return CommandText.filterPrefix(traceCommandService.listSessionIds(), prefix);
         }
         return List.of();

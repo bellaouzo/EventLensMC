@@ -24,7 +24,22 @@ final class EventLensSessionRows {
         HANDLER
     }
 
-    record Row(Kind kind, String primary, String secondary, int sequence, boolean cancelled) {
+    record Row(
+            Kind kind,
+            String primary,
+            String secondary,
+            int sequence,
+            boolean cancelled,
+            String peerSessionId,
+            int peerSequence) {
+        Row {
+            peerSessionId = peerSessionId == null ? "" : peerSessionId;
+        }
+
+        Row(Kind kind, String primary, String secondary, int sequence, boolean cancelled) {
+            this(kind, primary, secondary, sequence, cancelled, "", -1);
+        }
+
         static Row note(String text) {
             return new Row(Kind.NOTE, text, "", -1, false);
         }
@@ -38,8 +53,13 @@ final class EventLensSessionRows {
                     record.cancelledAtEnd());
         }
 
-        static Row title(String primary, String secondary, boolean cancelled) {
-            return new Row(Kind.TITLE, primary, secondary, -1, cancelled);
+        static Row title(
+                String primary,
+                String secondary,
+                boolean cancelled,
+                String peerSessionId,
+                int peerSequence) {
+            return new Row(Kind.TITLE, primary, secondary, -1, cancelled, peerSessionId, peerSequence);
         }
 
         static Row section(String label) {
@@ -100,7 +120,9 @@ final class EventLensSessionRows {
                                 ? "  linked " + record.correlation().peerSessionId().orElse("")
                                 : ""),
                 String.format(Locale.ROOT, "%.2f ms", record.durationNanos() / 1_000_000.0),
-                record.cancelledAtEnd()));
+                record.cancelledAtEnd(),
+                record.correlation().peerSessionId().orElse(""),
+                record.correlation().peerSequence().map(Long::intValue).orElse(-1)));
         rows.add(Row.section("Fields"));
         List<SnapshotField> fields = record.snapshotAfter() == null ? List.of() : record.snapshotAfter().fields();
         if (fields == null || fields.isEmpty()) {

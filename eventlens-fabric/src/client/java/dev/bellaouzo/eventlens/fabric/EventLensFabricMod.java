@@ -9,6 +9,8 @@ import dev.bellaouzo.eventlens.modcommon.ModNoOpInstrumentationAdapter;
 import dev.bellaouzo.eventlens.modcommon.ModDispatchRecorder;
 import dev.bellaouzo.eventlens.modcommon.ModTraceCoordinator;
 import dev.bellaouzo.eventlens.modcommon.port.ModEnvironmentPort;
+import dev.bellaouzo.eventlens.neoforge.ui.EventLensClientAccess;
+import dev.bellaouzo.eventlens.neoforge.ui.EventLensUiPreferences;
 import dev.bellaouzo.eventlens.trace.TraceSessionManager;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
@@ -34,6 +36,7 @@ public final class EventLensFabricMod implements ClientModInitializer {
         FabricListenerRegistry listenerRegistry = new FabricListenerRegistry();
         coordinator = new ModTraceCoordinator(
                 sessionManager, reportBuilder, exportAdapter, listenerRegistry, environmentAdapter);
+        EventLensClientAccess.bind(coordinator, EventLensUiPreferences.load(configDir));
         FabricCorrelationChannel correlationChannel = new FabricCorrelationChannel();
         ModCorrelationBridge correlationBridge = new ModCorrelationBridge(sessionManager, correlationChannel);
         correlationChannel.bind(correlationBridge);

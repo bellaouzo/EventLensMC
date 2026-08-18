@@ -1,6 +1,9 @@
 package dev.bellaouzo.eventlens.fabric.ui;
 
 import com.mojang.blaze3d.platform.InputConstants;
+import dev.bellaouzo.eventlens.neoforge.ui.EventLensClientAccess;
+import dev.bellaouzo.eventlens.neoforge.ui.EventLensScreen;
+import dev.bellaouzo.eventlens.neoforge.ui.EventLensUiPreferences;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.minecraft.client.KeyMapping;
@@ -20,14 +23,17 @@ public final class EventLensKeybinds {
         KeyBindingHelper.registerKeyBinding(HUD);
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             while (OPEN.consumeClick()) {
-                if (client.screen instanceof EventLensScreen) {
+                if (EventLensScreen.isOpen()) {
                     client.setScreen(null);
                 } else {
                     EventLensScreen.open();
                 }
             }
             while (HUD.consumeClick()) {
-                EventLensHudOverlay.toggle();
+                EventLensUiPreferences preferences = EventLensClientAccess.preferences();
+                if (preferences != null) {
+                    preferences.toggleHud();
+                }
             }
         });
     }

@@ -33,4 +33,13 @@ class TraceExportOptionsParserTest {
         assertTrue(result.errorMessage().isEmpty());
         assertSame(ExportFormat.NDJSON, result.parsed().orElseThrow().format());
     }
+
+    @Test
+    void acceptsFlagsAfterTraceExportSession() {
+        TraceExportOptionsParser.Result result = TraceExportOptionsParser.parse(
+                new String[] {"trace", "export", "abc12345", "--format", "html", "--shareable"}, 3);
+        assertTrue(result.parsed().isPresent());
+        assertTrue(result.errorMessage().isEmpty());
+        assertSame(ExportFormat.HTML, result.parsed().orElseThrow().format());
+    }
 }

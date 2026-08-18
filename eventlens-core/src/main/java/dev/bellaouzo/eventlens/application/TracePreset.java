@@ -12,9 +12,11 @@ public record TracePreset(
         Optional<Integer> maxEventCount,
         Optional<Long> slowThresholdNanos,
         boolean captureStacks,
-        List<String> extraFlags) {
+        List<String> extraFlags,
+        List<String> eventSimpleNames) {
 
     public TracePreset {
         extraFlags = extraFlags == null ? List.of() : List.copyOf(extraFlags);
+        eventSimpleNames = eventSimpleNames == null ? List.of() : List.copyOf(eventSimpleNames);
     }
 }

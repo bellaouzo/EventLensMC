@@ -156,7 +156,7 @@ public final class ModTraceFormatter {
 
     public static List<ModChatLine> uiUnavailable() {
         return List.of(ModChatLine.text(
-                "The EventLens screen is available on NeoForge/Forge. Fabric Screen is not implemented yet.",
+                "Open the EventLens screen with /eventlens ui on Fabric, NeoForge, and Forge.",
                 ModChatColor.YELLOW));
     }
 
@@ -166,6 +166,8 @@ public final class ModTraceFormatter {
                 ModChatLine.text("/eventlens status", ModChatColor.WHITE),
                 ModChatLine.text("/eventlens ui", ModChatColor.WHITE),
                 ModChatLine.text("/eventlens listeners", ModChatColor.WHITE),
+                ModChatLine.text("/eventlens mod <id>", ModChatColor.WHITE),
+                ModChatLine.text("/eventlens exceptions", ModChatColor.WHITE),
                 ModChatLine.text("/eventlens trace start <event>", ModChatColor.WHITE));
     }
 
@@ -179,7 +181,9 @@ public final class ModTraceFormatter {
                 ModChatLine.text("resume [id]     start capturing again", ModChatColor.WHITE),
                 ModChatLine.text("restart <id>    reuse the same id; keep previous runs", ModChatColor.WHITE),
                 ModChatLine.text("list            all sessions", ModChatColor.WHITE),
-                ModChatLine.text("export [id]     write JSON", ModChatColor.WHITE));
+                ModChatLine.text(
+                        "export [id] [--format json|ndjson|text|html] [--shareable|--full]",
+                        ModChatColor.WHITE));
     }
 
     static String startCommand(String eventSimpleName) {

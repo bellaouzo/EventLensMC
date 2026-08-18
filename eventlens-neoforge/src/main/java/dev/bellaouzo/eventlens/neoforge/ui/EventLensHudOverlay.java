@@ -5,6 +5,7 @@ import dev.bellaouzo.eventlens.domain.trace.TraceDispatchRecord;
 import dev.bellaouzo.eventlens.domain.trace.TraceSessionDetail;
 import dev.bellaouzo.eventlens.domain.trace.TraceSessionState;
 import dev.bellaouzo.eventlens.domain.trace.TraceSessionSummary;
+import dev.bellaouzo.eventlens.modcommon.ModHudFindings;
 import dev.bellaouzo.eventlens.modcommon.ModTraceCoordinator;
 import dev.bellaouzo.eventlens.modcommon.SupportedModEventTypes;
 import java.util.List;
@@ -86,7 +87,12 @@ public final class EventLensHudOverlay {
         }
         TraceDispatchRecord last = detail.orElseThrow().records().getLast();
         line1 = String.format(Locale.ROOT, "%s  ·  #%d", event, last.sequence());
-        line2 = String.format(Locale.ROOT, "%.2f ms  ·  %s", last.durationNanos() / 1_000_000.0, handlers(last));
+        line2 = String.format(
+                Locale.ROOT,
+                "%.2f ms  ·  %s  ·  %s",
+                last.durationNanos() / 1_000_000.0,
+                handlers(last),
+                ModHudFindings.statusBits(last));
     }
 
     private static String handlers(TraceDispatchRecord record) {

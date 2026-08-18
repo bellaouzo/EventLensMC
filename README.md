@@ -2,7 +2,7 @@
 
 **See how Minecraft events travel through plugins and mods — without changing them.**
 
-[![Version](https://img.shields.io/badge/version-1.5.0-1f6feb)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.10.1-1f6feb)](CHANGELOG.md)
 [![Paper](https://img.shields.io/badge/Paper-26.2-00aa00)](#quick-start)
 [![Java](https://img.shields.io/badge/Java-25-orange)](#development)
 [![Minecraft](https://img.shields.io/badge/client-1.21.1-green)](#client-mods)
@@ -31,10 +31,10 @@ It observes. It does not cancel, reorder, re-fire, or hide exceptions.
 
 | Piece | Who it is for | Required? |
 |---|---|---|
-| **Paper plugin** `EventLens-1.5.0.jar` | Server operators and plugin authors | Yes, for server traces |
-| **Paper Java agent** `eventlens-agent-1.5.0.jar` | Per-listener timing and exception attribution | Optional |
+| **Paper plugin** `EventLens-1.10.1.jar` | Server operators and plugin authors | Yes, for server traces |
+| **Paper Java agent** `eventlens-agent-1.10.1.jar` | Per-listener timing and exception attribution | Optional |
 | **Client mods** NeoForge / Forge / Fabric | Client-side traces, Screen, HUD | Optional |
-| **Client Java agent** `eventlens-client-agent-1.5.0.jar` | Per-mod handler timing on NeoForge and Forge | Optional; not on Fabric yet |
+| **Client Java agent** `eventlens-client-agent-1.10.1.jar` | Per-mod handler timing on NeoForge and Forge | Optional; not on Fabric yet |
 | **Dashboard** at `http://127.0.0.1:8765` | Live graphs, timeline, compare | Ships with the Paper plugin |
 | **Bundle export** | Share a self-contained `index.html` report | Paper command |
 
@@ -44,7 +44,7 @@ The plugin is useful without any agent or client mod. Agents add precise timings
 
 ## Quick start
 
-1. Run **Java 25**. Drop `eventlens-paper/build/libs/EventLens-1.5.0.jar` into `plugins/`.
+1. Run **Java 25**. Drop `eventlens-paper/build/libs/EventLens-1.10.1.jar` into `plugins/`.
 2. Restart the server (`stop`, then start — do not `/reload`). Commands default to **op**.
 3. Trace a click, then open the dashboard or an exported bundle.
 
@@ -63,7 +63,7 @@ Then open the exported folder’s `index.html`, or the live dashboard at [http:/
 Built artifact after `.\gradlew.bat build`:
 
 ```
-eventlens-paper/build/libs/EventLens-1.5.0.jar
+eventlens-paper/build/libs/EventLens-1.10.1.jar
 ```
 
 <details>
@@ -74,7 +74,7 @@ Without the agent, EventLens still lists listeners and reports **dispatch-level*
 Add a JVM argument on the **same** Paper process:
 
 ```
--javaagent:eventlens-agent-1.5.0.jar
+-javaagent:eventlens-agent-1.10.1.jar
 ```
 
 Development `runServer` / `runServerDebug` attach this automatically.
@@ -88,19 +88,19 @@ Install **one** loader jar that matches your client:
 
 | Loader | Minecraft | Artifact |
 |---|---|---|
-| **NeoForge** 21.1.x | 1.21.1 | `eventlens-neoforge/build/libs/eventlens-neoforge-1.5.0.jar` |
-| **Minecraft Forge** 52.1.x | 1.21.1 | `eventlens-forge/build/libs/eventlens-forge-1.5.0.jar` |
-| **Fabric** Loader 0.16 + Fabric API | 1.21.1 | `eventlens-fabric/build/libs/eventlens-fabric-1.5.0.jar` |
+| **NeoForge** 21.1.x | 1.21.1 | `eventlens-neoforge/build/libs/eventlens-neoforge-1.10.1.jar` |
+| **Minecraft Forge** 52.1.x | 1.21.1 | `eventlens-forge/build/libs/eventlens-forge-1.10.1.jar` |
+| **Fabric** Loader 0.16 + Fabric API | 1.21.1 | `eventlens-fabric/build/libs/eventlens-fabric-1.10.1.jar` |
 
 Put the jar in the client `mods/` folder. Chat commands work on all three. Screen, HUD, and keybinds work on all three (Fabric’s Screen is a lighter list UI). Precise per-mod timing needs the **client agent** on NeoForge and Forge only.
 
 **Client Java agent (NeoForge and Forge)**
 
 ```
--javaagent:eventlens-client-agent-1.5.0.jar
+-javaagent:eventlens-client-agent-1.10.1.jar
 ```
 
-Place `eventlens-observability-1.5.0.jar` in the **same folder** as the agent jar. Dev tasks `:eventlens-neoforge:runClient` and `:eventlens-forge:runClient` attach it automatically. Fabric `runClient` does not — Fabric stays `dispatch-only` until a stable invoker exists.
+Place `eventlens-observability-1.10.1.jar` in the **same folder** as the agent jar. Dev tasks `:eventlens-neoforge:runClient` and `:eventlens-forge:runClient` attach it automatically. Fabric `runClient` does not — Fabric stays `dispatch-only` until a stable invoker exists.
 
 </details>
 
@@ -240,7 +240,7 @@ Same `/eventlens` family in client chat, plus an in-game Screen.
 /eventlens trace restart <sessionId>
 /eventlens trace list
 /eventlens trace view <sessionId>
-/eventlens trace export <sessionId>
+/eventlens trace export <sessionId> [--format json|ndjson|text|html] [--shareable|--full]
 ```
 
 Clickable chat: session ids, **[Open UI]**, **Saved to** / **Folder** (click copies the path; a short `Copied` toast confirms). Start, stop, pause, resume, restart, and export also raise toasts. The export toast is `Exported N dispatch(es)` only — the path stays in chat.
@@ -267,9 +267,9 @@ Clickable chat: session ids, **[Open UI]**, **Saved to** / **Folder** (click cop
 
 Hover the **live** / **paused** / **idle** and **precise** / **dispatch** pills for agent protocol, version, and session counts.
 
-**HUD** is off by default. Toggle on Home or `key.eventlens.hud`. While a session is active it shows event name, last dispatch, duration, and handler count or slowest mod. Hidden while the Screen is open.
+**HUD** is off by default. Toggle on Home or `key.eventlens.hud`. While a session is active it shows event name, last dispatch, duration, handler count or slowest mod, cancel state, and `linked` when the last dispatch has a peer. Hidden while the Screen is open.
 
-**Fabric** has `/eventlens ui`, HUD, and the same keybinds, with a lighter Screen (Home / Events / Sessions lists). It does not persist last tab or show the NeoForge Session detail panel. Chat commands are the complete Fabric workflow.
+**Fabric** uses the same Screen as NeoForge and Forge (Home / Events / Sessions / Session, last-tab restore, export). `/eventlens mod` on Fabric is a coarse loaded-mod list, not a callback inventory. Chat remains a fallback.
 
 Flame graphs stay in the [dashboard](#dashboard) after you export.
 

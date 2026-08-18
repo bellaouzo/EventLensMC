@@ -27,10 +27,22 @@ dependencies {
     modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
     implementation project(':eventlens-mod-common')
+    implementation project(':eventlens-core')
 }
 
 loom {
     splitEnvironmentSourceSets()
+}
+
+sourceSets {
+    client {
+        java {
+            srcDir project(':eventlens-neoforge').file('src/main/java')
+            exclude 'dev/bellaouzo/eventlens/neoforge/*.java'
+            exclude 'dev/bellaouzo/eventlens/neoforge/ui/EventLensKeybinds.java'
+            exclude 'dev/bellaouzo/eventlens/neoforge/ui/EventLensClientEvents.java'
+        }
+    }
 }
 
 processResources {

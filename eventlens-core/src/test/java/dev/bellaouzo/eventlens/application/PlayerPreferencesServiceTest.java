@@ -28,7 +28,8 @@ class PlayerPreferencesServiceTest {
                         true,
                         2,
                         32,
-                        Map.of()));
+                        Map.of(),
+                        java.util.Optional.empty()));
 
         service.recordTraceStart(playerId, "a", "org.bukkit.event.block.BlockBreakEvent");
         service.recordTraceStart(playerId, "b", "org.bukkit.event.block.BlockPlaceEvent");
@@ -54,7 +55,8 @@ class PlayerPreferencesServiceTest {
                         true,
                         20,
                         1,
-                        Map.of()));
+                        Map.of(),
+                        java.util.Optional.empty()));
 
         service.addFavorite(playerId, "BlockBreakEvent");
         assertThrows(IllegalStateException.class, () -> service.addFavorite(playerId, "BlockPlaceEvent"));

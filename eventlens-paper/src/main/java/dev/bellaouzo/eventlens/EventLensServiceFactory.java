@@ -1,6 +1,7 @@
 package dev.bellaouzo.eventlens;
 
 import dev.bellaouzo.eventlens.application.BaselineCommandService;
+import dev.bellaouzo.eventlens.application.DashboardGraphBuilder;
 import dev.bellaouzo.eventlens.application.DashboardQueryService;
 import dev.bellaouzo.eventlens.application.DashboardStreamHub;
 import dev.bellaouzo.eventlens.application.DashboardStreamNotifier;
@@ -23,6 +24,7 @@ import dev.bellaouzo.eventlens.application.TraceLiveFeedService;
 import dev.bellaouzo.eventlens.application.TraceReportBuilder;
 import dev.bellaouzo.eventlens.application.port.InstrumentationPort;
 import dev.bellaouzo.eventlens.application.port.PlayerPreferencesPort;
+import dev.bellaouzo.eventlens.domain.report.DashboardJsonSerializer;
 import dev.bellaouzo.eventlens.paper.PaperEnvironmentCollector;
 import dev.bellaouzo.eventlens.paper.PaperExportAdapter;
 import dev.bellaouzo.eventlens.paper.PaperListenerRegistry;
@@ -95,6 +97,8 @@ final class EventLensServiceFactory {
                         List.of(traceLiveFeedService, dashboardStreamNotifier)));
 
         PaperExportAdapter exportAdapter = new PaperExportAdapter(input.plugin());
+        exportAdapter.setEventGraphSupplier(() -> DashboardJsonSerializer.serializeGraph(
+                DashboardGraphBuilder.buildEventRelationshipGraph(listenerRegistry)));
         ReportRetentionService reportRetentionService = new ReportRetentionService(exportAdapter, input.reportConfig());
         TraceReportBuilder traceReportBuilder = new TraceReportBuilder(
                 new PaperEnvironmentCollector(input.plugin(), input.targetPlatform()),

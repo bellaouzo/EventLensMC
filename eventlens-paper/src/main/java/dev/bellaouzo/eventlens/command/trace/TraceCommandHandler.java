@@ -91,9 +91,11 @@ public final class TraceCommandHandler {
                 ? traceCommandService.stopSession(args[2])
                 : traceCommandService.stopTrace(sender.getName());
         switch (result) {
-            case TraceStopResult.Success(var stoppedSessionIds) ->
+            case TraceStopResult.Success(var stoppedSessionIds) -> {
                 sender.sendMessage(Component.text(
                         "Stopped trace session(s): " + String.join(", ", stoppedSessionIds), NamedTextColor.GREEN));
+                compareBaselineAfterStop(sender, args, stoppedSessionIds);
+            }
             case TraceStopResult.NoActiveSessions _ ->
                 sender.sendMessage(Component.text("No active trace sessions to stop.", NamedTextColor.YELLOW));
             case TraceStopResult.NotFound(var missingId) ->
@@ -156,6 +158,25 @@ public final class TraceCommandHandler {
             return;
         }
         TraceExportCommandHandler.handleCopy(sender, exportCommandService, args);
+    }
+
+    private void compareBaselineAfterStop(CommandSender sender, String[] args, List<String> sessionIds) {
+        String baselineName = null;
+        for (int index = 2; index < args.length - 1; index++) {
+            if ("--compare-baseline".equalsIgnoreCase(args[index])) {
+                baselineName = args[index + 1];
+                break;
+            }
+        }
+        if (baselineName == null || baselineName.isBlank()) {
+            baselineName = commandConfig.autoBaselineCompare().orElse("");
+        }
+        if (baselineName.isBlank()) {
+            return;
+        }
+        for (String sessionId : sessionIds) {
+            baselineCommandHandler.compareStoppedSession(sender, sessionId, baselineName);
+        }
     }
 
     private void handleCompare(CommandSender sender, String[] args) {

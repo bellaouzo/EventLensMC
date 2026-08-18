@@ -18,6 +18,11 @@ final class PaperBundleExporter {
     private PaperBundleExporter() {}
 
     static ExportPort.ExportWriteResult write(Path reportsDirectory, String safeBaseName, String reportJson) {
+        return write(reportsDirectory, safeBaseName, reportJson, "");
+    }
+
+    static ExportPort.ExportWriteResult write(
+            Path reportsDirectory, String safeBaseName, String reportJson, String eventGraphJson) {
         try {
             Files.createDirectories(reportsDirectory);
             Path target = reportsDirectory.resolve(safeBaseName + "-bundle").normalize();
@@ -31,7 +36,10 @@ final class PaperBundleExporter {
             if (css.isBlank() || js.isBlank()) {
                 writeFallback(target);
             } else {
-                Files.writeString(target.resolve(INDEX_HTML), buildIndex(css, reportJson, js), StandardCharsets.UTF_8);
+                Files.writeString(
+                        target.resolve(INDEX_HTML),
+                        buildIndex(css, reportJson, js, eventGraphJson),
+                        StandardCharsets.UTF_8);
             }
             return ExportPort.ExportWriteResult.success(target);
         } catch (IOException ex) {
@@ -40,8 +48,9 @@ final class PaperBundleExporter {
         }
     }
 
-    private static String buildIndex(String css, String reportJson, String js) {
+    private static String buildIndex(String css, String reportJson, String js, String eventGraphJson) {
         String payload = escapeEmbedded(TraceReportJsonSupport.minifyJson(reportJson));
+        String graphScript = graphScript(eventGraphJson);
         return "<!doctype html>\n"
                 + "<html lang=\"en\">\n"
                 + "  <head>\n"
@@ -54,6 +63,7 @@ final class PaperBundleExporter {
                 + "    <script>window.__EVENTLENS_REPORT__="
                 + payload
                 + ";</script>\n"
+                + graphScript
                 + "  </head>\n"
                 + "  <body>\n"
                 + "    <div id=\"app\"></div>\n"
@@ -72,6 +82,15 @@ final class PaperBundleExporter {
             }
             return new String(input.readAllBytes(), StandardCharsets.UTF_8);
         }
+    }
+
+    private static String graphScript(String eventGraphJson) {
+        if (eventGraphJson == null || eventGraphJson.isBlank()) {
+            return "";
+        }
+        return "    <script>window.__EVENTLENS_EVENT_GRAPH__="
+                + escapeEmbedded(TraceReportJsonSupport.minifyJson(eventGraphJson))
+                + ";</script>\n";
     }
 
     private static String escapeEmbedded(String value) {

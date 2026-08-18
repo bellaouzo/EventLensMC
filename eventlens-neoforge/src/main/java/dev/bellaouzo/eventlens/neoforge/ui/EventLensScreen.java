@@ -121,6 +121,10 @@ public final class EventLensScreen extends Screen {
         return font;
     }
 
+    public Minecraft client() {
+        return Minecraft.getInstance();
+    }
+
     public <T extends AbstractWidget> T add(T widget) {
         return addRenderableWidget(widget);
     }

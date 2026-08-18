@@ -31,7 +31,9 @@ class TracePresetMergerTest {
                                 java.util.Optional.of(64),
                                 java.util.Optional.empty(),
                                 false,
-                                List.of())));
+                                List.of(),
+                                List.of())),
+                java.util.Optional.empty());
 
         TracePresetMerger.MergeResult result =
                 TracePresetMerger.merge(config, List.of("--preset", "quick", "--player", "Steve"));
@@ -66,7 +68,9 @@ class TracePresetMergerTest {
                                 java.util.Optional.of(128),
                                 java.util.Optional.of(1_000_000L),
                                 false,
-                                List.of())));
+                                List.of(),
+                                List.of())),
+                java.util.Optional.empty());
 
         TracePresetMerger.MergeResult result = TracePresetMerger.merge(config, List.of("--preset", "quick-interact"));
 
@@ -100,13 +104,46 @@ class TracePresetMergerTest {
                                         java.util.Optional.of(128),
                                         java.util.Optional.empty(),
                                         false,
-                                        List.of()))),
+                                        List.of(),
+                                        List.of())),
+                        java.util.Optional.empty()),
                 List.of("--preset", "quick-interact"));
 
         TraceCommandService.TraceStartOptions options =
                 TraceCommandService.TraceStartOptions.parse(mergeResult.tokens(), config);
 
         assertEquals(30_000L, options.maxDurationMillis().orElseThrow());
+    }
+
+    @Test
+    void exposesPresetEventList() {
+        EventLensCommandConfig config = new EventLensCommandConfig(
+                false,
+                EventLensCommandConfig.defaults().defaultDetailLevel(),
+                1_000_000L,
+                true,
+                true,
+                20,
+                32,
+                Map.of(
+                        "block-flow",
+                        new TracePreset(
+                                "block-flow",
+                                java.util.Optional.empty(),
+                                java.util.Optional.empty(),
+                                java.util.Optional.empty(),
+                                java.util.Optional.of(60_000L),
+                                java.util.Optional.of(256),
+                                java.util.Optional.empty(),
+                                false,
+                                List.of(),
+                                List.of("PlayerInteractEvent", "BlockBreakEvent", "BlockPlaceEvent"))),
+                java.util.Optional.empty());
+
+        TracePresetMerger.MergeResult result = TracePresetMerger.merge(config, List.of("--preset", "block-flow"));
+
+        assertFalse(result.hasError());
+        assertEquals(List.of("PlayerInteractEvent", "BlockBreakEvent", "BlockPlaceEvent"), result.eventSimpleNames());
     }
 
     @Test

@@ -4,6 +4,7 @@ import org.bukkit.event.Event;
 import org.bukkit.event.enchantment.EnchantItemEvent;
 import org.bukkit.event.inventory.BrewEvent;
 import org.bukkit.event.inventory.PrepareAnvilEvent;
+import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.event.raid.RaidEvent;
 import org.bukkit.event.weather.LightningStrikeEvent;
 import org.bukkit.event.weather.WeatherChangeEvent;
@@ -53,6 +54,11 @@ final class WorldInventoryMechanicSnapshotAdapter implements EventSnapshotAdapte
         }
         if (event instanceof PrepareAnvilEvent anvilEvent) {
             putItem(collector, "anvil.result", anvilEvent.getResult());
+            return;
+        }
+        if (event instanceof PrepareItemCraftEvent craftEvent) {
+            putItem(collector, "craft.result", craftEvent.getInventory().getResult());
+            collector.putNumber("craft.matrix", craftEvent.getInventory().getSize());
             return;
         }
         if (event instanceof EnchantItemEvent enchantEvent) {

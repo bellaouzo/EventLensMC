@@ -30,7 +30,9 @@ class ConflictDetectionEngineTest {
 
         List<DispatchConflict> conflicts = ConflictDetectionEngine.detect(dispatch, SLOW_THRESHOLD);
 
-        assertTrue(conflicts.stream().anyMatch(conflict -> conflict.kind() == ConflictKind.CANCELLATION_FIGHT));
+        assertTrue(conflicts.stream()
+                .anyMatch(conflict -> conflict.kind() == ConflictKind.CANCELLATION_FIGHT
+                        && conflict.message().contains("plugins both wrote cancel")));
     }
 
     @Test

@@ -16,6 +16,7 @@ import dev.bellaouzo.eventlens.modcommon.port.ModEnvironmentPort;
 import dev.bellaouzo.eventlens.modcommon.port.ModListenerRegistryPort;
 import dev.bellaouzo.eventlens.trace.TraceSessionManager;
 import java.nio.file.Path;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -101,9 +102,43 @@ class ModClientCommandsTest {
     }
 
     @Test
-    void uiExplainsFabricIsDeferred() {
+    void uiExplainsFabricHasLighterScreen() {
         List<ModChatLine> lines = ModClientCommands.execute(coordinator, "Dev", List.of("ui"));
-        assertTrue(lines.stream().anyMatch(line -> contains(line, "Fabric Screen is not implemented")));
+        assertTrue(lines.stream().anyMatch(line -> contains(line, "/eventlens ui")));
+        assertTrue(lines.stream().anyMatch(line -> contains(line, "Fabric, NeoForge, and Forge")));
+    }
+
+    @Test
+    void fabricModProfileIsHonestAboutCoarseList() {
+        coordinator = coordinatorForRuntime(
+                ModRuntimeKind.FABRIC, List.of(new ModHandlerRegistration("jei", "fabric.callback", "unknown", 0)));
+        List<ModChatLine> lines = ModClientCommands.execute(coordinator, "Dev", List.of("mod", "jei"));
+        assertTrue(lines.stream().anyMatch(line -> contains(line, "loaded-mod placeholder")));
+        assertTrue(lines.stream().anyMatch(line -> contains(line, "not a callback inventory")));
+    }
+
+    @Test
+    void startPresetClickFlow() {
+        List<ModChatLine> lines =
+                ModClientCommands.execute(coordinator, "Dev", List.of("trace", "start", "--preset", "click-flow"));
+        assertTrue(lines.stream().anyMatch(line -> contains(line, "Session started")));
+        assertTrue(coordinator.listSessions().getFirst().eventClassName().contains("ClientUseItemEvent"));
+    }
+
+    @Test
+    void tabCompletesPresetAndClickFlow() {
+        assertTrue(ModClientTabCompleter.complete(coordinator, List.of("trace", "start"), "click")
+                .contains("click-flow"));
+        assertTrue(ModClientTabCompleter.complete(coordinator, List.of("trace", "start"), "--p")
+                .contains("--preset"));
+    }
+
+    @Test
+    void tabCompletesModAndExceptions() {
+        assertTrue(ModClientTabCompleter.complete(coordinator, List.of(), "m").contains("mod"));
+        assertTrue(ModClientTabCompleter.complete(coordinator, List.of(), "ex").contains("exceptions"));
+        assertTrue(ModClientTabCompleter.complete(coordinator, List.of("mod"), "c").contains("compare"));
+        assertTrue(ModClientTabCompleter.complete(coordinator, List.of("exceptions"), "").contains("1"));
     }
 
     @Test
@@ -195,6 +230,17 @@ class ModClientCommandsTest {
         assertTrue(toast.get().indexOf('\\') < 0);
         assertTrue(toast.get().indexOf('/') < 0);
         assertTrue(!toast.get().contains("Saved to"));
+        assertTrue(ModClientTabCompleter.complete(coordinator, List.of("trace", "export", sessionId), "--f")
+                .contains("--format"));
+        assertTrue(ModClientTabCompleter.complete(
+                        coordinator, List.of("trace", "export", sessionId, "--format"), "ht")
+                .contains("html"));
+        List<ModChatLine> html = ModClientCommands.execute(
+                coordinator, "Dev", List.of("trace", "export", sessionId, "--format", "html"));
+        assertTrue(html.stream().anyMatch(line -> contains(line, "Saved to")));
+        List<ModChatLine> bundle = ModClientCommands.execute(
+                coordinator, "Dev", List.of("trace", "export", sessionId, "--format", "bundle"));
+        assertTrue(bundle.stream().anyMatch(line -> contains(line, "bundle")));
     }
 
     private static boolean contains(ModChatLine line, String text) {
@@ -202,13 +248,19 @@ class ModClientCommandsTest {
     }
 
     private ModTraceCoordinator coordinatorWithHandlers(List<ModHandlerRegistration> handlers) {
+        return coordinatorForRuntime(ModRuntimeKind.NEOFORGE, handlers);
+    }
+
+    private ModTraceCoordinator coordinatorForRuntime(
+            ModRuntimeKind runtimeKind, List<ModHandlerRegistration> handlers) {
         TraceSessionManager sessions = new TraceSessionManager();
         ModNoOpInstrumentationAdapter instrumentation = new ModNoOpInstrumentationAdapter();
         sessions.setInstrumentationPort(instrumentation);
-        StubEnvironment environment = new StubEnvironment();
+        StubEnvironment environment = new StubEnvironment(runtimeKind);
         return new ModTraceCoordinator(
                 sessions,
-                new TraceReportBuilder(new ModEnvironmentCollector(environment), instrumentation, environment.platformLabel()),
+                new TraceReportBuilder(
+                        new ModEnvironmentCollector(environment), instrumentation, environment.platformLabel()),
                 new StubExport(),
                 ignored -> handlers,
                 environment);
@@ -222,9 +274,19 @@ class ModClientCommandsTest {
     }
 
     private static final class StubEnvironment implements ModEnvironmentPort {
+        private final ModRuntimeKind runtimeKind;
+
+        private StubEnvironment() {
+            this(ModRuntimeKind.NEOFORGE);
+        }
+
+        private StubEnvironment(ModRuntimeKind runtimeKind) {
+            this.runtimeKind = runtimeKind;
+        }
+
         @Override
         public ModRuntimeKind runtimeKind() {
-            return ModRuntimeKind.NEOFORGE;
+            return runtimeKind;
         }
 
         @Override
@@ -234,7 +296,10 @@ class ModClientCommandsTest {
 
         @Override
         public Map<String, String> loadedModVersions() {
-            return Map.of();
+            Map<String, String> mods = new LinkedHashMap<>();
+            mods.put("eventlens", "test");
+            mods.put("jei", "test");
+            return mods;
         }
 
         @Override

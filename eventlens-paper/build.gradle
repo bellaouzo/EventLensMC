@@ -179,36 +179,53 @@ spotless {
     }
 }
 
-tasks.register('checkPluginJarContents') {
+tasks.register('verifyPluginJar') {
     group = 'verification'
-    description = 'Fails when the Paper plugin JAR is missing shaded eventlens-core classes.'
+    description = 'Fails when the Paper plugin JAR is missing plugin.yml, main class, or shaded core classes.'
     dependsOn tasks.named('jar')
 
     doLast {
         File pluginJar = tasks.named('jar', Jar).get().archiveFile.get().asFile
-        String required = 'dev/bellaouzo/eventlens/application/port/InstrumentationPort.class'
-        boolean found = false
+        Set<String> required = [
+                'plugin.yml',
+                'dev/bellaouzo/eventlens/EventLens.class',
+                'dev/bellaouzo/eventlens/application/port/InstrumentationPort.class',
+                'dev/bellaouzo/eventlens/domain/trace/TraceSessionConfig.class'
+        ] as Set
+        Set<String> found = [] as Set
+        String pluginYml = null
         pluginJar.withInputStream { input ->
             java.util.zip.ZipInputStream zip = new java.util.zip.ZipInputStream(input)
             java.util.zip.ZipEntry entry
             while ((entry = zip.getNextEntry()) != null) {
-                if (entry.name == required) {
-                    found = true
-                    break
+                if (required.contains(entry.name)) {
+                    found.add(entry.name)
+                }
+                if (entry.name == 'plugin.yml') {
+                    pluginYml = new String(zip.readAllBytes(), 'UTF-8')
                 }
             }
         }
-        if (!found) {
-            throw new GradleException(
-                    "EventLens plugin JAR is missing eventlens-core classes (${required}): ${pluginJar}")
+        Set<String> missing = required - found
+        if (!missing.isEmpty()) {
+            throw new GradleException("EventLens plugin JAR is missing ${missing}: ${pluginJar}")
+        }
+        if (pluginYml == null || !pluginYml.contains('main: dev.bellaouzo.eventlens.EventLens')) {
+            throw new GradleException("EventLens plugin.yml does not declare main class dev.bellaouzo.eventlens.EventLens: ${pluginJar}")
         }
     }
+}
+
+tasks.register('checkPluginJarContents') {
+    group = 'verification'
+    description = 'Alias for verifyPluginJar.'
+    dependsOn 'verifyPluginJar'
 }
 
 tasks.named('check') {
     dependsOn 'spotlessCheck'
     dependsOn 'checkFileLengths'
-    dependsOn 'checkPluginJarContents'
+    dependsOn 'verifyPluginJar'
     dependsOn tasks.matching { it.name.startsWith('sonarLint') && !it.name.endsWith('Rules') && !it.name.endsWith('Properties') }
 }
 
@@ -288,6 +305,12 @@ tasks.register('paperSmokeTest') {
             List<String> commands = [
                     'eventlens status',
                     'eventlens listeners BlockBreakEvent',
+                    'eventlens events Break',
+                    'eventlens exceptions',
+                    'eltest mode trace',
+                    'eventlens trace start PlayerInteractEvent --plugin EventLensTestTarget --max-events 3 --max-duration 10s',
+                    'eventlens trace stop',
+                    'eltest mode passive',
                     'eventlens trace list',
                     'eventlens trace start BlockBreakEvent --max-events 5 --max-duration 10s',
                     'eventlens trace stop',
@@ -317,6 +340,8 @@ tasks.register('paperSmokeTest') {
                     'Done (',
                     'EventLens v',
                     'EventLensTestTarget enabled',
+                    'EventLensTestTarget mode set to trace',
+                    'EventLensTestTarget mode set to passive',
                     'EventLens disabled.'
             ]
             List<String> missing = requiredMarkers.findAll { marker -> !logText.contains(marker) }

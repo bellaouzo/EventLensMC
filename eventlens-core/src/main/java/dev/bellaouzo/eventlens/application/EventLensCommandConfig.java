@@ -13,7 +13,8 @@ public record EventLensCommandConfig(
         boolean showPerformanceWarnings,
         int maxRecentTraces,
         int maxFavorites,
-        Map<String, TracePreset> presets) {
+        Map<String, TracePreset> presets,
+        Optional<String> autoBaselineCompare) {
 
     public EventLensCommandConfig {
         presets = presets == null ? Map.of() : Map.copyOf(presets);
@@ -28,7 +29,8 @@ public record EventLensCommandConfig(
                 true,
                 20,
                 32,
-                Map.of());
+                Map.of(),
+                Optional.empty());
     }
 
     public Optional<TracePreset> preset(String name) {

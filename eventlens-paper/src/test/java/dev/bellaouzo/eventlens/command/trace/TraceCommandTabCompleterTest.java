@@ -26,6 +26,22 @@ class TraceCommandTabCompleterTest {
         assertTrue(suggestions.containsAll(sessionIds));
     }
 
+    @Test
+    void completesCorrelateSubcommandAndSessionIds() {
+        TraceCommandService service = serviceWithSessions(2);
+        List<String> sessionIds = service.listSessionIds();
+
+        List<String> subcommands = TraceCommandTabCompleter.complete(service, new String[] {"trace", "corr"}, "");
+        assertTrue(subcommands.contains("correlate"));
+
+        List<String> left = TraceCommandTabCompleter.complete(service, new String[] {"trace", "correlate", ""}, "");
+        assertTrue(left.containsAll(sessionIds));
+
+        List<String> right = TraceCommandTabCompleter.complete(
+                service, new String[] {"trace", "correlate", sessionIds.getFirst(), ""}, "");
+        assertTrue(right.containsAll(sessionIds));
+    }
+
     private static TraceCommandService serviceWithSessions(int count) {
         TraceSessionManager manager = new TraceSessionManager();
         TraceSessionConfig config = new TraceSessionConfig(

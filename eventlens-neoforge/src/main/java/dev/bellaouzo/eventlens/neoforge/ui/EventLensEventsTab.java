@@ -32,16 +32,23 @@ final class EventLensEventsTab {
         });
         int listY = frame.contentY() + 22;
         int listH = frame.contentH() - 22;
-        list = new EventList(screen.getMinecraft(), frame.contentW(), listH, listY, 28);
+        list = new EventList(screen.client(), frame.contentW(), listH, listY, 28);
         list.setX(frame.contentX());
         list.reload(screen);
         screen.add(list);
+        int buttonWidth = Math.min(150, (frame.contentW() - 8) / 2);
         startButton = screen.action(
-                EventLensUi.footerX(frame, 0, 1, Math.min(240, frame.contentW())),
+                EventLensUi.footerX(frame, 0, 2, buttonWidth),
                 frame.footerY(),
-                Math.min(240, frame.contentW()),
+                buttonWidth,
                 startLabel(),
                 button -> start(screen));
+        screen.action(
+                EventLensUi.footerX(frame, 1, 2, buttonWidth),
+                frame.footerY(),
+                buttonWidth,
+                "Start click-flow",
+                button -> startPreset(screen, "click-flow"));
     }
 
     private static String startLabel() {
@@ -60,8 +67,16 @@ final class EventLensEventsTab {
             }
             return;
         }
+        startNamed(screen, selected, confirmHot || !hot);
+    }
+
+    private static void startPreset(EventLensScreen screen, String preset) {
+        startNamed(screen, preset, true);
+    }
+
+    private static void startNamed(EventLensScreen screen, String query, boolean confirmed) {
         ModTraceResults.StartResult result =
-                screen.coordinator().startTrace(selected, playerName(), confirmHot || !hot, Optional.empty());
+                screen.coordinator().startTrace(query, playerName(), confirmed, Optional.empty());
         confirmHot = false;
         if (result.success()) {
             EventLensNotices.action(result.message());

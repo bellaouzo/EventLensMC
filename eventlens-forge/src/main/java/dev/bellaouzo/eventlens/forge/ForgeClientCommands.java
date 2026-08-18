@@ -40,7 +40,40 @@ public final class ForgeClientCommands {
                     return 1;
                 }))
                 .then(listeners())
+                .then(mod())
+                .then(exceptions())
                 .then(trace());
+    }
+
+    private LiteralArgumentBuilder<CommandSourceStack> mod() {
+        return Commands.literal("mod")
+                .executes(context -> run(context, List.of("mod")))
+                .then(Commands.literal("compare")
+                        .then(Commands.argument("left", StringArgumentType.word())
+                                .suggests(suggestMods())
+                                .then(Commands.argument("right", StringArgumentType.word())
+                                        .suggests(suggestMods())
+                                        .executes(context -> run(
+                                                context,
+                                                List.of(
+                                                        "mod",
+                                                        "compare",
+                                                        StringArgumentType.getString(context, "left"),
+                                                        StringArgumentType.getString(context, "right")))))))
+                .then(Commands.argument("id", StringArgumentType.word())
+                        .suggests(suggestMods())
+                        .executes(context -> run(context, List.of("mod", StringArgumentType.getString(context, "id")))));
+    }
+
+    private LiteralArgumentBuilder<CommandSourceStack> exceptions() {
+        return Commands.literal("exceptions")
+                .executes(context -> run(context, List.of("exceptions")))
+                .then(Commands.argument("page", IntegerArgumentType.integer(1))
+                        .executes(context -> run(
+                                context,
+                                List.of(
+                                        "exceptions",
+                                        Integer.toString(IntegerArgumentType.getInteger(context, "page"))))));
     }
 
     private LiteralArgumentBuilder<CommandSourceStack> listeners() {
@@ -109,12 +142,22 @@ public final class ForgeClientCommands {
     }
 
     private LiteralArgumentBuilder<CommandSourceStack> sessionCommand(String name) {
+        var session = Commands.argument("session", StringArgumentType.word())
+                .suggests(suggestSessions())
+                .executes(context ->
+                        run(context, List.of("trace", name, StringArgumentType.getString(context, "session"))));
+        if ("export".equals(name)) {
+            session.then(Commands.argument("flags", StringArgumentType.greedyString())
+                    .suggests(suggestExportFlags())
+                    .executes(context -> run(
+                            context,
+                            ModClientTabCompleter.exportArgs(
+                                    StringArgumentType.getString(context, "session"),
+                                    StringArgumentType.getString(context, "flags")))));
+        }
         return Commands.literal(name)
                 .executes(context -> run(context, List.of("trace", name)))
-                .then(Commands.argument("session", StringArgumentType.word())
-                        .suggests(suggestSessions())
-                        .executes(context -> run(
-                                context, List.of("trace", name, StringArgumentType.getString(context, "session")))));
+                .then(session);
     }
 
     private int run(CommandContext<CommandSourceStack> context, List<String> args) {
@@ -136,6 +179,11 @@ public final class ForgeClientCommands {
         };
     }
 
+    private SuggestionProvider<CommandSourceStack> suggestMods() {
+        return (context, builder) -> SharedSuggestionProvider.suggest(
+                ModClientTabCompleter.complete(coordinator, List.of("mod"), builder.getRemaining()), builder);
+    }
+
     private SuggestionProvider<CommandSourceStack> suggestSessions() {
         return (context, builder) -> SharedSuggestionProvider.suggest(
                 ModClientTabCompleter.complete(coordinator, List.of("trace", "view"), builder.getRemaining()), builder);
@@ -145,6 +193,17 @@ public final class ForgeClientCommands {
         return (context, builder) -> {
             String event = StringArgumentType.getString(context, "event");
             for (String suggestion : ModClientTabCompleter.completeStartFlagSuggestions(event, builder.getRemaining())) {
+                builder.suggest(suggestion);
+            }
+            return builder.buildFuture();
+        };
+    }
+
+    private SuggestionProvider<CommandSourceStack> suggestExportFlags() {
+        return (context, builder) -> {
+            String session = StringArgumentType.getString(context, "session");
+            for (String suggestion :
+                    ModClientTabCompleter.completeExportFlagSuggestions(session, builder.getRemaining())) {
                 builder.suggest(suggestion);
             }
             return builder.buildFuture();

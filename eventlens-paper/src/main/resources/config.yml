@@ -17,6 +17,7 @@ trace:
   additional-events: []
   require-hot-event-confirmation: true
   show-performance-warnings: true
+  auto-baseline-compare: ""
   live:
     aggregate-window-ms: 3000
     burst-window-ms: 5000
@@ -38,12 +39,54 @@ trace:
     block-flow:
       max-duration-ms: 60000
       max-events: 256
+      events:
+        - PlayerInteractEvent
+        - BlockBreakEvent
+        - BlockPlaceEvent
     inventory-flow:
       max-duration-ms: 60000
       max-events: 256
+      events:
+        - InventoryClickEvent
+        - InventoryOpenEvent
+        - InventoryCloseEvent
+        - InventoryDragEvent
     chat-flow:
       max-duration-ms: 60000
       max-events: 128
+      events:
+        - AsyncChatEvent
+    protection-flow:
+      max-duration-ms: 60000
+      max-events: 256
+      events:
+        - PlayerInteractEvent
+        - BlockBreakEvent
+        - BlockPlaceEvent
+        - EntityChangeBlockEvent
+        - SignChangeEvent
+    plugin-watch:
+      max-duration-ms: 60000
+      max-events: 256
+      events:
+        - PlayerInteractEvent
+        - BlockBreakEvent
+        - BlockPlaceEvent
+        - EntityChangeBlockEvent
+        - SignChangeEvent
+    login-flow:
+      max-duration-ms: 60000
+      max-events: 128
+      events:
+        - AsyncPlayerPreLoginEvent
+        - PlayerLoginEvent
+        - PlayerJoinEvent
+    command-flow:
+      max-duration-ms: 60000
+      max-events: 128
+      events:
+        - PlayerCommandPreprocessEvent
+        - ServerCommandEvent
 
 preferences:
   max-recent-traces: 20

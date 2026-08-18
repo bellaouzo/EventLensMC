@@ -4,30 +4,22 @@ import dev.bellaouzo.eventlens.application.TraceReportBuilder;
 import dev.bellaouzo.eventlens.application.port.ExportPort;
 import dev.bellaouzo.eventlens.domain.report.ExportFormat;
 import dev.bellaouzo.eventlens.domain.report.ExportRedactionMode;
-import dev.bellaouzo.eventlens.domain.report.TraceReportDocument;
-import dev.bellaouzo.eventlens.domain.report.TraceReportJsonSerializer;
 import dev.bellaouzo.eventlens.domain.trace.TraceDispatchRecord;
 import dev.bellaouzo.eventlens.domain.trace.TraceFilter;
 import dev.bellaouzo.eventlens.domain.trace.TraceRestartResult;
 import dev.bellaouzo.eventlens.domain.trace.TraceSessionConfig;
 import dev.bellaouzo.eventlens.domain.trace.TraceSessionDetail;
-import dev.bellaouzo.eventlens.domain.trace.TraceSessionExportBundle;
 import dev.bellaouzo.eventlens.domain.trace.TraceSessionGeneration;
 import dev.bellaouzo.eventlens.domain.trace.TraceSessionSummary;
 import dev.bellaouzo.eventlens.modcommon.port.ModEnvironmentPort;
 import dev.bellaouzo.eventlens.modcommon.port.ModListenerRegistryPort;
 import dev.bellaouzo.eventlens.trace.TraceSessionManager;
-import java.time.Instant;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
 public final class ModTraceCoordinator {
 
     public static final int VIEW_PAGE_SIZE = 5;
-    private static final DateTimeFormatter EXPORT_STAMP =
-            DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss").withZone(ZoneOffset.UTC);
 
     private final TraceSessionManager sessionManager;
     private final TraceReportBuilder reportBuilder;
@@ -85,26 +77,25 @@ public final class ModTraceCoordinator {
 
     public ModTraceResults.StartResult startTrace(
             String eventSimpleName, String ownerName, boolean confirmHot, Optional<Integer> maxEvents) {
-        Optional<SupportedModEventTypes.EventType> type = SupportedModEventTypes.resolve(eventSimpleName);
-        if (type.isEmpty()) {
-            return ModTraceResults.StartResult.failure(
-                    "Unsupported event. Supported: " + String.join(", ", SupportedModEventTypes.simpleNames()));
+        ModTracePresets.ResolvedStart resolved = ModTracePresets.resolveStart(eventSimpleName);
+        if (resolved.failed()) {
+            return ModTraceResults.StartResult.failure(resolved.error());
         }
-        SupportedModEventTypes.EventType eventType = type.orElseThrow();
-        if (eventType.hot() && !confirmHot) {
-            return ModTraceResults.StartResult.hotConfirmation(eventType.simpleName());
+        if (resolved.anyHot() && !confirmHot) {
+            return ModTraceResults.StartResult.hotConfirmation(resolved.label());
         }
         try {
-            int limit = maxEvents.orElse(eventType.hot() ? 64 : 256);
+            int limit = maxEvents.orElse(resolved.anyHot() ? 64 : 256);
             TraceSessionConfig config = new TraceSessionConfig(
-                    eventType.className(),
+                    resolved.classNames(),
                     startFilter,
                     Optional.empty(),
-                    Optional.of(limit));
-            String sessionId = sessionManager.startSession(config, ownerName, System.currentTimeMillis());
-            lastSessionId = sessionId;
-            return ModTraceResults.StartResult.success(sessionId, eventType.simpleName(), eventType.hot());
-        } catch (IllegalStateException ex) {
+                    Optional.of(limit),
+                    dev.bellaouzo.eventlens.domain.observability.PerformanceBudget.DEFAULT_SLOW_THRESHOLD_NANOS,
+                    false);
+            lastSessionId = sessionManager.startSession(config, ownerName, System.currentTimeMillis());
+            return ModTraceResults.StartResult.success(lastSessionId, resolved.label(), resolved.anyHot());
+        } catch (IllegalStateException | IllegalArgumentException ex) {
             return ModTraceResults.StartResult.failure(ex.getMessage());
         }
     }
@@ -223,25 +214,26 @@ public final class ModTraceCoordinator {
     }
 
     public ModTraceResults.ExportResult exportSession(String sessionId, Optional<Integer> generation) {
-        String targetId = sessionId == null || sessionId.isBlank() ? lastSessionId : sessionId;
-        if (targetId.isBlank()) {
-            return ModTraceResults.ExportResult.failure("No session to export. Start and stop a trace first.");
+        return exportSession(sessionId, generation, ExportFormat.JSON, ExportRedactionMode.SHARE_SAFE);
+    }
+
+    public ModTraceResults.ExportResult exportSession(
+            String sessionId,
+            Optional<Integer> generation,
+            ExportFormat format,
+            ExportRedactionMode redactionMode) {
+        ModTraceResults.ExportResult result = ModSessionExporter.export(
+                sessionManager,
+                reportBuilder,
+                exportPort,
+                lastSessionId,
+                sessionId,
+                generation,
+                format,
+                redactionMode);
+        if (result.success()) {
+            lastSessionId = result.sessionId();
         }
-        Optional<TraceSessionExportBundle> bundle = sessionManager.getExportBundle(targetId, generation);
-        if (bundle.isEmpty()) {
-            return ModTraceResults.ExportResult.failure("Session not found: " + targetId);
-        }
-        long nowMillis = System.currentTimeMillis();
-        TraceReportDocument document =
-                reportBuilder.build(bundle.orElseThrow(), ExportRedactionMode.SHARE_SAFE, nowMillis);
-        String content = TraceReportJsonSerializer.serialize(document);
-        String baseName = "eventlens-" + targetId + "-" + EXPORT_STAMP.format(Instant.ofEpochMilli(nowMillis));
-        ExportPort.ExportWriteResult result = exportPort.writeReport(baseName, ExportFormat.JSON, content);
-        if (!result.success()) {
-            return ModTraceResults.ExportResult.failure(result.errorMessage().orElse("Export failed."));
-        }
-        lastSessionId = targetId;
-        return ModTraceResults.ExportResult.success(
-                result.path().orElseThrow().toString(), document.dispatches().size(), targetId);
+        return result;
     }
 }

@@ -28,6 +28,9 @@ jobs:
           chmod +x ./gradlew
           ./gradlew check --no-daemon --warning-mode all
 
+      - name: Inspect plugin JAR
+        run: ./gradlew :eventlens-paper:verifyPluginJar --no-daemon --warning-mode all
+
   smoke:
     runs-on: windows-latest
     needs: check

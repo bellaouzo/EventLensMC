@@ -41,6 +41,10 @@ final class SnapshotConflictRules {
 
         String message = "Cancellation toggled across " + String.join(" → ", involvedBands) + " (" + transitions.size()
                 + " transitions)";
+        if (plugins.size() >= 2) {
+            message =
+                    message + "; " + plugins.size() + " plugins both wrote cancel (" + String.join(", ", plugins) + ")";
+        }
         return List.of(new DispatchConflict(
                 ConflictKind.CANCELLATION_FIGHT,
                 ConflictSeverity.HIGH,

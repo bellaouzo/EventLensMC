@@ -40,7 +40,7 @@ final class TraceStartCommandHandler {
         }
         if (args.length < 3) {
             sender.sendMessage(Component.text(
-                    "Usage: /eventlens trace start <event[,event]> [--preset name] [--plugin name] [--player name] "
+                    "Usage: /eventlens trace start <event[,event]|--preset name> [--plugin name] [--player name] "
                             + "[--world name] [--region x1,z1,x2,z2] [--cancelled any|yes|no] [--max-events n] "
                             + "[--max-duration ns|nm] [--slow-threshold 1ms] [--capture-stacks] [--confirm-hot] "
                             + "[--generic] [--detail brief|normal|verbose]",
@@ -57,6 +57,19 @@ final class TraceStartCommandHandler {
             if (mergeResult.hasError()) {
                 sender.sendMessage(
                         Component.text(mergeResult.presetNotFoundError().orElseThrow(), NamedTextColor.RED));
+                return;
+            }
+            if (eventQuery.isBlank() && !mergeResult.eventSimpleNames().isEmpty()) {
+                eventQuery = String.join(",", mergeResult.eventSimpleNames());
+            }
+            if (eventQuery.isBlank()) {
+                sender.sendMessage(
+                        Component.text("Specify event names or a preset that includes events.", NamedTextColor.RED));
+                return;
+            }
+            if (missingPluginWatchFilter(mergeResult)) {
+                sender.sendMessage(Component.text(
+                        "plugin-watch requires --plugin <name> or a preset plugin: value.", NamedTextColor.RED));
                 return;
             }
 
@@ -93,7 +106,15 @@ final class TraceStartCommandHandler {
         }
     }
 
+    private static boolean missingPluginWatchFilter(TracePresetMerger.MergeResult mergeResult) {
+        return mergeResult.presetName().filter("plugin-watch"::equalsIgnoreCase).isPresent()
+                && mergeResult.tokens().stream().noneMatch(token -> token.equalsIgnoreCase("--plugin"));
+    }
+
     private static int optionStartIndex(String[] args) {
+        if (args.length >= 3 && args[2].startsWith("--")) {
+            return 2;
+        }
         int index = 3;
         while (index < args.length && !args[index].startsWith("--")) {
             index++;

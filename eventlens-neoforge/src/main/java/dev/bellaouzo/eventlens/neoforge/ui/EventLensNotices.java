@@ -1,5 +1,7 @@
 package dev.bellaouzo.eventlens.neoforge.ui;
 
+import dev.bellaouzo.eventlens.modcommon.ModHudFindings;
+import dev.bellaouzo.eventlens.modcommon.ModTraceCoordinator;
 import dev.bellaouzo.eventlens.modcommon.ModTraceResults;
 import dev.bellaouzo.eventlens.modcommon.chat.ModChatClick;
 import dev.bellaouzo.eventlens.modcommon.chat.ModChatLine;
@@ -20,7 +22,10 @@ public final class EventLensNotices {
 
     public static void export(ModTraceResults.ExportResult result) {
         if (result.success()) {
-            EventLensToasts.show("Exported " + result.dispatchCount() + " dispatch(es).");
+            EventLensToasts.show("Exported "
+                    + result.dispatchCount()
+                    + " · "
+                    + ModHudFindings.exportPeerLabel(hasPeer(result)));
         } else {
             EventLensToasts.show(result.message());
         }
@@ -35,6 +40,17 @@ public final class EventLensNotices {
 
     public static void command(List<String> args, List<ModChatLine> lines) {
         ModCommandNotices.toastMessage(args, lines).ifPresent(EventLensToasts::show);
+    }
+
+    private static boolean hasPeer(ModTraceResults.ExportResult result) {
+        ModTraceCoordinator coordinator = EventLensClientAccess.coordinator();
+        if (coordinator == null || result.sessionId() == null || result.sessionId().isBlank()) {
+            return false;
+        }
+        return coordinator.sessionManager()
+                .getSessionDetail(result.sessionId())
+                .map(detail -> detail.records().stream().anyMatch(record -> record.correlation().linked()))
+                .orElse(false);
     }
 
     private static void chat(Component component) {

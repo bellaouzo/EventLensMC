@@ -56,7 +56,7 @@ final class EventLensSessionTab {
                     EventLensSessionRuns.label(screen),
                     button -> EventLensSessionRuns.cycle(screen));
         }
-        list = new LineList(screen.getMinecraft(), frame.contentW(), frame.contentH() - 22, frame.contentY() + 22, 18);
+        list = new LineList(screen.client(), frame.contentW(), frame.contentH() - 22, frame.contentY() + 22, 18);
         list.setX(frame.contentX());
         refresh(screen);
         screen.add(list);
@@ -124,8 +124,9 @@ final class EventLensSessionTab {
                     int mouseY,
                     boolean hovering,
                     float partialTick) {
-                boolean dispatch = row.kind() == EventLensSessionRows.Kind.DISPATCH;
-                EventLensUi.rowSlot(graphics, getX(), LineList.this.width, top, height, false, hovering && dispatch);
+                boolean clickable = row.kind() == EventLensSessionRows.Kind.DISPATCH
+                        || (row.kind() == EventLensSessionRows.Kind.TITLE && !row.peerSessionId().isBlank());
+                EventLensUi.rowSlot(graphics, getX(), LineList.this.width, top, height, false, hovering && clickable);
                 paint(graphics, minecraft.font, left, top, width, height);
             }
 
@@ -172,10 +173,24 @@ final class EventLensSessionTab {
 
             @Override
             public boolean mouseClicked(double mouseX, double mouseY, int button) {
-                if (row.kind() == EventLensSessionRows.Kind.DISPATCH
-                        && row.sequence() >= 0
-                        && Minecraft.getInstance().screen instanceof EventLensScreen screen) {
+                if (!(Minecraft.getInstance().screen instanceof EventLensScreen screen)) {
+                    return false;
+                }
+                if (row.kind() == EventLensSessionRows.Kind.DISPATCH && row.sequence() >= 0) {
                     screen.showDispatch(row.sequence());
+                    return true;
+                }
+                if (row.kind() == EventLensSessionRows.Kind.TITLE && !row.peerSessionId().isBlank()) {
+                    if (screen.coordinator() != null
+                            && screen.coordinator()
+                                    .sessionManager()
+                                    .getSessionDetail(row.peerSessionId())
+                                    .isPresent()) {
+                        screen.showSession(row.peerSessionId());
+                        screen.showDispatch(row.peerSequence());
+                    } else {
+                        EventLensNotices.action("Peer " + row.peerSessionId() + " #" + row.peerSequence());
+                    }
                     return true;
                 }
                 return false;

@@ -70,9 +70,49 @@ function averageDispatchNanos(report: TraceReport): number {
   return total / report.dispatches.length;
 }
 
+export interface CorrelatedPair {
+  leftSequence: number;
+  rightSequence: number;
+  correlationKey: string;
+  leftCancelled: boolean;
+  rightCancelled: boolean;
+  leftDurationNanos: number;
+  rightDurationNanos: number;
+  leftEvent: string;
+  rightEvent: string;
+}
+
+export function pairDispatches(left: TraceReport, right: TraceReport): CorrelatedPair[] {
+  const used = new Set<number>();
+  const pairs: CorrelatedPair[] = [];
+  for (const leftDispatch of left.dispatches) {
+    const key = leftDispatch.correlationKey;
+    if (!key) {
+      continue;
+    }
+    const matchIndex = right.dispatches.findIndex(
+      (dispatch, index) => !used.has(index) && dispatch.correlationKey === key,
+    );
+    if (matchIndex < 0) {
+      continue;
+    }
+    used.add(matchIndex);
+    const match = right.dispatches[matchIndex];
+    pairs.push({
+      leftSequence: leftDispatch.sequence,
+      rightSequence: match.sequence,
+      correlationKey: key,
+      leftCancelled: leftDispatch.cancelledAtEnd,
+      rightCancelled: match.cancelledAtEnd,
+      leftDurationNanos: leftDispatch.durationNanos,
+      rightDurationNanos: match.durationNanos,
+      leftEvent: leftDispatch.eventClassName,
+      rightEvent: match.eventClassName,
+    });
+  }
+  return pairs;
+}
+
 function pairByCorrelation(left: TraceReport, right: TraceReport): number {
-  const rightKeys = new Set(
-    right.dispatches.map((dispatch) => dispatch.correlationKey).filter((key): key is string => !!key),
-  );
-  return left.dispatches.filter((dispatch) => dispatch.correlationKey && rightKeys.has(dispatch.correlationKey)).length;
+  return pairDispatches(left, right).length;
 }

@@ -1,6 +1,6 @@
 import type { DashboardSession, TraceReport } from '../types';
-import { compareReports } from '../utils/traceCompare';
-import { escapeHtml, shortSessionId, simpleEventName } from '../utils/format';
+import { compareReports, pairDispatches } from '../utils/traceCompare';
+import { escapeHtml, formatMillis, shortSessionId, simpleEventName } from '../utils/format';
 
 export interface CompareSources {
   reports: Array<{ fileName: string; format?: string }>;
@@ -110,6 +110,7 @@ export function renderCompare(
       </div>`
       }
       ${comparison}
+      ${right ? pairedTable(left, right) : ''}
     </section>`;
 
   bindRightFile(container, onRightFile);
@@ -132,6 +133,29 @@ export function renderCompare(
   container.querySelector('#compare-clear')?.addEventListener('click', () => {
     onClearRight?.();
   });
+}
+
+function pairedTable(left: TraceReport, right: TraceReport): string {
+  const pairs = pairDispatches(left, right);
+  if (!pairs.length) {
+    return '<p class="compare-hint">No correlated dispatch pairs. Use matching correlation keys or /eventlens trace correlate first.</p>';
+  }
+  const rows = pairs
+    .map(
+      (pair) =>
+        `<tr>
+          <td>#${pair.leftSequence} ${escapeHtml(simpleEventName(pair.leftEvent))}</td>
+          <td>${pair.leftCancelled ? 'cancelled' : 'ok'} · ${escapeHtml(formatMillis(pair.leftDurationNanos))}</td>
+          <td>#${pair.rightSequence} ${escapeHtml(simpleEventName(pair.rightEvent))}</td>
+          <td>${pair.rightCancelled ? 'cancelled' : 'ok'} · ${escapeHtml(formatMillis(pair.rightDurationNanos))}</td>
+        </tr>`,
+    )
+    .join('');
+  return `<h2 class="page-subtitle">Paired dispatches (${pairs.length})</h2>
+    <table class="data-table">
+      <thead><tr><th>Left</th><th>Cancel / time</th><th>Right</th><th>Cancel / time</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
 }
 
 function isJsonReport(report: { fileName: string; format?: string }): boolean {

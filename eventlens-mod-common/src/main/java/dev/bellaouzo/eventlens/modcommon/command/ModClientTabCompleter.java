@@ -12,9 +12,6 @@ public final class ModClientTabCompleter {
     private static final List<String> ROOT = List.of("status", "listeners", "trace", "mod", "exceptions", "ui");
     private static final List<String> TRACE =
             List.of("start", "stop", "pause", "resume", "restart", "list", "view", "export", "live");
-    private static final List<String> START_FLAGS =
-            List.of("--confirm-hot", "--max-events", "--mod", "--player");
-
     private ModClientTabCompleter() {}
 
     public static List<String> complete(ModTraceCoordinator coordinator, List<String> args, String prefix) {
@@ -30,7 +27,16 @@ public final class ModClientTabCompleter {
             if ("trace".equals(root)) {
                 return filter(TRACE, needle);
             }
+            if ("mod".equals(root)) {
+                return filter(modSuggestions(coordinator), needle);
+            }
+            if ("exceptions".equals(root)) {
+                return filter(List.of("1"), needle);
+            }
             return List.of();
+        }
+        if ("mod".equals(root)) {
+            return completeMod(coordinator, args, needle);
         }
         if ("listeners".equals(root) && args.size() == 2) {
             return filter(SupportedModEventTypes.simpleNames(), needle);
@@ -40,7 +46,7 @@ public final class ModClientTabCompleter {
         }
         if (args.size() == 2) {
             return switch (args.get(1).toLowerCase(Locale.ROOT)) {
-                case "start" -> filter(SupportedModEventTypes.simpleNames(), needle);
+                case "start" -> ModClientStartCompleter.completeEvent(needle);
                 case "stop", "pause", "resume", "restart", "view", "export" ->
                     filter(sessionIds(coordinator, args.get(1)), needle);
                 default -> List.of();
@@ -48,9 +54,10 @@ public final class ModClientTabCompleter {
         }
         String sub = args.get(1).toLowerCase(Locale.ROOT);
         return switch (sub) {
-            case "start" -> completeStart(args, needle);
+            case "start" -> ModClientStartCompleter.completeFlags(args, needle);
             case "view" -> completeView(args, needle);
-            case "stop", "pause", "resume", "restart", "export" ->
+            case "export" -> ModClientExportCompleter.completeFlags(args, needle);
+            case "stop", "pause", "resume", "restart" ->
                 filter(sessionIds(coordinator, sub), needle);
             default -> List.of();
         };
@@ -64,14 +71,27 @@ public final class ModClientTabCompleter {
         return filter(List.of("--dispatch", "--run"), needle);
     }
 
-    private static List<String> completeStart(List<String> args, String needle) {
-        String previous = args.get(args.size() - 1);
-        if ("--max-events".equalsIgnoreCase(previous)) {
-            return filter(List.of("32", "64", "128", "256"), needle);
+    private static List<String> completeMod(ModTraceCoordinator coordinator, List<String> args, String needle) {
+        if (args.size() == 2 && "compare".equalsIgnoreCase(args.get(1))) {
+            return filter(modIds(coordinator), needle);
         }
-        List<String> remaining = new ArrayList<>(START_FLAGS);
-        remaining.removeIf(flag -> containsIgnoreCase(args, flag));
-        return filter(remaining, needle);
+        if (args.size() >= 3 && "compare".equalsIgnoreCase(args.get(1))) {
+            return filter(modIds(coordinator), needle);
+        }
+        return List.of();
+    }
+
+    private static List<String> modSuggestions(ModTraceCoordinator coordinator) {
+        List<String> values = new ArrayList<>();
+        values.add("compare");
+        values.addAll(modIds(coordinator));
+        return values;
+    }
+
+    private static List<String> modIds(ModTraceCoordinator coordinator) {
+        return coordinator.environmentPort().loadedModVersions().keySet().stream()
+                .sorted(String.CASE_INSENSITIVE_ORDER)
+                .toList();
     }
 
     private static List<String> sessionIds(ModTraceCoordinator coordinator, String subcommand) {
@@ -82,63 +102,31 @@ public final class ModClientTabCompleter {
                 .toList();
     }
 
-    private static boolean containsIgnoreCase(List<String> args, String value) {
-        for (String arg : args) {
-            if (value.equalsIgnoreCase(arg)) {
-                return true;
-            }
-        }
-        return false;
+    public static List<String> completeStartFlagSuggestions(String event, String remaining) {
+        return ModClientStartCompleter.completeStartFlagSuggestions(event, remaining);
     }
 
-    public static List<String> completeStartFlagSuggestions(String event, String remaining) {
-        String raw = remaining == null ? "" : remaining;
-        List<String> tokens = new ArrayList<>();
-        if (!raw.isBlank()) {
-            for (String part : raw.trim().split("\\s+")) {
+    public static List<String> completeExportFlagSuggestions(String sessionId, String remaining) {
+        return ModClientExportCompleter.completeFlagSuggestions(sessionId, remaining);
+    }
+
+    public static List<String> exportArgs(String sessionId, String flags) {
+        List<String> args = new ArrayList<>();
+        args.add("trace");
+        args.add("export");
+        args.add(sessionId);
+        if (flags != null && !flags.isBlank()) {
+            for (String part : flags.trim().split("\\s+")) {
                 if (!part.isEmpty()) {
-                    tokens.add(part);
+                    args.add(part);
                 }
             }
         }
-        boolean trailingSpace = raw.endsWith(" ") || raw.isEmpty();
-        String fragment = "";
-        List<String> completed = new ArrayList<>(tokens);
-        if (!trailingSpace && !completed.isEmpty()) {
-            fragment = completed.removeLast();
-        }
-        if (isExactStartFlag(fragment)) {
-            completed.add(fragment);
-            fragment = "";
-        }
-        List<String> args = new ArrayList<>();
-        args.add("trace");
-        args.add("start");
-        args.add(event);
-        args.addAll(completed);
-        List<String> options = completeStart(args, fragment.toLowerCase(Locale.ROOT));
-        String head = String.join(" ", completed);
-        List<String> replacements = new ArrayList<>();
-        for (String option : options) {
-            replacements.add(head.isEmpty() ? option : head + " " + option);
-        }
-        return replacements;
+        return args;
     }
 
     public static List<String> matchingEventNames(String prefix) {
         return filter(SupportedModEventTypes.simpleNames(), prefix == null ? "" : prefix.toLowerCase(Locale.ROOT));
-    }
-
-    private static boolean isExactStartFlag(String token) {
-        if (token.isEmpty()) {
-            return false;
-        }
-        for (String flag : START_FLAGS) {
-            if (flag.equalsIgnoreCase(token)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private static List<String> filter(List<String> values, String prefix) {

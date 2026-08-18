@@ -8,7 +8,12 @@ export function renderEventGraph(
   graph: DashboardGraph,
   report: TraceReport | null,
 ): void {
-  const layout = report ? graphFromReport(report) : filterGraph(graph, null);
+  const embedded = embeddedEventGraph();
+  const layout = embedded
+    ? { nodes: embedded.nodes, edges: embedded.edges, eventLabel: embedded.title }
+    : report
+      ? graphFromReport(report)
+      : filterGraph(graph, null);
   const eventName = report ? simpleEventName(report.session.eventClassName) : layout.eventLabel;
 
   if (!layout.nodes.length) {
@@ -48,6 +53,14 @@ export function renderEventGraph(
       </div>
     </section>
   `;
+}
+
+function embeddedEventGraph(): DashboardGraph | null {
+  const graph = (window as Window & { __EVENTLENS_EVENT_GRAPH__?: DashboardGraph }).__EVENTLENS_EVENT_GRAPH__;
+  if (graph && Array.isArray(graph.nodes) && graph.nodes.length > 0) {
+    return graph;
+  }
+  return null;
 }
 
 function graphFromReport(report: TraceReport): {

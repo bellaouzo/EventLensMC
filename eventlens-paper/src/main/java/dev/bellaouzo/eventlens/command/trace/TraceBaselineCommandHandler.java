@@ -23,6 +23,20 @@ final class TraceBaselineCommandHandler {
         this.baselineCommandService = baselineCommandService;
     }
 
+    void compareStoppedSession(CommandSender sender, String sessionId, String baselineName) {
+        BaselineCommandService.CompareResult result =
+                baselineCommandService.compareSession(sessionId, baselineName, Optional.empty());
+        switch (result) {
+            case BaselineCommandService.CompareResult.Success(var report) ->
+                TracePluginCompareFormatter.render(sender, report);
+            case BaselineCommandService.CompareResult.LeftNotFound(var missing) ->
+                sender.sendMessage(Component.text("No trace session \"" + missing + "\".", NamedTextColor.RED));
+            case BaselineCommandService.CompareResult.RightNotFound(var missing) ->
+                sender.sendMessage(Component.text(
+                        BASELINE_NOT_FOUND_PREFIX + missing + BASELINE_NOT_FOUND_SUFFIX, NamedTextColor.RED));
+        }
+    }
+
     void handle(CommandSender sender, String[] args) {
         if (!EventLensPermissions.hasTrace(sender, "export")) {
             sender.sendMessage(Component.text(CommandMessages.PERMISSION_DENIED, NamedTextColor.RED));

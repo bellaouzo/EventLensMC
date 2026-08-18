@@ -9,7 +9,7 @@ class SupportedEventTypesTest {
 
     @Test
     void listsInitialSupportedEvents() {
-        assertEquals(141, SupportedEventTypes.classNames().size());
+        assertEquals(142, SupportedEventTypes.classNames().size());
         assertTrue(SupportedEventTypes.isSupported("org.bukkit.event.block.BlockBreakEvent"));
         assertTrue(SupportedEventTypes.isSupported("io.papermc.paper.event.player.AsyncChatEvent"));
         assertTrue(SupportedEventTypes.isSupported("org.bukkit.event.player.PlayerJoinEvent"));
@@ -23,7 +23,7 @@ class SupportedEventTypesTest {
 
     @Test
     void simpleNamesAreSortedAndUnique() {
-        assertEquals(141, SupportedEventTypes.simpleNames().size());
+        assertEquals(142, SupportedEventTypes.simpleNames().size());
         assertTrue(SupportedEventTypes.simpleNames().contains("BlockBreakEvent"));
         assertTrue(SupportedEventTypes.simpleNames().contains("AsyncChatEvent"));
         assertTrue(SupportedEventTypes.simpleNames().contains("EntityExplodeEvent"));
