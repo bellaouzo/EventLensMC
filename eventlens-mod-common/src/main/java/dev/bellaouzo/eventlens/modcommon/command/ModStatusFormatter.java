@@ -3,6 +3,7 @@ package dev.bellaouzo.eventlens.modcommon.command;
 import dev.bellaouzo.eventlens.domain.instrumentation.AgentInstallHints;
 import dev.bellaouzo.eventlens.domain.runtime.ModRuntimeKind;
 import dev.bellaouzo.eventlens.domain.trace.TraceSessionSummary;
+import dev.bellaouzo.eventlens.modcommon.ModAgentDiagnostics;
 import dev.bellaouzo.eventlens.modcommon.ModTraceResults;
 import dev.bellaouzo.eventlens.modcommon.chat.ModChatColor;
 import dev.bellaouzo.eventlens.modcommon.chat.ModChatLine;
@@ -41,6 +42,7 @@ public final class ModStatusFormatter {
             lines.add(ModChatLine.text(
                     "The client agent times other mods' game-bus handlers.", ModChatColor.WHITE));
         } else {
+            lines.addAll(ModAgentDiagnostics.statusLines(status.agentPresent()));
             lines.addAll(agentSetupLines(status, runtimeKind));
         }
         if (!status.sessions().isEmpty()) {
@@ -86,9 +88,9 @@ public final class ModStatusFormatter {
                     .copy(jvmArg, ModChatColor.AQUA, jvmArg, "Copy client -javaagent argument")
                     .build());
             lines.add(ModChatLine.text(
-                    "Also place "
+                    "Optional: place "
                             + AgentInstallHints.observabilityJarName(status.version())
-                            + " next to the agent jar, then restart Minecraft.",
+                            + " next to the agent jar (fat agent jar also works).",
                     ModChatColor.GRAY));
         }
         lines.add(ModChatLine.text(

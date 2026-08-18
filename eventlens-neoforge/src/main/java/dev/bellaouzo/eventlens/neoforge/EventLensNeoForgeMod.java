@@ -2,6 +2,7 @@ package dev.bellaouzo.eventlens.neoforge;
 
 import dev.bellaouzo.eventlens.application.TraceReportBuilder;
 import dev.bellaouzo.eventlens.modcommon.FileModExportAdapter;
+import dev.bellaouzo.eventlens.modcommon.ModAgentDiagnostics;
 import dev.bellaouzo.eventlens.modcommon.ModCorrelationBridge;
 import dev.bellaouzo.eventlens.modcommon.ModDispatchRecorder;
 import dev.bellaouzo.eventlens.modcommon.ModEnvironmentCollector;
@@ -31,6 +32,7 @@ public final class EventLensNeoForgeMod {
         TraceSessionManager sessionManager = new TraceSessionManager();
         NeoForgeClientInstrumentation.Result instrumentation = NeoForgeClientInstrumentation.create(sessionManager);
         sessionManager.setInstrumentationPort(instrumentation.port());
+        ModAgentDiagnostics.logStartupWarnings(instrumentation.port().isAgentPresent());
         NeoForgeEnvironmentAdapter environmentAdapter = new NeoForgeEnvironmentAdapter(modContainer);
         ModEnvironmentCollector environmentCollector = new ModEnvironmentCollector(environmentAdapter);
         TraceReportBuilder reportBuilder =

@@ -1,6 +1,7 @@
 package dev.bellaouzo.eventlens.modcommon.command;
 
 import dev.bellaouzo.eventlens.domain.trace.TraceSessionState;
+import dev.bellaouzo.eventlens.application.AgentAttachDiagnostics;
 import dev.bellaouzo.eventlens.domain.instrumentation.AgentInstallHints;
 import dev.bellaouzo.eventlens.domain.runtime.ModRuntimeKind;
 import dev.bellaouzo.eventlens.modcommon.ModTraceResults;
@@ -52,7 +53,17 @@ public final class ModStatusHover {
                     + (status.agentProtocolCompatible() ? " (compatible)" : " (incompatible)"));
             lines.add(status.snapshotsEnabled() ? "Per-mod handler timing on" : "Handler timing without snapshots");
         } else {
-            lines.addAll(AgentInstallHints.clientSetupLines(runtimeKind, status.version()));
+            lines.add("Client agent not attached — per-mod handler timing unavailable.");
+            for (AgentAttachDiagnostics.Line line : AgentAttachDiagnostics.diagnose(
+                            AgentAttachDiagnostics.Role.CLIENT, status.agentPresent())
+                    .lines()) {
+                lines.add(line.message());
+            }
+            if (runtimeKind == ModRuntimeKind.FABRIC) {
+                lines.add("Fabric client agent is not supported yet.");
+            } else {
+                lines.add("Launcher JVM arg (not mods/): " + AgentInstallHints.clientJvmArgument(status.version()));
+            }
         }
         lines.add("EventLens " + status.version());
         return lines;

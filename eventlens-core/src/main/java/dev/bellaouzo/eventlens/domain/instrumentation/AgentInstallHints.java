@@ -49,7 +49,8 @@ public final class AgentInstallHints {
         lines.add("Do NOT put the client agent jar in mods/ — it is not a mod file.");
         lines.add("Add to your Minecraft launcher JVM args (not mods/):");
         lines.add(clientJvmArgument(version));
-        lines.add("Place " + observabilityJarName(version) + " in the same folder as the agent jar.");
+        lines.add(
+                "Optional: place " + observabilityJarName(version) + " next to the agent jar (fat agent also works).");
         lines.add("Restart the client. /eventlens status should show precise.");
         lines.add(SETUP_GUIDE_PREFIX + README_URL);
         return List.copyOf(lines);

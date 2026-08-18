@@ -5,6 +5,18 @@ All notable changes to EventLens are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.10.6-beta] - 2026-08-18
+
+### Fixed
+
+- Client and Paper agents no longer risk aborting startup on internal errors; failures log to console and the game/server continues in dispatch-only mode
+- Client agent can bootstrap observability from its own fat jar when `eventlens-observability-*.jar` is not beside it (one fewer required file)
+
+### Changed
+
+- `/eventlens status`, server startup logs, and client launcher logs now diagnose bad `-javaagent:` paths (missing file, relative path, Paper agent on client, jar found but not attached)
+- README adds beginner launcher steps and an **Instant crash after adding the JVM arg?** troubleshooting section
+
 ## [1.10.5-beta] - 2026-08-18
 
 ### Fixed

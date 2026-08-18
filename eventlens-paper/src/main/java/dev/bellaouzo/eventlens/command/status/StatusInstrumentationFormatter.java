@@ -1,5 +1,6 @@
 package dev.bellaouzo.eventlens.command.status;
 
+import dev.bellaouzo.eventlens.application.AgentAttachDiagnostics;
 import dev.bellaouzo.eventlens.command.CommandUi;
 import dev.bellaouzo.eventlens.domain.instrumentation.AgentInstallHints;
 import dev.bellaouzo.eventlens.domain.instrumentation.InstrumentationCapabilities;
@@ -73,6 +74,11 @@ final class StatusInstrumentationFormatter {
 
     private static void renderAgentSetup(CommandSender sender, EventLensStatus status) {
         sender.sendMessage(Component.text("Agent setup", NamedTextColor.YELLOW));
+        for (AgentAttachDiagnostics.Line line : AgentAttachDiagnostics.diagnose(
+                        AgentAttachDiagnostics.Role.PAPER, status.agentAttached())
+                .lines()) {
+            sender.sendMessage(Component.text("  " + line.message(), messageColor(line.level())));
+        }
         String suggested = status.agentArgument().orElse(AgentInstallHints.paperJvmArgument(status.version()));
         sender.sendMessage(Component.text("  JVM arg: ", NamedTextColor.GRAY)
                 .append(Component.text(suggested, NamedTextColor.AQUA)

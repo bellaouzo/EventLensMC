@@ -1,5 +1,6 @@
 package dev.bellaouzo.eventlens;
 
+import dev.bellaouzo.eventlens.application.AgentAttachDiagnostics;
 import dev.bellaouzo.eventlens.application.EventLensCommandConfig;
 import dev.bellaouzo.eventlens.application.port.InstrumentationPort;
 import dev.bellaouzo.eventlens.domain.instrumentation.AgentInstallHints;
@@ -17,6 +18,11 @@ final class EventLensStartupMessages {
         } else {
             plugin.getLogger()
                     .warning("EventLens agent not detected. Per-listener timing unavailable; dispatch timing only.");
+            for (AgentAttachDiagnostics.Line line : AgentAttachDiagnostics.diagnose(
+                            AgentAttachDiagnostics.Role.PAPER, instrumentationPort.isAgentPresent())
+                    .lines()) {
+                plugin.getLogger().warning("[EventLens agent] " + line.message());
+            }
             plugin.getLogger().warning("Run /eventlens status for JVM args, or see " + AgentInstallHints.README_URL);
         }
         plugin.getLogger()

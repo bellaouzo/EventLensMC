@@ -2,6 +2,7 @@ package dev.bellaouzo.eventlens.forge;
 
 import dev.bellaouzo.eventlens.application.TraceReportBuilder;
 import dev.bellaouzo.eventlens.modcommon.FileModExportAdapter;
+import dev.bellaouzo.eventlens.modcommon.ModAgentDiagnostics;
 import dev.bellaouzo.eventlens.modcommon.ModCorrelationBridge;
 import dev.bellaouzo.eventlens.modcommon.ModDispatchRecorder;
 import dev.bellaouzo.eventlens.modcommon.ModEnvironmentCollector;
@@ -32,6 +33,7 @@ public final class EventLensForgeMod {
         TraceSessionManager sessionManager = new TraceSessionManager();
         ForgeClientInstrumentation.Result instrumentation = ForgeClientInstrumentation.create(sessionManager);
         sessionManager.setInstrumentationPort(instrumentation.port());
+        ModAgentDiagnostics.logStartupWarnings(instrumentation.port().isAgentPresent());
         ForgeEnvironmentAdapter environmentAdapter = new ForgeEnvironmentAdapter(context);
         ModEnvironmentCollector environmentCollector = new ModEnvironmentCollector(environmentAdapter);
         TraceReportBuilder reportBuilder =
