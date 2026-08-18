@@ -8,7 +8,7 @@ config="eventlens.mixins.json"
 
 [[mods]]
 modId="eventlens"
-version="1.10.7-beta"
+version="1.10.6-beta"
 displayName="EventLens"
 description='''Optional EventLens client mod for diagnosing Forge event handlers. Companion to the Paper plugin.'''
 
