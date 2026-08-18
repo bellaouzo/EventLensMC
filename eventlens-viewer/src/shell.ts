@@ -27,6 +27,12 @@ export interface ShellContext {
   onFileLoad: (file: File) => void;
 }
 
+const SAVED_REPORT_LIMIT = 5;
+let reportsCollapsed = true;
+let reportsShowAll = false;
+let cachedReportNames: string[] = [];
+let cachedSelectedReport = '';
+
 const NAV: Array<{ id: ViewId; label: string }> = [
   { id: 'overview', label: 'Overview' },
   { id: 'timeline', label: 'Timeline' },
@@ -69,16 +75,23 @@ export function renderShell(app: HTMLElement, ctx: ShellContext): void {
           <div id="session-list" class="session-list"></div>
         </section>
         <section class="sidebar-section">
-          <div class="sidebar-heading">Saved reports</div>
-          <div id="report-list" class="report-list"></div>
-          <label class="file-upload">
-            <input type="file" id="file-input" accept=".json,application/json" />
-            Load JSON
-          </label>
+          <button type="button" id="reports-toggle" class="sidebar-disclosure collapsed">
+            <span>Saved reports</span>
+            <span id="reports-count" class="disclosure-count">0</span>
+            <span class="disclosure-chevron" aria-hidden="true"></span>
+          </button>
+          <div id="reports-body" class="disclosure-body is-collapsed">
+            <div id="report-list" class="report-list"></div>
+            <button type="button" id="reports-more" class="sidebar-more" hidden></button>
+            <label class="file-upload">
+              <input type="file" id="file-input" accept=".json,application/json" />
+              Load JSON
+            </label>
+          </div>
         </section>
         <section class="sidebar-section context-section">
           <div class="sidebar-heading">Context</div>
-          <dl id="context-list" class="context-list">${contextRowsHtml(ctx)}</dl>
+          <div id="context-list" class="context-list">${contextRowsHtml(ctx)}</div>
         </section>
       </aside>
       <main id="view-root" class="view-root"></main>
@@ -112,6 +125,16 @@ export function renderShell(app: HTMLElement, ctx: ShellContext): void {
     if (item?.dataset.report) {
       ctx.onReportChange(item.dataset.report);
     }
+  });
+
+  app.querySelector('#reports-toggle')?.addEventListener('click', () => {
+    reportsCollapsed = !reportsCollapsed;
+    applyReportsCollapsed(app);
+  });
+
+  app.querySelector('#reports-more')?.addEventListener('click', () => {
+    reportsShowAll = true;
+    renderReportList(app, cachedReportNames, cachedSelectedReport);
   });
 
   app.querySelector<HTMLInputElement>('#file-input')?.addEventListener('change', (event) => {
@@ -181,10 +204,46 @@ export function updateSessionOptions(
           .join('')
       : '<p class="sidebar-empty">No live sessions</p>';
   }
-  if (reportList) {
-    reportList.innerHTML = reports.length
-      ? reports.map((report) => reportItemHtml(report.fileName, report.fileName === selectedReport)).join('')
-      : '<p class="sidebar-empty">No saved reports</p>';
+  cachedReportNames = reports.map((report) => report.fileName);
+  cachedSelectedReport = selectedReport;
+  const count = app.querySelector('#reports-count');
+  if (count) {
+    count.textContent = String(reports.length);
+  }
+  renderReportList(app, cachedReportNames, selectedReport);
+  applyReportsCollapsed(app);
+}
+
+function renderReportList(app: HTMLElement, reports: string[], selectedReport: string): void {
+  const reportList = app.querySelector('#report-list');
+  const more = app.querySelector<HTMLButtonElement>('#reports-more');
+  if (!reportList) {
+    return;
+  }
+  const visible = reportsShowAll ? reports : reports.slice(0, SAVED_REPORT_LIMIT);
+  reportList.innerHTML = visible.length
+    ? visible.map((fileName) => reportItemHtml(fileName, fileName === selectedReport)).join('')
+    : '<p class="sidebar-empty">No saved reports</p>';
+  if (more) {
+    const hiddenCount = reports.length - visible.length;
+    more.hidden = reportsCollapsed || hiddenCount <= 0;
+    more.textContent = hiddenCount > 0 ? `Show ${hiddenCount} more` : '';
+  }
+}
+
+function applyReportsCollapsed(app: HTMLElement): void {
+  const body = app.querySelector<HTMLElement>('#reports-body');
+  const toggle = app.querySelector('#reports-toggle');
+  if (body) {
+    body.classList.toggle('is-collapsed', reportsCollapsed);
+  }
+  toggle?.classList.toggle('collapsed', reportsCollapsed);
+  const more = app.querySelector<HTMLButtonElement>('#reports-more');
+  if (more && reportsCollapsed) {
+    more.hidden = true;
+  } else if (more && !reportsCollapsed) {
+    const hiddenCount = cachedReportNames.length - (reportsShowAll ? cachedReportNames.length : Math.min(SAVED_REPORT_LIMIT, cachedReportNames.length));
+    more.hidden = hiddenCount <= 0;
   }
 }
 
@@ -254,43 +313,55 @@ function contextRowsHtml(ctx: ShellContext): string {
   const session = report?.session;
   const source =
     ctx.dataSource === 'session' ? 'live session' : ctx.dataSource === 'report' ? 'saved report' : 'offline file';
+  const state = session?.state ?? ctx.sessionState ?? '—';
+  const stateInfo = state !== '—' ? describeSessionState(state) : null;
+  const eventName = session ? simpleEventName(session.eventClassName) : '—';
   const world = report?.dispatches.find((dispatch) => dispatch.worldName)?.worldName ?? status?.defaultWorldName ?? '—';
-  const tps = status?.tps != null ? status.tps.toFixed(1) : report?.dispatches.find((d) => d.tps != null)?.tps?.toFixed(1) ?? '—';
+  const tpsValue = status?.tps ?? report?.dispatches.find((dispatch) => dispatch.tps != null)?.tps ?? null;
+  const tps = tpsValue != null ? tpsValue.toFixed(1) : '—';
+  const tpsTone = tpsValue == null ? '' : tpsValue >= 18 ? 'tone-ok' : 'tone-warn';
   const agent = ctx.agentPresent ? 'present' : 'absent';
   const protocol = ctx.protocolVersion > 0 ? `v${ctx.protocolVersion}` : '—';
   const mode = report?.instrumentation?.mode ?? (ctx.agentPresent ? 'precise' : 'dispatch');
-  const rows: Array<[string, string]> = [
-    ['Source', source],
-    ['Session ID', session?.sessionId ?? (ctx.selectedSessionId || '—')],
-    ['State', session?.state ?? ctx.sessionState ?? '—'],
-    ['Event', session ? simpleEventName(session.eventClassName) : '—'],
-    [
-      'Captured / dropped / sampled out',
-      session ? `${session.capturedEvents} / ${session.droppedEvents} / ${session.sampledOutEvents}` : '—',
-    ],
-    ['Owner', session?.ownerName || '—'],
-    ['Filters', session?.filters || '—'],
-    ['World', world],
-    ['Game mode', status?.defaultGameMode || '—'],
-    ['Players online', status ? String(status.onlinePlayers) : '—'],
-    ['Server TPS', tps],
-    ['Tick budget', '50 ms'],
-    ['Runtime', ctx.paperVersion],
-    ['EventLens', `v${ctx.eventLensVersion}`],
-    ['Agent', agent],
-    ['Protocol', protocol],
-    ['Mode', mode],
-    ['Redaction', report?.redactionMode || '—'],
-  ];
-  return rows
-    .map(
-      ([label, value]) => `
-      <div class="context-row">
-        <dt>${escapeHtml(label)}</dt>
-        <dd>${escapeHtml(value)}</dd>
-      </div>`,
-    )
-    .join('');
+
+  return `
+    <div class="context-group">
+      <div class="context-group-title">Session</div>
+      <div class="context-chips">
+        <span class="ctx-chip">${escapeHtml(source)}</span>
+        ${stateInfo ? `<span class="ctx-chip chip-${stateInfo.tone}">${escapeHtml(stateInfo.shortLabel)}</span>` : ''}
+        <span class="ctx-chip chip-event">${escapeHtml(eventName)}</span>
+      </div>
+      ${kv('ID', shortSessionId(session?.sessionId ?? (ctx.selectedSessionId || '—')))}
+      ${
+        session
+          ? `<div class="context-row"><span>Captured</span><span class="context-counts"><b>${session.capturedEvents}</b><i>${session.droppedEvents}</i><em>${session.sampledOutEvents}</em></span></div>`
+          : kv('Captured', '—')
+      }
+      ${kv('Owner', session?.ownerName || '—')}
+      ${kv('Filters', session?.filters || '—')}
+    </div>
+    <div class="context-group">
+      <div class="context-group-title">Server</div>
+      ${kv('World', world)}
+      ${kv('Game mode', status?.defaultGameMode || '—')}
+      ${kv('Players', status ? String(status.onlinePlayers) : '—')}
+      <div class="context-row"><span>TPS</span><span class="${tpsTone}">${escapeHtml(tps)}</span></div>
+      ${kv('Tick budget', '50 ms')}
+      ${kv('Runtime', ctx.paperVersion)}
+    </div>
+    <div class="context-group">
+      <div class="context-group-title">Instrumentation</div>
+      ${kv('EventLens', `v${ctx.eventLensVersion}`)}
+      <div class="context-row"><span>Agent</span><span class="${ctx.agentPresent ? 'tone-ok' : 'tone-muted'}">${escapeHtml(agent)}</span></div>
+      ${kv('Protocol', protocol)}
+      <div class="context-row"><span>Mode</span><span class="tone-accent">${escapeHtml(mode)}</span></div>
+      ${kv('Redaction', report?.redactionMode || '—')}
+    </div>`;
+}
+
+function kv(label: string, value: string): string {
+  return `<div class="context-row"><span>${escapeHtml(label)}</span><span>${escapeHtml(value)}</span></div>`;
 }
 
 function resolveSessionLabel(ctx: ShellContext): string {

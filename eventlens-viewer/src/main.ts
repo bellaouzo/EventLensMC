@@ -24,15 +24,15 @@ import {
   type ViewId,
 } from './shell';
 import type { DashboardSession, DashboardStatus, TraceReport } from './types';
-import { renderOverview, updateOverviewUptime } from './views/overview';
-import { renderTimeline, resetTimelineSelection } from './views/timeline';
+import { renderOverview, resetOverviewDispatchPage, updateOverviewUptime } from './views/overview';
+import { renderTimeline, resetTimelineSelection, selectDispatchBySequence } from './views/timeline';
 import { renderFlameGraph } from './views/flame';
 import { renderEventGraph } from './views/eventGraph';
 import { renderPluginGraph } from './views/pluginGraph';
 import { renderCompare } from './views/compare';
 import { liveSessionDuration } from './utils/metrics';
 import { isLiveSessionState } from './utils/sessionState';
-import { formatUptimeMs } from './utils/format';
+import { formatUptime } from './utils/format';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
 
@@ -48,7 +48,7 @@ let stopLiveStream: (() => void) | null = null;
 let agentPresent = false;
 let protocolVersion = 0;
 let paperVersion = 'Paper —';
-let eventLensVersion = '1.3.0';
+let eventLensVersion = '1.3.2';
 let sourceMode: SourceMode = isLiveMode() ? 'live' : 'offline';
 let cachedReports: Array<{ fileName: string }> = [];
 let serverStatus: DashboardStatus | null = null;
@@ -133,7 +133,7 @@ function shellContext(): ShellContext {
     onNavigate: (view) => {
       activeView = view;
       setActiveNav(view);
-      void renderActiveView();
+      void renderActiveView(false);
     },
     onSourceModeChange: (mode) => {
       sourceMode = mode;
@@ -283,6 +283,7 @@ async function selectSession(sessionId: string, userInitiated: boolean): Promise
   sourceMode = 'live';
   userPickedSession = userInitiated;
   resetTimelineSelection();
+  resetOverviewDispatchPage();
   setSessionSelectValue(app, sessionId, '');
   currentReport = await fetchSessionReport(sessionId);
   applyReportMetadata(currentReport);
@@ -297,6 +298,7 @@ async function selectReport(fileName: string): Promise<void> {
   sourceMode = 'offline';
   userPickedSession = false;
   resetTimelineSelection();
+  resetOverviewDispatchPage();
   setSessionSelectValue(app, '', fileName);
   currentReport = await fetchReportFile(fileName);
   applyReportMetadata(currentReport);
@@ -341,6 +343,7 @@ async function loadOfflineFile(file: File): Promise<void> {
   selectedReportFile = '';
   userPickedSession = false;
   resetTimelineSelection();
+  resetOverviewDispatchPage();
   currentReport = parseReportJson(await file.text());
   applyReportMetadata(currentReport);
   activeView = 'overview';
@@ -600,7 +603,7 @@ function renderActiveView(showLoading = true): Promise<void> {
             <div class="stat-grid">
               <div class="stat-card">
                 <div class="stat-label">Uptime</div>
-                <div class="stat-value" id="stat-session-uptime">${formatUptimeMs(uptimeMillis)}</div>
+                <div class="stat-value" id="stat-session-uptime">${formatUptime(uptimeMillis)}</div>
               </div>
             </div>
             <p class="empty">Interact in-game to capture events, or wait for the live feed to populate.</p>
@@ -613,7 +616,12 @@ function renderActiveView(showLoading = true): Promise<void> {
     }
 
     if (activeView === 'overview') {
-      renderOverview(root, currentReport);
+      renderOverview(root, currentReport, (sequence) => {
+        selectDispatchBySequence(currentReport!, sequence);
+        activeView = 'timeline';
+        setActiveNav(activeView);
+        void renderActiveView(false);
+      });
     } else if (activeView === 'timeline') {
       renderTimeline(root, currentReport);
     } else if (activeView === 'flame') {
@@ -623,7 +631,12 @@ function renderActiveView(showLoading = true): Promise<void> {
         root,
         currentReport,
         compareReport,
-        cachedReports,
+        {
+          reports: cachedReports,
+          sessions: cachedSessions,
+          currentReportFile: selectedReportFile,
+          currentSessionId: selectedSessionId || currentReport.session.sessionId,
+        },
         (file) => {
           void file.text().then((text) => {
             compareReport = parseReportJson(text);
@@ -635,6 +648,16 @@ function renderActiveView(showLoading = true): Promise<void> {
             compareReport = report;
             void renderActiveView(false);
           });
+        },
+        (sessionId) => {
+          void fetchSessionReport(sessionId).then((report) => {
+            compareReport = report;
+            void renderActiveView(false);
+          });
+        },
+        () => {
+          compareReport = null;
+          void renderActiveView(false);
         },
       );
     }

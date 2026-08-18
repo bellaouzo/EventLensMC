@@ -2,14 +2,19 @@ import type { ListenerTiming, TraceDispatch, TraceReport } from '../types';
 import { escapeHtml, formatMillis, simpleEventName } from '../utils/format';
 import { resolveListenerTimings } from '../utils/listenerData';
 import { sessionStateBannerHtml } from '../utils/sessionState';
-import { statusLabel, TICK_BUDGET_NANOS } from '../utils/metrics';
+import { isWarmupDispatch, statusLabel, TICK_BUDGET_NANOS } from '../utils/metrics';
 
 const PRIORITY_ORDER = ['LOWEST', 'LOW', 'NORMAL', 'HIGH', 'HIGHEST', 'MONITOR'];
 
-let selectedDispatchIndex = 0;
+let selectedDispatchIndex = -1;
 
 export function resetTimelineSelection(): void {
-  selectedDispatchIndex = 0;
+  selectedDispatchIndex = -1;
+}
+
+export function selectDispatchBySequence(report: TraceReport, sequence: number): void {
+  const index = report.dispatches.findIndex((dispatch) => dispatch.sequence === sequence);
+  selectedDispatchIndex = index >= 0 ? index : -1;
 }
 
 export function renderTimeline(container: HTMLElement, report: TraceReport): void {
@@ -20,15 +25,16 @@ export function renderTimeline(container: HTMLElement, report: TraceReport): voi
     return;
   }
 
-  if (selectedDispatchIndex >= report.dispatches.length) {
-    selectedDispatchIndex = 0;
-  }
+  const followLatest = selectedDispatchIndex < 0;
+  const dispatchIndex = followLatest
+    ? report.dispatches.length - 1
+    : Math.min(selectedDispatchIndex, report.dispatches.length - 1);
 
-  const dispatch = report.dispatches[selectedDispatchIndex];
-  const dispatchIndex = selectedDispatchIndex;
+  const dispatch = report.dispatches[dispatchIndex];
+  const warmup = isWarmupDispatch(dispatch, report.dispatches);
   const tickPercent = (dispatch.durationNanos / TICK_BUDGET_NANOS) * 100;
   const location = formatLocation(dispatch);
-  const handlers = buildHandlerGroups(dispatch);
+  const handlers = buildHandlerGroups(dispatch, warmup);
 
   container.innerHTML = `
     <section class="page">
@@ -50,6 +56,11 @@ export function renderTimeline(container: HTMLElement, report: TraceReport): voi
           ${fact('MSPT', dispatch.msptMillis != null ? `${dispatch.msptMillis.toFixed(1)} ms` : '—')}
         </div>
       </div>
+      ${
+        warmup
+          ? '<div class="page-notice page-notice-warmup" role="status"><span class="page-notice-label">WARMUP</span><span class="page-notice-text">First capture of this event type. Class-load and JIT time is excluded from flags and top offenders.</span></div>'
+          : ''
+      }
       <div class="handler-groups">${handlers}</div>
     </section>
   `;
@@ -79,7 +90,7 @@ function formatLocation(dispatch: TraceDispatch): string {
   return parts.join(' ');
 }
 
-function buildHandlerGroups(dispatch: TraceDispatch): string {
+function buildHandlerGroups(dispatch: TraceDispatch, warmup: boolean): string {
   const timings = resolveListenerTimings(dispatch);
   if (!timings.length) {
     const hasAgentTimings = dispatch.listenerTimings.length > 0;
@@ -94,7 +105,6 @@ function buildHandlerGroups(dispatch: TraceDispatch): string {
     grouped.set(key, list);
   }
 
-  const maxNanos = Math.max(...timings.map((timing) => timing.durationNanos), 1);
   const groups: string[] = [];
 
   for (const priority of PRIORITY_ORDER) {
@@ -106,19 +116,18 @@ function buildHandlerGroups(dispatch: TraceDispatch): string {
     const rows = list
       .map((timing) => {
         const widthMs = timing.durationNanos / 1_000_000;
-        const severity = barSeverity(timing, widthMs);
-        const widthPct = Math.max(18, (timing.durationNanos / maxNanos) * 100);
+        const severity = barSeverity(timing, widthMs, warmup);
         const method = formatListenerPath(timing);
         return `
           <div class="handler-row">
             <div class="handler-plugin">${escapeHtml(timing.pluginName)}</div>
             <div class="handler-method" title="${escapeHtml(method)}">${escapeHtml(method)}</div>
             <div class="handler-time">${formatMillis(timing.durationNanos)}</div>
-            <div class="handler-bar ${severity}" style="width:${widthPct.toFixed(0)}%">${statusLabel(severity)}</div>
+            <span class="pill pill-${severity}">${statusLabel(severity)}</span>
           </div>`;
       })
       .join('');
-    groups.push(`<div><div class="handler-priority">${priorityLabel(priority)}</div>${rows}</div>`);
+    groups.push(`<div class="handler-group"><div class="handler-priority">${priorityLabel(priority)}</div>${rows}</div>`);
   }
 
   return groups.join('');
@@ -136,7 +145,14 @@ function priorityLabel(priority: string): string {
   return priority;
 }
 
-function barSeverity(timing: ListenerTiming, widthMs: number): 'critical' | 'warn' | 'ok' {
+function barSeverity(
+  timing: ListenerTiming,
+  widthMs: number,
+  warmup: boolean,
+): 'critical' | 'warn' | 'ok' | 'warmup' {
+  if (warmup && widthMs < 10) {
+    return 'warmup';
+  }
   if (timing.exceedsSlowThreshold || widthMs >= 5) {
     return 'critical';
   }

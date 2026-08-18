@@ -5,6 +5,29 @@ All notable changes to EventLens are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.2] - 2026-08-17
+
+### Added
+
+- Overview Recent dispatches paginates in pages of eight, with Newer and Older controls
+
+## [1.3.1] - 2026-08-17
+
+### Changed
+
+- Dashboard uptime switches from milliseconds to seconds (then minutes) after 1s
+- First capture of each event type is marked warmup and no longer flags warnings or top offenders
+- Overview dispatches and offenders open a Timeline-style dispatch view; the Overview tab returns to the summary
+- Compare is a two-sided picker with live sessions, saved reports, JSON upload, and metric deltas
+- Saved reports in the sidebar are collapsed by default, limited to five, and expandable
+- Context inspector is grouped and color-coded instead of a flat key-value dump
+- Compare lists only `.json` reports, says so in the picker, and hides the list once both sides are selected
+- Dispatch view no longer has a second Overview button; use the Overview tab to leave a dispatch
+
+### Fixed
+
+- Saved reports stay hidden while the sidebar section is collapsed
+
 ## [1.3.0] - 2026-08-17
 
 ### Changed

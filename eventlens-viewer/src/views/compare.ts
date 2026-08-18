@@ -1,57 +1,154 @@
-import type { TraceReport } from '../types';
+import type { DashboardSession, TraceReport } from '../types';
 import { compareReports } from '../utils/traceCompare';
-import { escapeHtml, simpleEventName } from '../utils/format';
+import { escapeHtml, shortSessionId, simpleEventName } from '../utils/format';
+
+export interface CompareSources {
+  reports: Array<{ fileName: string; format?: string }>;
+  sessions: DashboardSession[];
+  currentReportFile: string;
+  currentSessionId: string;
+}
 
 export function renderCompare(
   container: HTMLElement,
   left: TraceReport | null,
   right: TraceReport | null,
-  reports: Array<{ fileName: string }>,
+  sources: CompareSources,
   onRightFile?: (file: File) => void,
   onRightReport?: (fileName: string) => void,
+  onRightSession?: (sessionId: string) => void,
+  onClearRight?: () => void,
 ): void {
   if (!left) {
-    container.innerHTML = `<section class="page"><p class="empty">Load a session or report first, then choose a second JSON to compare.</p></section>`;
+    container.innerHTML =
+      '<section class="page"><p class="empty">Select a live session or saved report first. That becomes the left side of the compare.</p></section>';
     return;
   }
 
-  if (!right) {
-    const choices = reports
-      .filter((report) => report.fileName !== left.session.sessionId)
-      .map(
-        (report) =>
-          `<button type="button" class="compare-choice" data-report="${escapeHtml(report.fileName)}">${escapeHtml(report.fileName)}</button>`,
+  const leftCard = sourceCard(
+    'Left',
+    simpleEventName(left.session.eventClassName),
+    `${shortSessionId(left.session.sessionId)} · ${left.session.capturedEvents} captured`,
+    'Current view',
+    true,
+  );
+
+  const rightCard = right
+    ? sourceCard(
+        'Right',
+        simpleEventName(right.session.eventClassName),
+        `${shortSessionId(right.session.sessionId)} · ${right.session.capturedEvents} captured`,
+        'Comparison',
+        true,
       )
-      .join('');
-    container.innerHTML = `
-      <section class="page">
-        <div class="compare-banner">Only one report is loaded. Choose a second report to compare.</div>
-        <div class="compare-choices">
-          <button type="button" class="compare-choice" disabled>${escapeHtml(simpleEventName(left.session.eventClassName))} — current ${left.session.sessionId ? 'session' : 'report'}</button>
-          ${choices}
-        </div>
-        <label class="file-upload">Load second JSON<input type="file" accept="application/json,.json" /></label>
-      </section>`;
-    bindRightFile(container, onRightFile);
-    bindReportChoices(container, onRightReport);
-    return;
-  }
+    : sourceCard('Right', 'Not selected', 'Choose a live session or a .json report', 'Waiting', false);
 
-  const rows = compareReports(left, right)
+  const sessionChoices = sources.sessions
+    .filter((session) => session.sessionId !== sources.currentSessionId && session.sessionId !== right?.session.sessionId)
     .map(
-      (row) =>
-        `<tr><th>${escapeHtml(row.label)}</th><td>${escapeHtml(row.left)}</td><td>${escapeHtml(row.right)}</td></tr>`,
+      (session) =>
+        `<button type="button" class="compare-pick" data-session="${escapeHtml(session.sessionId)}">
+          <span class="compare-pick-title">${escapeHtml(simpleEventName(session.eventClassName))}</span>
+          <span class="compare-pick-meta">${escapeHtml(shortSessionId(session.sessionId))} · ${session.capturedEvents} captured · live</span>
+        </button>`,
     )
     .join('');
+
+  const reportChoices = sources.reports
+    .filter((report) => isJsonReport(report) && report.fileName !== sources.currentReportFile)
+    .map(
+      (report) =>
+        `<button type="button" class="compare-pick" data-report="${escapeHtml(report.fileName)}">
+          <span class="compare-pick-title">${escapeHtml(report.fileName)}</span>
+          <span class="compare-pick-meta">JSON report</span>
+        </button>`,
+    )
+    .join('');
+
+  const comparison = right
+    ? `<table class="data-table">
+        <thead><tr><th>Metric</th><th>Left</th><th>Right</th><th>Delta</th></tr></thead>
+        <tbody>${compareReports(left, right)
+          .map(
+            (row) =>
+              `<tr>
+                <th>${escapeHtml(row.label)}</th>
+                <td>${escapeHtml(row.left)}</td>
+                <td>${escapeHtml(row.right)}</td>
+                <td class="compare-delta${row.tone ? ` delta-${row.tone}` : ''}">${escapeHtml(row.delta ?? '—')}</td>
+              </tr>`,
+          )
+          .join('')}
+        </tbody>
+      </table>`
+    : '<p class="compare-hint">Pick a counterpart on the right. Left stays as the session or report you already have open.</p>';
+
   container.innerHTML = `
     <section class="page">
-      <label class="file-upload">Replace right report<input type="file" accept="application/json,.json" /></label>
-      <table class="data-table">
-        <thead><tr><th></th><th>Left</th><th>Right</th></tr></thead>
-        <tbody>${rows}</tbody>
-      </table>
+      <header class="page-header">
+        <h1>Compare</h1>
+        <p class="page-subtitle">Left is the current view. The right side must be a live session or a <span class="mono">.json</span> report — HTML exports cannot be compared.</p>
+      </header>
+      <div class="compare-sides">
+        ${leftCard}
+        <div class="compare-vs">vs</div>
+        ${rightCard}
+      </div>
+      ${
+        right
+          ? '<button type="button" class="btn-ghost" id="compare-clear">Change right side</button>'
+          : `<div class="compare-picker">
+        <div>
+          <div class="sidebar-heading">Live sessions</div>
+          <div class="compare-picks">${sessionChoices || '<p class="sidebar-empty">No other live sessions</p>'}</div>
+        </div>
+        <div>
+          <div class="sidebar-heading">JSON reports</div>
+          <div class="compare-picks">${reportChoices || '<p class="sidebar-empty">No other JSON reports</p>'}</div>
+        </div>
+        <label class="file-upload compare-upload">Load JSON file<input type="file" accept="application/json,.json" /></label>
+      </div>`
+      }
+      ${comparison}
     </section>`;
+
   bindRightFile(container, onRightFile);
+  container.querySelectorAll<HTMLButtonElement>('.compare-pick[data-report]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const fileName = button.dataset.report;
+      if (fileName) {
+        onRightReport?.(fileName);
+      }
+    });
+  });
+  container.querySelectorAll<HTMLButtonElement>('.compare-pick[data-session]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const sessionId = button.dataset.session;
+      if (sessionId) {
+        onRightSession?.(sessionId);
+      }
+    });
+  });
+  container.querySelector('#compare-clear')?.addEventListener('click', () => {
+    onClearRight?.();
+  });
+}
+
+function isJsonReport(report: { fileName: string; format?: string }): boolean {
+  if (report.format) {
+    return report.format.toLowerCase() === 'json';
+  }
+  return report.fileName.toLowerCase().endsWith('.json');
+}
+
+function sourceCard(side: string, title: string, meta: string, tag: string, filled: boolean): string {
+  return `
+    <div class="compare-card${filled ? ' filled' : ''}">
+      <div class="compare-card-side">${escapeHtml(side)}</div>
+      <div class="compare-card-title">${escapeHtml(title)}</div>
+      <div class="compare-card-meta">${escapeHtml(meta)}</div>
+      <span class="compare-card-tag">${escapeHtml(tag)}</span>
+    </div>`;
 }
 
 function bindRightFile(container: HTMLElement, onRightFile?: (file: File) => void): void {
@@ -64,19 +161,5 @@ function bindRightFile(container: HTMLElement, onRightFile?: (file: File) => voi
     if (file) {
       onRightFile(file);
     }
-  });
-}
-
-function bindReportChoices(container: HTMLElement, onRightReport?: (fileName: string) => void): void {
-  if (!onRightReport) {
-    return;
-  }
-  container.querySelectorAll<HTMLButtonElement>('.compare-choice[data-report]').forEach((button) => {
-    button.addEventListener('click', () => {
-      const fileName = button.dataset.report;
-      if (fileName) {
-        onRightReport(fileName);
-      }
-    });
   });
 }

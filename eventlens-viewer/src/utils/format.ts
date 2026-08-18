@@ -13,7 +13,7 @@ export function formatMillis(nanos: number): string {
 }
 
 export function formatUptimeMs(millis: number): string {
-  return `${Math.max(0, Math.round(millis))}ms`;
+  return formatUptime(millis);
 }
 
 export function shortSessionId(sessionId: string): string {
@@ -29,7 +29,11 @@ export function simpleEventName(className: string): string {
 }
 
 export function formatUptime(millis: number): string {
-  const totalSeconds = Math.floor(millis / 1000);
+  const clamped = Math.max(0, millis);
+  if (clamped < 1000) {
+    return `${Math.round(clamped)}ms`;
+  }
+  const totalSeconds = Math.floor(clamped / 1000);
   const hours = Math.floor(totalSeconds / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);
   const seconds = totalSeconds % 60;

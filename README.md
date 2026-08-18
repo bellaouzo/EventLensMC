@@ -13,7 +13,7 @@ It observes. It does not cancel, reorder, re-fire, or hide exceptions.
 
 | | |
 |---|---|
-| **Version** | 1.3.0 |
+| **Version** | 1.3.2 |
 | **Paper plugin** | Paper **26.2** · Java **25** · alias `/el` |
 | **Client mods** | Minecraft **1.21.1** · NeoForge · Forge · Fabric |
 | **License** | [MIT](LICENSE) |
@@ -26,10 +26,10 @@ It observes. It does not cancel, reorder, re-fire, or hide exceptions.
 
 | Piece | Who it is for | Required? |
 |---|---|---|
-| **Paper plugin** `EventLens-1.3.0.jar` | Server operators and plugin authors | Yes, for server traces |
-| **Paper Java agent** `eventlens-agent-1.3.0.jar` | Per-listener timing and exception attribution | Optional |
+| **Paper plugin** `EventLens-1.3.2.jar` | Server operators and plugin authors | Yes, for server traces |
+| **Paper Java agent** `eventlens-agent-1.3.2.jar` | Per-listener timing and exception attribution | Optional |
 | **Client mods** NeoForge / Forge / Fabric | Client-side traces, Screen, HUD | Optional |
-| **Client Java agent** `eventlens-client-agent-1.3.0.jar` | Per-mod handler timing on NeoForge and Forge | Optional; not on Fabric yet |
+| **Client Java agent** `eventlens-client-agent-1.3.2.jar` | Per-mod handler timing on NeoForge and Forge | Optional; not on Fabric yet |
 | **Dashboard** at `http://127.0.0.1:8765` | Live graphs, timeline, compare | Ships with the Paper plugin |
 | **Bundle export** | Share a self-contained `index.html` report | Paper command |
 
@@ -42,14 +42,14 @@ The plugin is useful without any agent or client mod. Agents add precise per-lis
 ### Paper plugin
 
 1. Run **Java 25** on the server.
-2. Drop `eventlens-paper/build/libs/EventLens-1.3.0.jar` into `plugins/`.
+2. Drop `eventlens-paper/build/libs/EventLens-1.3.2.jar` into `plugins/`.
 3. Restart the server (`stop`, then start — do not `/reload`).
 4. Commands default to **op**.
 
 Built artifact after `.\gradlew.bat build`:
 
 ```
-eventlens-paper/build/libs/EventLens-1.3.0.jar
+eventlens-paper/build/libs/EventLens-1.3.2.jar
 ```
 
 ### Optional Paper Java agent
@@ -59,7 +59,7 @@ Without the agent, EventLens still lists listeners and reports **dispatch-level*
 Add a JVM argument on the **same** Paper process:
 
 ```
--javaagent:eventlens-agent-1.3.0.jar
+-javaagent:eventlens-agent-1.3.2.jar
 ```
 
 Development `runServer` / `runServerDebug` attach this automatically.
@@ -70,19 +70,19 @@ Install **one** loader jar that matches your client:
 
 | Loader | Minecraft | Artifact |
 |---|---|---|
-| **NeoForge** 21.1.x | 1.21.1 | `eventlens-neoforge/build/libs/eventlens-neoforge-1.3.0.jar` |
-| **Minecraft Forge** 52.1.x | 1.21.1 | `eventlens-forge/build/libs/eventlens-forge-1.3.0.jar` |
-| **Fabric** Loader 0.16 + Fabric API | 1.21.1 | `eventlens-fabric/build/libs/eventlens-fabric-1.3.0.jar` |
+| **NeoForge** 21.1.x | 1.21.1 | `eventlens-neoforge/build/libs/eventlens-neoforge-1.3.2.jar` |
+| **Minecraft Forge** 52.1.x | 1.21.1 | `eventlens-forge/build/libs/eventlens-forge-1.3.2.jar` |
+| **Fabric** Loader 0.16 + Fabric API | 1.21.1 | `eventlens-fabric/build/libs/eventlens-fabric-1.3.2.jar` |
 
 Put the jar in the client `mods/` folder. Chat commands work on all three. Screen, HUD, and keybinds work on all three (Fabric’s Screen is a lighter list UI). Precise per-mod timing needs the **client agent** on NeoForge and Forge only.
 
 #### Optional client Java agent (NeoForge and Forge)
 
 ```
--javaagent:eventlens-client-agent-1.3.0.jar
+-javaagent:eventlens-client-agent-1.3.2.jar
 ```
 
-Place `eventlens-observability-1.3.0.jar` in the **same folder** as the agent jar. Dev tasks `:eventlens-neoforge:runClient` and `:eventlens-forge:runClient` attach it automatically. Fabric `runClient` does not — Fabric stays `dispatch-only` until a stable invoker exists.
+Place `eventlens-observability-1.3.2.jar` in the **same folder** as the agent jar. Dev tasks `:eventlens-neoforge:runClient` and `:eventlens-forge:runClient` attach it automatically. Fabric `runClient` does not — Fabric stays `dispatch-only` until a stable invoker exists.
 
 ---
 
@@ -295,7 +295,7 @@ Two ways to open the same viewer:
 1. **Live** — with the Paper plugin running, browse [http://127.0.0.1:8765](http://127.0.0.1:8765) on the server (bind is loopback by default). Pick a live session or a saved report. The page updates while the session runs.
 2. **Offline bundle** — `/eventlens trace export <id> --format bundle`, then open `index.html` in that folder. Works from `file://`.
 
-Views: **Overview**, **Timeline**, **Flame graph**, **Event graph**, **Plugin graph**, **Compare**. Live mode lists sessions and saved reports in the left sidebar; Offline loads a JSON file. The context panel shows session, world, TPS, agent, and redaction facts.
+Views: **Overview**, **Timeline**, **Flame graph**, **Event graph**, **Plugin graph**, **Compare**. Click a dispatch or offender to open the Timeline-style detail view. Overview Recent dispatches pages in eights (Newer / Older). Live mode lists sessions and saved reports in the left sidebar; Offline loads a JSON file. The context panel shows session, world, TPS, agent, and redaction facts.
 
 Compare two JSON reports (including a Paper session vs a client export). When both have correlation keys, paired dispatches are counted.
 

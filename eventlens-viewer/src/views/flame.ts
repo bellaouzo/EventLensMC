@@ -1,6 +1,7 @@
 import type { TraceDispatch, TraceReport } from '../types';
 import { escapeHtml, formatMillis, simpleEventName } from '../utils/format';
 import { resolveListenerTimings } from '../utils/listenerData';
+import { pickSteadyDispatch } from '../utils/metrics';
 import { sessionStateBannerHtml } from '../utils/sessionState';
 
 export function renderFlameGraph(container: HTMLElement, report: TraceReport): void {
@@ -53,8 +54,5 @@ export function renderFlameGraph(container: HTMLElement, report: TraceReport): v
 }
 
 function pickSlowestDispatch(dispatches: TraceDispatch[]): TraceDispatch | null {
-  if (!dispatches.length) {
-    return null;
-  }
-  return [...dispatches].sort((a, b) => b.durationNanos - a.durationNanos)[0];
+  return pickSteadyDispatch(dispatches, (left, right) => right.durationNanos - left.durationNanos);
 }

@@ -1,6 +1,6 @@
 import type { TraceReport } from '../types';
 import { escapeHtml, formatMillis, simpleEventName } from '../utils/format';
-import { formatTickPercent } from '../utils/metrics';
+import { formatTickPercent, pickSteadyDispatch } from '../utils/metrics';
 import { resolveListenerTimings } from '../utils/listenerData';
 import { sessionStateBannerHtml } from '../utils/sessionState';
 
@@ -21,7 +21,11 @@ export function renderPluginGraph(container: HTMLElement, report: TraceReport | 
     return;
   }
 
-  const dispatch = [...report.dispatches].sort((a, b) => b.durationNanos - a.durationNanos)[0];
+  const dispatch = pickSteadyDispatch(report.dispatches, (left, right) => right.durationNanos - left.durationNanos);
+  if (!dispatch) {
+    container.innerHTML = `<section class="page">${sessionStateBannerHtml(report.session.state)}<p class="empty">No dispatch data for plugin graph.</p></section>`;
+    return;
+  }
   const cards = buildPluginCards(dispatch);
   const eventName = simpleEventName(dispatch.eventClassName);
 
