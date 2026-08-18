@@ -1,0 +1,19 @@
+﻿
+> Configure project :eventlens-fabric
+Fabric Loom: 1.17.8
+
+> Configure project :eventlens-forge
+Minecraft Maven is up-to-date, took 0:00.739
+
+> Task :eventlens-core:compileJava UP-TO-DATE
+> Task :eventlens-observability:compileJava UP-TO-DATE
+> Task :eventlens-mod-common:compileJava UP-TO-DATE
+> Task :eventlens-forge:compileJava SKIPPED
+> Task :eventlens-fabric:compileJava SKIPPED
+> Task :eventlens-fabric:processResources UP-TO-DATE
+> Task :eventlens-fabric:classes UP-TO-DATE
+> Task :eventlens-fabric:compileClientJava SKIPPED
+
+BUILD SUCCESSFUL in 2s
+4 actionable tasks: 4 up-to-date
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.6.1/userguide/configuration_cache_enabling.html
