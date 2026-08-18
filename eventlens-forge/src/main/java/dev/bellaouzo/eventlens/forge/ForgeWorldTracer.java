@@ -10,7 +10,6 @@ import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraftforge.client.event.ClientPauseChangeEvent;
 import net.minecraftforge.client.event.ClientPlayerChangeGameTypeEvent;
 import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
-import net.minecraftforge.client.event.RecipesUpdatedEvent;
 import net.minecraftforge.client.event.ScreenshotEvent;
 import net.minecraftforge.client.event.ToastAddEvent;
 import net.minecraftforge.client.event.sound.PlaySoundEvent;
@@ -105,16 +104,6 @@ public final class ForgeWorldTracer {
     }
 
     @SubscribeEvent
-    public void onRecipes(RecipesUpdatedEvent event) {
-        recorder.recordImmediate(
-                SupportedModEventTypes.CLIENT_RECIPES_UPDATED_EVENT,
-                List.of(),
-                ForgeClientContext.playerName(),
-                ForgeClientContext.worldName(),
-                event);
-    }
-
-    @SubscribeEvent
     public void onEntityJoin(EntityJoinLevelEvent event) {
         if (!event.getLevel().isClientSide()) {
             return;
@@ -153,7 +142,7 @@ public final class ForgeWorldTracer {
         }
         recorder.recordImmediate(
                 SupportedModEventTypes.CLIENT_WORLD_TICK_EVENT,
-                List.of(ModSnapshotFields.text("dimension", event.level.dimension().location().toString())),
+                List.of(ModSnapshotFields.text("dimension", event.level.dimension().identifier().toString())),
                 ForgeClientContext.playerName(),
                 ForgeClientContext.worldName(),
                 event);
@@ -187,8 +176,8 @@ public final class ForgeWorldTracer {
         recorder.recordImmediate(
                 type,
                 List.of(
-                        ModSnapshotFields.number("chunkX", chunk.getPos().x),
-                        ModSnapshotFields.number("chunkZ", chunk.getPos().z)),
+                        ModSnapshotFields.number("chunkX", chunk.getPos().x()),
+                        ModSnapshotFields.number("chunkZ", chunk.getPos().z())),
                 ForgeClientContext.playerName(),
                 ForgeClientContext.worldName(),
                 event);

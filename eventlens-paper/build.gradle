@@ -87,6 +87,7 @@ tasks.named('runServer') {
     minecraftVersion('26.2')
     runDirectory(rootProject.layout.projectDirectory.dir('run').asFile)
     jvmArgs "-javaagent:${project(':eventlens-agent').tasks.named('jar', Jar).get().archiveFile.get().asFile.absolutePath}"
+    jvmArgs '-Dcom.mojang.eula.agree=true'
     pluginJars.from(project(':eventlens-testkit').tasks.named('jar'))
 }
 
@@ -99,6 +100,7 @@ tasks.register('runServerDebug', xyz.jpenilla.runpaper.task.RunServer) {
     runDirectory(rootProject.layout.projectDirectory.dir('run').asFile)
     jvmArgs '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=127.0.0.1:5005'
     jvmArgs "-javaagent:${project(':eventlens-agent').tasks.named('jar', Jar).get().archiveFile.get().asFile.absolutePath}"
+    jvmArgs '-Dcom.mojang.eula.agree=true'
     pluginJars.from(project(':eventlens-testkit').tasks.named('jar'))
 }
 
@@ -271,6 +273,10 @@ tasks.register('paperSmokeTest') {
 
     doLast {
         File repoDir = rootProject.layout.projectDirectory.asFile
+        File runDir = rootProject.layout.projectDirectory.dir('run').asFile
+        runDir.mkdirs()
+        File eula = new File(runDir, 'eula.txt')
+        eula.setText('eula=true' + System.lineSeparator(), 'UTF-8')
         File latestLog = rootProject.layout.projectDirectory.file('run/logs/latest.log').asFile
         latestLog.parentFile.mkdirs()
         if (latestLog.exists()) {

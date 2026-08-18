@@ -24,7 +24,7 @@ public final class EventLensKeybinds {
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             while (OPEN.consumeClick()) {
                 if (EventLensScreen.isOpen()) {
-                    client.setScreen(null);
+                    client.gui.setScreen(null);
                 } else {
                     EventLensScreen.open();
                 }

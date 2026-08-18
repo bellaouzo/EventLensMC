@@ -16,7 +16,7 @@ final class FabricWorldTracer {
     static void register(ModDispatchRecorder recorder) {
         ClientTickEvents.END_WORLD_TICK.register(world -> recorder.recordImmediate(
                 SupportedModEventTypes.CLIENT_WORLD_TICK_EVENT,
-                List.of(ModSnapshotFields.text("dimension", world.dimension().location().toString())),
+                List.of(ModSnapshotFields.text("dimension", world.dimension().identifier().toString())),
                 FabricClientContext.playerName(),
                 FabricClientContext.worldName()));
         ClientEntityEvents.ENTITY_LOAD.register((entity, world) -> recorder.recordImmediate(
@@ -36,15 +36,15 @@ final class FabricWorldTracer {
         ClientChunkEvents.CHUNK_LOAD.register((world, chunk) -> recorder.recordImmediate(
                 SupportedModEventTypes.CLIENT_CHUNK_LOAD_EVENT,
                 List.of(
-                        ModSnapshotFields.number("chunkX", chunk.getPos().x),
-                        ModSnapshotFields.number("chunkZ", chunk.getPos().z)),
+                        ModSnapshotFields.number("chunkX", chunk.getPos().x()),
+                        ModSnapshotFields.number("chunkZ", chunk.getPos().z())),
                 FabricClientContext.playerName(),
                 FabricClientContext.worldName()));
         ClientChunkEvents.CHUNK_UNLOAD.register((world, chunk) -> recorder.recordImmediate(
                 SupportedModEventTypes.CLIENT_CHUNK_UNLOAD_EVENT,
                 List.of(
-                        ModSnapshotFields.number("chunkX", chunk.getPos().x),
-                        ModSnapshotFields.number("chunkZ", chunk.getPos().z)),
+                        ModSnapshotFields.number("chunkX", chunk.getPos().x()),
+                        ModSnapshotFields.number("chunkZ", chunk.getPos().z())),
                 FabricClientContext.playerName(),
                 FabricClientContext.worldName()));
         ItemTooltipCallback.EVENT.register((stack, context, flag, lines) -> recorder.recordImmediate(

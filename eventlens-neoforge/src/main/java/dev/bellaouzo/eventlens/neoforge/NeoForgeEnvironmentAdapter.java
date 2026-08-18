@@ -4,9 +4,9 @@ import dev.bellaouzo.eventlens.domain.runtime.ModRuntimeKind;
 import dev.bellaouzo.eventlens.modcommon.port.ModEnvironmentPort;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import net.minecraft.SharedConstants;
 import net.neoforged.fml.ModContainer;
-import net.neoforged.fml.loading.FMLLoader;
-import net.neoforged.neoforge.internal.versions.neoforge.NeoForgeVersion;
+import net.neoforged.fml.ModList;
 
 public final class NeoForgeEnvironmentAdapter implements ModEnvironmentPort {
 
@@ -23,13 +23,16 @@ public final class NeoForgeEnvironmentAdapter implements ModEnvironmentPort {
 
     @Override
     public String loaderVersion() {
-        return NeoForgeVersion.getVersion();
+        return ModList.get()
+                .getModContainerById("neoforge")
+                .map(container -> container.getModInfo().getVersion().toString())
+                .orElse("unknown");
     }
 
     @Override
     public Map<String, String> loadedModVersions() {
         Map<String, String> versions = new LinkedHashMap<>();
-        FMLLoader.getLoadingModList().getMods().forEach(modInfo -> {
+        ModList.get().getMods().forEach(modInfo -> {
             if (versions.size() >= 64) {
                 return;
             }
@@ -45,7 +48,7 @@ public final class NeoForgeEnvironmentAdapter implements ModEnvironmentPort {
 
     @Override
     public String minecraftVersion() {
-        return FMLLoader.versionInfo().mcVersion();
+        return SharedConstants.getCurrentVersion().name();
     }
 
     @Override

@@ -40,7 +40,7 @@ public final class ForgePlayerStateTracer {
                 player.getAirSupply(),
                 player.experienceLevel,
                 player.totalExperience,
-                player.getInventory().selected,
+                player.getInventory().getSelectedSlot(),
                 player.isSprinting(),
                 player.isShiftKeyDown(),
                 player.onGround(),

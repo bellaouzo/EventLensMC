@@ -4,7 +4,7 @@ import dev.bellaouzo.eventlens.domain.correlation.CorrelationChannelCodec;
 import dev.bellaouzo.eventlens.modcommon.ModCorrelationBridge;
 import dev.bellaouzo.eventlens.modcommon.port.ModCorrelationChannelPort;
 import net.minecraft.client.Minecraft;
-import net.neoforged.neoforge.network.PacketDistributor;
+import net.minecraft.network.protocol.common.ServerboundCustomPayloadPacket;
 
 final class NeoForgeCorrelationChannel implements ModCorrelationChannelPort {
 
@@ -20,8 +20,10 @@ final class NeoForgeCorrelationChannel implements ModCorrelationChannelPort {
             return;
         }
         try {
-            PacketDistributor.sendToServer(new NeoForgeCorrelationPayload(
-                    CorrelationChannelCodec.hello(clientSessionId, sequence, correlationKey)));
+            Minecraft.getInstance()
+                    .getConnection()
+                    .send(new ServerboundCustomPayloadPacket(new NeoForgeCorrelationPayload(
+                            CorrelationChannelCodec.hello(clientSessionId, sequence, correlationKey))));
         } catch (RuntimeException ignored) {
             // Server is not running EventLens Paper; fail closed.
         }

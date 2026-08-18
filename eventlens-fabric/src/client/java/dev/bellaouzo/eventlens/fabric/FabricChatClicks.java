@@ -2,6 +2,9 @@ package dev.bellaouzo.eventlens.fabric;
 
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenMouseEvents;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.ActiveTextCollector;
+import net.minecraft.client.gui.components.ChatComponent;
 import net.minecraft.client.gui.screens.ChatScreen;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Style;
@@ -19,17 +22,28 @@ final class FabricChatClicks {
                 if (button != 0 || client.gui == null) {
                     return;
                 }
-                Style style = client.gui.getChat().getClickedComponentStyleAt(mouseX, mouseY);
+                Style style = clickedChatStyle(client, mouseX, mouseY);
                 if (style == null || style.getClickEvent() == null) {
                     return;
                 }
                 ClickEvent clickEvent = style.getClickEvent();
-                if (clickEvent.getAction() == ClickEvent.Action.COPY_TO_CLIPBOARD
-                        && clickEvent.getValue() != null
-                        && !clickEvent.getValue().isBlank()) {
+                if (clickEvent instanceof ClickEvent.CopyToClipboard copy
+                        && copy.value() != null
+                        && !copy.value().isBlank()) {
                     FabricToasts.copied();
                 }
             });
         });
+    }
+
+    private static Style clickedChatStyle(Minecraft minecraft, double mouseX, double mouseY) {
+        ActiveTextCollector.ClickableStyleFinder finder =
+                new ActiveTextCollector.ClickableStyleFinder(minecraft.font, (int) mouseX, (int) mouseY);
+        minecraft.gui.hud.getChat().captureClickableText(
+                finder,
+                minecraft.getWindow().getGuiScaledHeight(),
+                minecraft.gui.hud.getGuiTicks(),
+                ChatComponent.DisplayMode.FOREGROUND);
+        return finder.result();
     }
 }

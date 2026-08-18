@@ -14,7 +14,7 @@ import java.util.Optional;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 
 public final class EventLensHudOverlay {
 
@@ -25,7 +25,7 @@ public final class EventLensHudOverlay {
 
     private EventLensHudOverlay() {}
 
-    public static void render(GuiGraphics graphics, DeltaTracker deltaTracker) {
+    public static void render(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker) {
         EventLensUiPreferences preferences = EventLensClientAccess.preferences();
         if (preferences == null || !preferences.hudEnabled() || EventLensScreen.isOpen()) {
             return;
@@ -49,10 +49,10 @@ public final class EventLensHudOverlay {
         int y = 6;
         graphics.fill(x + 2, y + 2, x + width + 2, y + 32, 0x66000000);
         graphics.fill(x, y, x + width, y + 30, EventLensUi.INK);
-        graphics.renderOutline(x, y, width, 30, EventLensUi.STEEL);
+        graphics.outline(x, y, width, 30, EventLensUi.STEEL);
         graphics.fill(x + 1, y + 1, x + width - 1, y + 2, EventLensUi.HIGHLIGHT);
-        graphics.drawString(font, line1, x + 8, y + 5, EventLensUi.PAPER, false);
-        graphics.drawString(font, line2, x + 8, y + 16, EventLensUi.BRASS, false);
+        graphics.text(font, line1, x + 8, y + 5, EventLensUi.PAPER, false);
+        graphics.text(font, line2, x + 8, y + 16, EventLensUi.BRASS, false);
     }
 
     private static void refresh(ModTraceCoordinator coordinator) {

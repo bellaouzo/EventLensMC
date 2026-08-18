@@ -18,10 +18,10 @@ public class ScreenHandleComponentClickedMixin {
             return;
         }
         ClickEvent clickEvent = style.getClickEvent();
-        if (clickEvent == null || clickEvent.getAction() != ClickEvent.Action.RUN_COMMAND) {
+        if (!(clickEvent instanceof ClickEvent.RunCommand run)) {
             return;
         }
-        if (ForgeClientClickCommands.handle(clickEvent.getValue())) {
+        if (ForgeClientClickCommands.handle(run.command())) {
             cir.setReturnValue(true);
         }
     }

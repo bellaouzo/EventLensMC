@@ -11,11 +11,11 @@ final class FabricClientContext {
 
     static Optional<String> playerName() {
         LocalPlayer player = Minecraft.getInstance().player;
-        return player == null ? Optional.empty() : Optional.of(player.getGameProfile().getName());
+        return player == null ? Optional.empty() : Optional.of(player.getName().getString());
     }
 
     static Optional<String> worldName() {
         Level level = Minecraft.getInstance().level;
-        return level == null ? Optional.empty() : Optional.of(level.dimension().location().toString());
+        return level == null ? Optional.empty() : Optional.of(level.dimension().identifier().toString());
     }
 }

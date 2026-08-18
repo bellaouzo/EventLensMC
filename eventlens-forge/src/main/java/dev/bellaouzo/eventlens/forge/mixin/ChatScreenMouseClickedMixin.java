@@ -22,15 +22,15 @@ public class ChatScreenMouseClickedMixin {
         if (minecraft == null || minecraft.gui == null) {
             return;
         }
-        Style style = minecraft.gui.getChat().getClickedComponentStyleAt(mouseX, mouseY);
+        Style style = minecraft.gui.hud.getChat().getClickedComponentStyleAt(mouseX, mouseY);
         if (style == null || style.getClickEvent() == null) {
             return;
         }
         ClickEvent clickEvent = style.getClickEvent();
-        if (clickEvent.getAction() != ClickEvent.Action.RUN_COMMAND) {
+        if (!(clickEvent instanceof ClickEvent.RunCommand run)) {
             return;
         }
-        if (ForgeClientClickCommands.handle(clickEvent.getValue())) {
+        if (ForgeClientClickCommands.handle(run.command())) {
             cir.setReturnValue(true);
         }
     }

@@ -6,7 +6,7 @@ import dev.bellaouzo.eventlens.modcommon.ModTraceResults;
 import dev.bellaouzo.eventlens.modcommon.SupportedModEventTypes;
 import dev.bellaouzo.eventlens.modcommon.command.ModStatusHover;
 import java.util.List;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 
 final class EventLensHomeTab {
 
@@ -78,7 +78,7 @@ final class EventLensHomeTab {
         }
     }
 
-    static void render(EventLensScreen screen, GuiGraphics graphics, EventLensUi.Frame frame) {
+    static void render(EventLensScreen screen, GuiGraphicsExtractor graphics, EventLensUi.Frame frame) {
         ModTraceResults.Status status = screen.coordinator().status();
         int cardW = (frame.contentW() - 8) / 2;
         int x = frame.contentX();
@@ -122,7 +122,7 @@ final class EventLensHomeTab {
                 ModStatusHover.instrumentationLines(status));
         EventLensUi.section(graphics, screen.textFont(), "Live sessions", x, y + 102);
         if (status.sessions().isEmpty()) {
-            graphics.drawString(
+            graphics.text(
                     screen.textFont(),
                     "None yet. Open Events to start a trace.",
                     x,

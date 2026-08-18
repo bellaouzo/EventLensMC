@@ -56,7 +56,7 @@ public final class EventLensNotices {
     private static void chat(Component component) {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft != null && minecraft.player != null) {
-            minecraft.player.displayClientMessage(component, false);
+            minecraft.player.sendSystemMessage(component);
         }
     }
 
@@ -66,9 +66,9 @@ public final class EventLensNotices {
             MutableComponent piece = Component.literal(span.text());
             Style style = piece.getStyle().withColor(color(span.color()));
             if (span.clickKind() == ModChatClick.COPY && !span.clickValue().isBlank()) {
-                style = style.withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, span.clickValue()))
+                style = style.withClickEvent(new ClickEvent.CopyToClipboard(span.clickValue()))
                         .withHoverEvent(
-                                new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal(span.hoverText())));
+                                new HoverEvent.ShowText(Component.literal(span.hoverText())));
             }
             component.append(piece.withStyle(style));
         });

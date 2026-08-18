@@ -25,7 +25,7 @@ final class FabricToasts {
             return;
         }
         SystemToast.add(
-                minecraft.getToasts(),
+                minecraft.gui.toastManager(),
                 SystemToast.SystemToastId.PERIODIC_NOTIFICATION,
                 Component.literal("EventLens"),
                 Component.literal(message));

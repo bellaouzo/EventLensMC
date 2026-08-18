@@ -192,7 +192,7 @@ final class FabricClientCommands {
 
     private static String ownerName() {
         var player = Minecraft.getInstance().player;
-        return player == null ? "client" : player.getGameProfile().getName();
+        return player == null ? "client" : player.getName().getString();
     }
 
     private static SuggestionProvider<FabricClientCommandSource> suggestEvents() {

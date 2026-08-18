@@ -3,8 +3,9 @@ package dev.bellaouzo.eventlens.neoforge.ui;
 import dev.bellaouzo.eventlens.domain.trace.TraceSessionDetail;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.ObjectSelectionList;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 
 final class EventLensSessionTab {
@@ -69,7 +70,7 @@ final class EventLensSessionTab {
         list.reload(screen);
     }
 
-    static void render(EventLensScreen screen, GuiGraphics graphics, EventLensUi.Frame frame) {}
+    static void render(EventLensScreen screen, GuiGraphicsExtractor graphics, EventLensUi.Frame frame) {}
 
     private static final class LineList extends ObjectSelectionList<LineList.Entry> {
         private LineList(Minecraft minecraft, int width, int height, int y, int itemHeight) {
@@ -87,10 +88,10 @@ final class EventLensSessionTab {
         }
 
         @Override
-        protected void renderListBackground(GuiGraphics graphics) {}
+        protected void extractListBackground(GuiGraphicsExtractor graphics) {}
 
         @Override
-        protected void renderListSeparators(GuiGraphics graphics) {}
+        protected void extractListSeparators(GuiGraphicsExtractor graphics) {}
 
         @Override
         public int getRowWidth() {
@@ -103,7 +104,7 @@ final class EventLensSessionTab {
         }
 
         @Override
-        protected void renderSelection(GuiGraphics graphics, int top, int width, int height, int outer, int inner) {}
+        protected void extractSelection(GuiGraphicsExtractor graphics, Entry entry, int top) {}
 
         private final class Entry extends ObjectSelectionList.Entry<Entry> {
             private final EventLensSessionRows.Row row;
@@ -113,31 +114,25 @@ final class EventLensSessionTab {
             }
 
             @Override
-            public void render(
-                    GuiGraphics graphics,
-                    int index,
-                    int top,
-                    int left,
-                    int width,
-                    int height,
-                    int mouseX,
-                    int mouseY,
-                    boolean hovering,
-                    float partialTick) {
+            public void extractContent(
+                    GuiGraphicsExtractor graphics, int index, int top, boolean hovering, float partialTick) {
+                int left = getContentX();
+                int width = getContentWidth();
+                int height = getContentHeight();
                 boolean clickable = row.kind() == EventLensSessionRows.Kind.DISPATCH
                         || (row.kind() == EventLensSessionRows.Kind.TITLE && !row.peerSessionId().isBlank());
                 EventLensUi.rowSlot(graphics, getX(), LineList.this.width, top, height, false, hovering && clickable);
                 paint(graphics, minecraft.font, left, top, width, height);
             }
 
-            private void paint(GuiGraphics graphics, Font font, int left, int top, int width, int height) {
+            private void paint(GuiGraphicsExtractor graphics, Font font, int left, int top, int width, int height) {
                 int x = left + 6;
                 int y = top + 3;
                 switch (row.kind()) {
                     case TITLE -> {
-                        graphics.drawString(font, row.primary(), x, y, EventLensUi.LENS, false);
+                        graphics.text(font, row.primary(), x, y, EventLensUi.LENS, false);
                         int timeX = left + width - 8 - font.width(row.secondary());
-                        graphics.drawString(
+                        graphics.text(
                                 font,
                                 row.cancelled() ? row.secondary() + "  cancelled" : row.secondary(),
                                 timeX,
@@ -146,18 +141,18 @@ final class EventLensSessionTab {
                                 false);
                     }
                     case SECTION -> {
-                        graphics.drawString(font, row.primary(), x, y, EventLensUi.BRASS, false);
+                        graphics.text(font, row.primary(), x, y, EventLensUi.BRASS, false);
                         graphics.fill(x, top + height - 1, left + width - 6, top + height, EventLensUi.STEEL);
                     }
                     case FIELD -> {
-                        graphics.drawString(font, row.primary(), x, y, EventLensUi.DIM, false);
-                        graphics.drawString(
+                        graphics.text(font, row.primary(), x, y, EventLensUi.DIM, false);
+                        graphics.text(
                                 font, row.secondary(), x + Math.max(64, font.width(row.primary()) + 10), y, EventLensUi.PAPER, false);
                     }
                     case HANDLER -> {
                         int color = row.cancelled() ? EventLensUi.FAULT : EventLensUi.PAPER;
-                        graphics.drawString(font, row.primary(), x, y, color, false);
-                        graphics.drawString(
+                        graphics.text(font, row.primary(), x, y, color, false);
+                        graphics.text(
                                 font,
                                 row.cancelled() ? row.secondary() + "  cancelled" : row.secondary(),
                                 x + Math.max(72, font.width(row.primary()) + 10),
@@ -165,15 +160,15 @@ final class EventLensSessionTab {
                                 EventLensUi.DIM,
                                 false);
                     }
-                    case DISPATCH -> graphics.drawString(
+                    case DISPATCH -> graphics.text(
                             font, row.primary(), x, y, row.cancelled() ? EventLensUi.FAULT : EventLensUi.PAPER, false);
-                    case NOTE -> graphics.drawString(font, row.primary(), x, y, EventLensUi.DIM, false);
+                    case NOTE -> graphics.text(font, row.primary(), x, y, EventLensUi.DIM, false);
                 }
             }
 
             @Override
-            public boolean mouseClicked(double mouseX, double mouseY, int button) {
-                if (!(Minecraft.getInstance().screen instanceof EventLensScreen screen)) {
+            public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+                if (!(Minecraft.getInstance().gui.screen() instanceof EventLensScreen screen)) {
                     return false;
                 }
                 if (row.kind() == EventLensSessionRows.Kind.DISPATCH && row.sequence() >= 0) {

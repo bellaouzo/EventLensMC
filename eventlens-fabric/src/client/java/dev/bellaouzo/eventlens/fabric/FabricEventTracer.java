@@ -167,7 +167,7 @@ final class FabricEventTracer {
                         player.getAirSupply(),
                         player.experienceLevel,
                         player.totalExperience,
-                        player.getInventory().selected,
+                        player.getInventory().getSelectedSlot(),
                         player.isSprinting(),
                         player.isShiftKeyDown(),
                         player.onGround(),
@@ -186,8 +186,8 @@ final class FabricEventTracer {
             return;
         }
         recorder.recordMoveIfChanged(
-                player.getGameProfile().getName(),
-                level.dimension().location().toString(),
+                player.getName().getString(),
+                level.dimension().identifier().toString(),
                 player.getX(),
                 player.getY(),
                 player.getZ(),
@@ -197,11 +197,11 @@ final class FabricEventTracer {
 
     private static Optional<String> playerName() {
         LocalPlayer player = Minecraft.getInstance().player;
-        return player == null ? Optional.empty() : Optional.of(player.getGameProfile().getName());
+        return player == null ? Optional.empty() : Optional.of(player.getName().getString());
     }
 
     private static Optional<String> worldName() {
         Level level = Minecraft.getInstance().level;
-        return level == null ? Optional.empty() : Optional.of(level.dimension().location().toString());
+        return level == null ? Optional.empty() : Optional.of(level.dimension().identifier().toString());
     }
 }

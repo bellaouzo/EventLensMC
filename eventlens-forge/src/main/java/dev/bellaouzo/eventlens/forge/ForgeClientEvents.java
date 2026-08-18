@@ -1,7 +1,7 @@
 package dev.bellaouzo.eventlens.forge;
 
 import dev.bellaouzo.eventlens.neoforge.ui.EventLensHudOverlay;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraftforge.client.event.AddGuiOverlayLayersEvent;
 import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
 
@@ -16,6 +16,6 @@ public final class ForgeClientEvents {
 
     public static void registerHud(AddGuiOverlayLayersEvent event) {
         event.getLayeredDraw()
-                .add(ResourceLocation.fromNamespaceAndPath(EventLensForgeMod.MOD_ID, "hud"), EventLensHudOverlay::render);
+                .add(Identifier.fromNamespaceAndPath(EventLensForgeMod.MOD_ID, "hud"), EventLensHudOverlay::render);
     }
 }

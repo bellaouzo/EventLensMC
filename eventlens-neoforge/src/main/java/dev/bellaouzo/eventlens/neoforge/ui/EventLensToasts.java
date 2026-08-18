@@ -21,10 +21,9 @@ public final class EventLensToasts {
             return false;
         }
         ClickEvent clickEvent = style.getClickEvent();
-        if (clickEvent.getAction() != ClickEvent.Action.COPY_TO_CLIPBOARD) {
-            return false;
-        }
-        if (clickEvent.getValue() == null || clickEvent.getValue().isBlank()) {
+        if (!(clickEvent instanceof ClickEvent.CopyToClipboard copy)
+                || copy.value() == null
+                || copy.value().isBlank()) {
             return false;
         }
         copied();
@@ -44,7 +43,7 @@ public final class EventLensToasts {
             return;
         }
         SystemToast.add(
-                minecraft.getToasts(),
+                minecraft.gui.toastManager(),
                 SystemToast.SystemToastId.PERIODIC_NOTIFICATION,
                 Component.literal(title),
                 Component.literal(fit(message)));

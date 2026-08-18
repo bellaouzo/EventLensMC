@@ -11,7 +11,6 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.client.event.ClientPauseChangeEvent;
 import net.neoforged.neoforge.client.event.ClientPlayerChangeGameTypeEvent;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
-import net.neoforged.neoforge.client.event.RecipesUpdatedEvent;
 import net.neoforged.neoforge.client.event.ScreenshotEvent;
 import net.neoforged.neoforge.client.event.ToastAddEvent;
 import net.neoforged.neoforge.client.event.sound.PlaySoundEvent;
@@ -103,16 +102,6 @@ public final class NeoForgeWorldTracer {
     }
 
     @SubscribeEvent
-    public void onRecipes(RecipesUpdatedEvent event) {
-        recorder.recordImmediate(
-                SupportedModEventTypes.CLIENT_RECIPES_UPDATED_EVENT,
-                List.of(),
-                NeoForgeClientContext.playerName(),
-                NeoForgeClientContext.worldName(),
-                event);
-    }
-
-    @SubscribeEvent
     public void onEntityJoin(EntityJoinLevelEvent event) {
         if (!event.getLevel().isClientSide()) {
             return;
@@ -151,7 +140,7 @@ public final class NeoForgeWorldTracer {
         }
         recorder.recordImmediate(
                 SupportedModEventTypes.CLIENT_WORLD_TICK_EVENT,
-                List.of(ModSnapshotFields.text("dimension", event.getLevel().dimension().location().toString())),
+                List.of(ModSnapshotFields.text("dimension", event.getLevel().dimension().identifier().toString())),
                 NeoForgeClientContext.playerName(),
                 NeoForgeClientContext.worldName(),
                 event);
@@ -185,8 +174,8 @@ public final class NeoForgeWorldTracer {
         recorder.recordImmediate(
                 type,
                 List.of(
-                        ModSnapshotFields.number("chunkX", chunk.getPos().x),
-                        ModSnapshotFields.number("chunkZ", chunk.getPos().z)),
+                        ModSnapshotFields.number("chunkX", chunk.getPos().x()),
+                        ModSnapshotFields.number("chunkZ", chunk.getPos().z())),
                 NeoForgeClientContext.playerName(),
                 NeoForgeClientContext.worldName(),
                 event);

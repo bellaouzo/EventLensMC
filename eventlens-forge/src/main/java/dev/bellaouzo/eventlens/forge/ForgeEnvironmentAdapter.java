@@ -4,10 +4,9 @@ import dev.bellaouzo.eventlens.domain.runtime.ModRuntimeKind;
 import dev.bellaouzo.eventlens.modcommon.port.ModEnvironmentPort;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import net.minecraft.SharedConstants;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.fml.loading.FMLLoader;
-import net.minecraftforge.versions.forge.ForgeVersion;
 
 public final class ForgeEnvironmentAdapter implements ModEnvironmentPort {
 
@@ -24,7 +23,10 @@ public final class ForgeEnvironmentAdapter implements ModEnvironmentPort {
 
     @Override
     public String loaderVersion() {
-        return ForgeVersion.getVersion();
+        return ModList.get()
+                .getModContainerById("forge")
+                .map(container -> container.getModInfo().getVersion().toString())
+                .orElse("unknown");
     }
 
     @Override
@@ -46,7 +48,7 @@ public final class ForgeEnvironmentAdapter implements ModEnvironmentPort {
 
     @Override
     public String minecraftVersion() {
-        return FMLLoader.versionInfo().mcVersion();
+        return SharedConstants.getCurrentVersion().name();
     }
 
     @Override

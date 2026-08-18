@@ -7,9 +7,10 @@ import dev.bellaouzo.eventlens.modcommon.SupportedModEventTypes;
 import java.util.List;
 import java.util.Optional;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.ObjectSelectionList;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 
 final class EventLensSessionsTab {
@@ -135,10 +136,10 @@ final class EventLensSessionsTab {
         }
 
         @Override
-        protected void renderListBackground(GuiGraphics graphics) {}
+        protected void extractListBackground(GuiGraphicsExtractor graphics) {}
 
         @Override
-        protected void renderListSeparators(GuiGraphics graphics) {}
+        protected void extractListSeparators(GuiGraphicsExtractor graphics) {}
 
         @Override
         public int getRowWidth() {
@@ -153,21 +154,15 @@ final class EventLensSessionsTab {
             }
 
             @Override
-            public void render(
-                    GuiGraphics graphics,
-                    int index,
-                    int top,
-                    int left,
-                    int width,
-                    int height,
-                    int mouseX,
-                    int mouseY,
-                    boolean hovering,
-                    float partialTick) {
+            public void extractContent(
+                    GuiGraphicsExtractor graphics, int index, int top, boolean hovering, float partialTick) {
+                int left = getContentX();
+                int width = getContentWidth();
+                int height = getContentHeight();
                 boolean on = session.sessionId().equals(selected);
                 EventLensUi.row(graphics, left, top, width, height, on, hovering);
                 String event = SupportedModEventTypes.displaySimpleName(session.eventClassName());
-                graphics.drawString(
+                graphics.text(
                         minecraft.font,
                         EventLensUi.sessionLabel(session),
                         left + 6,
@@ -182,14 +177,14 @@ final class EventLensSessionsTab {
                         + "  ·  "
                         + session.capturedEvents()
                         + " captured";
-                graphics.drawString(minecraft.font, stateLine, left + 6, top + 16, stateColor, false);
+                graphics.text(minecraft.font, stateLine, left + 6, top + 16, stateColor, false);
             }
 
             @Override
-            public boolean mouseClicked(double mouseX, double mouseY, int button) {
+            public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
                 selected = session.sessionId();
                 setSelected(this);
-                if (Minecraft.getInstance().screen instanceof EventLensScreen screen) {
+                if (Minecraft.getInstance().gui.screen() instanceof EventLensScreen screen) {
                     updatePauseButton(screen);
                     if (EventLensUi.doubleClicked(session.sessionId())) {
                         screen.showSession(session.sessionId());

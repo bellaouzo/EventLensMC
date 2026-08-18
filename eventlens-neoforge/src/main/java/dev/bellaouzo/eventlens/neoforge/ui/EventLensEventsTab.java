@@ -8,9 +8,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.ObjectSelectionList;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 
 final class EventLensEventsTab {
@@ -94,7 +95,7 @@ final class EventLensEventsTab {
         if (minecraft.player == null) {
             return "client";
         }
-        return minecraft.player.getGameProfile().getName();
+        return minecraft.player.getName().getString();
     }
 
     private static int otherMods(EventLensScreen screen, String name) {
@@ -129,10 +130,10 @@ final class EventLensEventsTab {
         }
 
         @Override
-        protected void renderListBackground(GuiGraphics graphics) {}
+        protected void extractListBackground(GuiGraphicsExtractor graphics) {}
 
         @Override
-        protected void renderListSeparators(GuiGraphics graphics) {}
+        protected void extractListSeparators(GuiGraphicsExtractor graphics) {}
 
         @Override
         public int getRowWidth() {
@@ -147,22 +148,16 @@ final class EventLensEventsTab {
             }
 
             @Override
-            public void render(
-                    GuiGraphics graphics,
-                    int index,
-                    int top,
-                    int left,
-                    int width,
-                    int height,
-                    int mouseX,
-                    int mouseY,
-                    boolean hovering,
-                    float partialTick) {
+            public void extractContent(
+                    GuiGraphicsExtractor graphics, int index, int top, boolean hovering, float partialTick) {
+                int left = getContentX();
+                int width = getContentWidth();
+                int height = getContentHeight();
                 EventLensUi.row(graphics, left, top, width, height, name.equals(selected), hovering);
                 boolean hot = SupportedModEventTypes.isHot(name);
                 int title = name.equals(selected) ? EventLensUi.LENS : EventLensUi.PAPER;
-                graphics.drawString(minecraft.font, name, left + 6, top + 4, title, false);
-                EventLensScreen screen = Minecraft.getInstance().screen instanceof EventLensScreen current
+                graphics.text(minecraft.font, name, left + 6, top + 4, title, false);
+                EventLensScreen screen = Minecraft.getInstance().gui.screen() instanceof EventLensScreen current
                         ? current
                         : null;
                 int mods = screen == null ? 0 : otherMods(screen, name);
@@ -175,18 +170,18 @@ final class EventLensEventsTab {
                 } else if (mods == 1) {
                     detail = "1 mod  ·  " + detail;
                 }
-                graphics.drawString(minecraft.font, detail, left + 6, top + 16, EventLensUi.DIM, false);
+                graphics.text(minecraft.font, detail, left + 6, top + 16, EventLensUi.DIM, false);
             }
 
             @Override
-            public boolean mouseClicked(double mouseX, double mouseY, int button) {
+            public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
                 selected = name;
                 confirmHot = false;
                 setSelected(this);
                 if (startButton != null) {
                     startButton.setMessage(Component.literal(startLabel()));
                 }
-                if (EventLensUi.doubleClicked(name) && Minecraft.getInstance().screen instanceof EventLensScreen screen) {
+                if (EventLensUi.doubleClicked(name) && Minecraft.getInstance().gui.screen() instanceof EventLensScreen screen) {
                     start(screen);
                 }
                 return true;

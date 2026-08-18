@@ -201,8 +201,8 @@ public final class NeoForgeEventTracer {
             return;
         }
         recorder.recordMoveIfChanged(
-                player.getGameProfile().getName(),
-                level.dimension().location().toString(),
+                player.getName().getString(),
+                level.dimension().identifier().toString(),
                 player.getX(),
                 player.getY(),
                 player.getZ(),

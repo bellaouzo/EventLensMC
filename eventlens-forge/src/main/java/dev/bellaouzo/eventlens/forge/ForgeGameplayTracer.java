@@ -73,22 +73,6 @@ public final class ForgeGameplayTracer {
     }
 
     @SubscribeEvent
-    public void onUseEntityAt(PlayerInteractEvent.EntityInteractSpecific event) {
-        if (!event.getLevel().isClientSide()) {
-            return;
-        }
-        recorder.recordImmediate(
-                SupportedModEventTypes.CLIENT_USE_ENTITY_AT_EVENT,
-                List.of(
-                        ModSnapshotFields.text("hand", event.getHand().name()),
-                        ModSnapshotFields.text("target", event.getTarget().getName().getString()),
-                        ModSnapshotFields.text("targetType", event.getTarget().getType().toShortString())),
-                ForgeClientContext.playerName(),
-                ForgeClientContext.worldName(),
-                event);
-    }
-
-    @SubscribeEvent
     public void onUseItemFinish(LivingEntityUseItemEvent.Finish event) {
         if (!event.getEntity().level().isClientSide()) {
             return;

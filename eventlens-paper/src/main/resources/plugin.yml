@@ -2,8 +2,10 @@ name: EventLens
 version: '${version}'
 main: dev.bellaouzo.eventlens.EventLens
 api-version: '1.21'
-description: Diagnose how server events travel through registered plugin listeners.
+folia-supported: false
+description: Preview diagnostics plugin for how server events travel through listeners.
 author: bellaouzo
+website: https://github.com/bellaouzo/EventLensMC
 
 commands:
   eventlens:

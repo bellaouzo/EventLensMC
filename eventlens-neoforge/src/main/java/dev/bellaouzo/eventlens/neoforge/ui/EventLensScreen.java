@@ -5,7 +5,7 @@ import dev.bellaouzo.eventlens.modcommon.ModTraceResults;
 import java.util.Optional;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
@@ -36,7 +36,7 @@ public final class EventLensScreen extends Screen {
         screen.restoreLocation();
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft != null) {
-            minecraft.setScreen(screen);
+            minecraft.gui.setScreen(screen);
         }
     }
 
@@ -47,12 +47,12 @@ public final class EventLensScreen extends Screen {
         screen.persistLocation();
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft != null) {
-            minecraft.setScreen(screen);
+            minecraft.gui.setScreen(screen);
         }
     }
 
     public static boolean isOpen() {
-        return Minecraft.getInstance().screen instanceof EventLensScreen;
+        return Minecraft.getInstance().gui.screen() instanceof EventLensScreen;
     }
 
     @Override
@@ -218,7 +218,7 @@ public final class EventLensScreen extends Screen {
     }
 
     @Override
-    public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+    public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         EventLensUi.dimWorld(graphics, width, height);
         EventLensUi.panel(graphics, frame);
         if (tab != Tab.HOME) {
@@ -227,8 +227,8 @@ public final class EventLensScreen extends Screen {
     }
 
     @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        super.render(graphics, mouseX, mouseY, partialTick);
+    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+        super.extractRenderState(graphics, mouseX, mouseY, partialTick);
         ModTraceResults.Status status = coordinator().status();
         EventLensUi.beginHits();
         EventLensUi.header(graphics, font, frame, status);

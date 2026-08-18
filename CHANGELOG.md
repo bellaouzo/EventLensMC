@@ -5,6 +5,29 @@ All notable changes to EventLens are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.10.2-beta] - 2026-08-18
+
+### Added
+
+- Public **preview/beta** release targeting **Paper 26.2** and **NeoForge 26.2** client mod
+- GitHub pre-release ships the Paper plugin JAR and NeoForge client mod JAR
+
+### Changed
+
+- Paper `runServer`, `runServerDebug`, and CI smoke test auto-accept the Minecraft EULA for headless runs
+- Client UI ported to Minecraft **26.2** GUI APIs (`GuiGraphicsExtractor`, `Identifier`, `gui.screen()`, etc.)
+- NeoForge correlation packets send via `ServerboundCustomPayloadPacket`
+
+### Fixed
+
+- CI `paperSmokeTest` no longer fails when `run/eula.txt` is missing
+
+### Known limitations (preview)
+
+- **Forge** and **Fabric** 26.2 ports are in progress and excluded from the default Gradle `check` / `build` until they compile again
+- Client Java agent remains NeoForge/Forge only; Fabric agent is still deferred
+- Removed handlers for NeoForge events dropped in 26.2 (`EntityInteractSpecific`, `RecipesUpdatedEvent`)
+
 ## [1.10.1] - 2026-08-18
 
 ### Fixed

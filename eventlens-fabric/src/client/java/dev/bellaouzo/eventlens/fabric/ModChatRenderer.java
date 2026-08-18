@@ -27,13 +27,13 @@ final class ModChatRenderer {
                 style = style.withUnderlined(true);
             }
             if (span.clickKind() == ModChatClick.RUN_COMMAND && !span.clickValue().isBlank()) {
-                style = style.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, span.clickValue()));
+                style = style.withClickEvent(new ClickEvent.RunCommand(span.clickValue()));
             } else if (span.clickKind() == ModChatClick.COPY && !span.clickValue().isBlank()) {
-                style = style.withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, span.clickValue()));
+                style = style.withClickEvent(new ClickEvent.CopyToClipboard(span.clickValue()));
             }
             if (!span.hoverText().isBlank()) {
                 style = style.withHoverEvent(
-                        new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal(span.hoverText())));
+                        new HoverEvent.ShowText(Component.literal(span.hoverText())));
             }
             component.append(piece.withStyle(style));
         }

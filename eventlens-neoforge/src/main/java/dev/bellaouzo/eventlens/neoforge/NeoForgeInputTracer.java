@@ -5,7 +5,8 @@ import dev.bellaouzo.eventlens.modcommon.ModDispatchRecorder;
 import dev.bellaouzo.eventlens.modcommon.ModSnapshotFields;
 import dev.bellaouzo.eventlens.modcommon.SupportedModEventTypes;
 import java.util.List;
-import net.minecraft.client.player.Input;
+import net.minecraft.client.player.ClientInput;
+import net.minecraft.world.entity.player.Input;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.client.event.InputEvent;
 import net.neoforged.neoforge.client.event.MovementInputUpdateEvent;
@@ -75,14 +76,15 @@ public final class NeoForgeInputTracer {
 
     @SubscribeEvent
     public void onMovementInput(MovementInputUpdateEvent event) {
-        Input input = event.getInput();
+        ClientInput input = event.getInput();
+        Input keys = input.keyPresses;
         recorder.recordImmediate(
                 SupportedModEventTypes.CLIENT_MOVEMENT_INPUT_EVENT,
                 List.of(
-                        ModSnapshotFields.number("forward", input.forwardImpulse),
-                        ModSnapshotFields.number("strafe", input.leftImpulse),
-                        ModSnapshotFields.bool("jump", input.jumping),
-                        ModSnapshotFields.bool("sneak", input.shiftKeyDown)),
+                        ModSnapshotFields.number("forward", input.getMoveVector().y),
+                        ModSnapshotFields.number("strafe", input.getMoveVector().x),
+                        ModSnapshotFields.bool("jump", keys.jump()),
+                        ModSnapshotFields.bool("sneak", keys.shift())),
                 NeoForgeClientContext.playerName(),
                 NeoForgeClientContext.worldName(),
                 event);

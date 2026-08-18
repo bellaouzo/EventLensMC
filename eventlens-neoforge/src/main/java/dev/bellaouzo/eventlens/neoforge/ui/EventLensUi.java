@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.function.Consumer;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.network.chat.Component;
 
@@ -76,21 +76,21 @@ final class EventLensUi {
                 footerY);
     }
 
-    static void dimWorld(GuiGraphics graphics, int screenW, int screenH) {
+    static void dimWorld(GuiGraphicsExtractor graphics, int screenW, int screenH) {
         graphics.fill(0, 0, screenW, screenH, DIM_WORLD);
     }
 
-    static void panel(GuiGraphics graphics, Frame frame) {
+    static void panel(GuiGraphicsExtractor graphics, Frame frame) {
         graphics.fill(frame.x + 3, frame.y + 3, frame.x + frame.width + 3, frame.y + frame.height + 3, 0x66000000);
         graphics.fill(frame.x, frame.y, frame.x + frame.width, frame.y + frame.height, INK);
-        graphics.renderOutline(frame.x, frame.y, frame.width, frame.height, STEEL);
+        graphics.outline(frame.x, frame.y, frame.width, frame.height, STEEL);
         graphics.fill(frame.x + 1, frame.y + 1, frame.x + frame.width - 1, frame.y + 2, HIGHLIGHT);
         graphics.fill(frame.x + 1, frame.y + frame.height - 2, frame.x + frame.width - 1, frame.y + frame.height - 1, SHADOW);
         graphics.fill(frame.x + 1, frame.y + 24, frame.x + frame.width - 1, frame.y + 25, STEEL);
         graphics.fill(frame.x + 1, frame.footerY - 6, frame.x + frame.width - 1, frame.footerY - 5, STEEL);
     }
 
-    static void well(GuiGraphics graphics, int x, int y, int width, int height) {
+    static void well(GuiGraphicsExtractor graphics, int x, int y, int width, int height) {
         graphics.fill(x, y, x + width, y + height, WELL);
         graphics.fill(x, y, x + width, y + 1, SHADOW);
         graphics.fill(x, y, x + 1, y + height, SHADOW);
@@ -110,17 +110,17 @@ final class EventLensUi {
         hits.add(new Hit(x, y, width, height, components));
     }
 
-    static void renderHover(GuiGraphics graphics, Font font, int mouseX, int mouseY) {
+    static void renderHover(GuiGraphicsExtractor graphics, Font font, int mouseX, int mouseY) {
         for (Hit hit : hits) {
             if (hit.contains(mouseX, mouseY)) {
-                graphics.renderComponentTooltip(font, hit.lines(), mouseX, mouseY);
+                graphics.setComponentTooltipForNextFrame(font, hit.lines(), mouseX, mouseY);
                 return;
             }
         }
     }
 
-    static void header(GuiGraphics graphics, Font font, Frame frame, ModTraceResults.Status status) {
-        graphics.drawString(font, "EventLens", frame.x + 12, frame.y + 8, PAPER, false);
+    static void header(GuiGraphicsExtractor graphics, Font font, Frame frame, ModTraceResults.Status status) {
+        graphics.text(font, "EventLens", frame.x + 12, frame.y + 8, PAPER, false);
         int pillX = frame.x + frame.width - 12;
         String agentLabel = status.agentPresent() ? "precise" : "dispatch";
         int agentW = pill(
@@ -142,20 +142,20 @@ final class EventLensUi {
     }
 
     static int pill(
-            GuiGraphics graphics, Font font, int x, int y, String text, int fill, int ink, boolean rightAlign) {
+            GuiGraphicsExtractor graphics, Font font, int x, int y, String text, int fill, int ink, boolean rightAlign) {
         int width = font.width(text) + 10;
         int left = rightAlign ? x - width : x;
         graphics.fill(left, y, left + width, y + 13, fill);
-        graphics.renderOutline(left, y, width, 13, 0x44000000);
-        graphics.drawString(font, text, left + 5, y + 3, ink, false);
+        graphics.outline(left, y, width, 13, 0x44000000);
+        graphics.text(font, text, left + 5, y + 3, ink, false);
         return width;
     }
 
-    static void tabUnderline(GuiGraphics graphics, int x, int y, int width) {
+    static void tabUnderline(GuiGraphicsExtractor graphics, int x, int y, int width) {
         graphics.fill(x, y + 19, x + width, y + 21, LENS);
     }
 
-    static void row(GuiGraphics graphics, int x, int y, int width, int height, boolean selected, boolean hovering) {
+    static void row(GuiGraphicsExtractor graphics, int x, int y, int width, int height, boolean selected, boolean hovering) {
         if (selected) {
             graphics.fill(x, y, x + width, y + height, ROW);
         } else if (hovering) {
@@ -163,7 +163,7 @@ final class EventLensUi {
         }
     }
 
-    static void rowSlot(GuiGraphics graphics, int listX, int listW, int top, int rowH, boolean selected, boolean hovering) {
+    static void rowSlot(GuiGraphicsExtractor graphics, int listX, int listW, int top, int rowH, boolean selected, boolean hovering) {
         if (!selected && !hovering) {
             return;
         }
@@ -171,7 +171,7 @@ final class EventLensUi {
     }
 
     static void card(
-            GuiGraphics graphics,
+            GuiGraphicsExtractor graphics,
             Font font,
             int x,
             int y,
@@ -182,8 +182,8 @@ final class EventLensUi {
             int valueColor,
             List<String> tooltip) {
         well(graphics, x, y, width, height);
-        graphics.drawString(font, label, x + 8, y + 8, DIM, false);
-        graphics.drawString(font, value, x + 8, y + 22, valueColor, false);
+        graphics.text(font, label, x + 8, y + 8, DIM, false);
+        graphics.text(font, value, x + 8, y + 22, valueColor, false);
         if (tooltip != null && !tooltip.isEmpty()) {
             addHit(x, y, width, height, tooltip);
         }
@@ -196,8 +196,8 @@ final class EventLensUi {
         return session.sessionId() + "  " + session.restartBadge();
     }
 
-    static void section(GuiGraphics graphics, Font font, String title, int x, int y) {
-        graphics.drawString(font, title, x, y, BRASS, false);
+    static void section(GuiGraphicsExtractor graphics, Font font, String title, int x, int y) {
+        graphics.text(font, title, x, y, BRASS, false);
     }
 
     static int footerX(Frame frame, int index, int count, int buttonW) {
