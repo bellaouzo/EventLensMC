@@ -62,8 +62,8 @@ final class StatusCommandActions {
                                     NamedTextColor.GRAY)))));
             actions.add(Component.text("[Agent guide]", NamedTextColor.AQUA)
                     .clickEvent(ClickEvent.copyToClipboard(AgentInstallHints.README_URL))
-                    .hoverEvent(HoverEvent.showText(Component.text(
-                            "Copy README link with Java agent install steps.", NamedTextColor.GRAY))));
+                    .hoverEvent(HoverEvent.showText(
+                            Component.text("Copy README link with Java agent install steps.", NamedTextColor.GRAY))));
         } else {
             status.agentArgument()
                     .ifPresent(argument -> actions.add(Component.text("[Copy JVM arg]", NamedTextColor.AQUA)

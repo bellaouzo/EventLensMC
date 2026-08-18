@@ -102,6 +102,8 @@ Development `runServer` / `runServerDebug` attach the Paper agent automatically.
 
 ### Client agent (NeoForge and Forge only)
 
+> **Do not put `eventlens-client-agent-*.jar` in `mods/`.** Launchers report it as “not a valid mod file” because it is a **Java agent**, not a mod. Only `eventlens-neoforge` / `eventlens-forge` / `eventlens-fabric` belong in `mods/`. The agent loads through **launcher JVM arguments** (`-javaagent:`).
+
 1. Download `eventlens-client-agent-1.10.5-beta.jar` and `eventlens-observability-1.10.5-beta.jar` from releases.
 2. Put **both** jars in the **same folder** (for example a `agents/` folder you point the launcher at).
 3. Add to your **Minecraft launcher JVM arguments**:

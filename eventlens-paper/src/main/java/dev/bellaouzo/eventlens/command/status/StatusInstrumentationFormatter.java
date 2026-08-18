@@ -77,14 +77,12 @@ final class StatusInstrumentationFormatter {
         sender.sendMessage(Component.text("  JVM arg: ", NamedTextColor.GRAY)
                 .append(Component.text(suggested, NamedTextColor.AQUA)
                         .clickEvent(ClickEvent.copyToClipboard(suggested))
-                        .hoverEvent(net.kyori.adventure.text.event.HoverEvent.showText(
-                                Component.text("Click to copy. Add to Paper startup, then restart.", NamedTextColor.GRAY)))));
+                        .hoverEvent(net.kyori.adventure.text.event.HoverEvent.showText(Component.text(
+                                "Click to copy. Add to Paper startup, then restart.", NamedTextColor.GRAY)))));
         sender.sendMessage(Component.text(
-                "  Download eventlens-agent-" + status.version() + ".jar from GitHub releases.",
-                NamedTextColor.GRAY));
+                "  Download eventlens-agent-" + status.version() + ".jar from GitHub releases.", NamedTextColor.GRAY));
         sender.sendMessage(Component.text(
-                "  Restart the server (stop, then start). Status should show precise.",
-                NamedTextColor.GRAY));
+                "  Restart the server (stop, then start). Status should show precise.", NamedTextColor.GRAY));
         sender.sendMessage(Component.text("  Guide: ", NamedTextColor.GRAY)
                 .append(Component.text(AgentInstallHints.README_URL, NamedTextColor.AQUA)
                         .clickEvent(ClickEvent.copyToClipboard(AgentInstallHints.README_URL))

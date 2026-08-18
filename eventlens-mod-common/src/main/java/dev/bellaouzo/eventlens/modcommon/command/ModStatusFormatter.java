@@ -73,13 +73,16 @@ public final class ModStatusFormatter {
     private static List<ModChatLine> agentSetupLines(ModTraceResults.Status status, ModRuntimeKind runtimeKind) {
         List<ModChatLine> lines = new ArrayList<>();
         lines.add(ModChatLine.text("Client agent not attached — per-mod handler timing unavailable.", ModChatColor.YELLOW));
+        lines.add(ModChatLine.text(
+                "Do NOT put eventlens-client-agent in mods/ — launchers reject it as not a mod.",
+                ModChatColor.RED));
         if (runtimeKind == ModRuntimeKind.FABRIC) {
             lines.add(ModChatLine.text(
                     "Fabric client agent is not supported yet. Dispatch timing still works.", ModChatColor.GRAY));
         } else {
             String jvmArg = AgentInstallHints.clientJvmArgument(status.version());
             lines.add(ModChatLine.builder()
-                    .add("Launcher JVM arg: ", ModChatColor.WHITE)
+                    .add("Launcher JVM arg (not mods/): ", ModChatColor.WHITE)
                     .copy(jvmArg, ModChatColor.AQUA, jvmArg, "Copy client -javaagent argument")
                     .build());
             lines.add(ModChatLine.text(

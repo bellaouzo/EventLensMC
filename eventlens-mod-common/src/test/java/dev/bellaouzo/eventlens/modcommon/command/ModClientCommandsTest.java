@@ -48,7 +48,7 @@ class ModClientCommandsTest {
         assertTrue(lines.stream().anyMatch(line -> contains(line, "[Sessions]")));
         assertTrue(lines.stream().anyMatch(line -> contains(line, "[Open UI]")));
         assertTrue(lines.stream().anyMatch(line -> contains(line, "dispatch-only")));
-        assertTrue(lines.stream().anyMatch(line -> contains(line, "Client agent not attached")));
+        assertTrue(lines.stream().anyMatch(line -> contains(line, "Do NOT put")));
         assertTrue(lines.stream().anyMatch(line -> contains(line, "[Copy JVM arg]") || contains(line, "[Agent guide]")));
     }
 

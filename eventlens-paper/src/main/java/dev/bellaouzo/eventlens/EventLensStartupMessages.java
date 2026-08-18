@@ -17,8 +17,7 @@ final class EventLensStartupMessages {
         } else {
             plugin.getLogger()
                     .warning("EventLens agent not detected. Per-listener timing unavailable; dispatch timing only.");
-            plugin.getLogger()
-                    .warning("Run /eventlens status for JVM args, or see " + AgentInstallHints.README_URL);
+            plugin.getLogger().warning("Run /eventlens status for JVM args, or see " + AgentInstallHints.README_URL);
         }
         plugin.getLogger()
                 .info(() -> "EventLens v" + plugin.getPluginMeta().getVersion()

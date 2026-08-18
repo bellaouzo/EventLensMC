@@ -8,6 +8,8 @@ public final class AgentInstallHints {
 
     public static final String README_URL = "https://github.com/bellaouzo/EventLensMC#java-agents-optional";
 
+    private static final String SETUP_GUIDE_PREFIX = "Setup guide: ";
+
     private AgentInstallHints() {}
 
     public static String paperJvmArgument(String version) {
@@ -30,7 +32,7 @@ public final class AgentInstallHints {
         lines.add("Download eventlens-agent-" + version + ".jar from GitHub releases.");
         lines.add("Restart the server (stop, then start — not /reload).");
         lines.add("/eventlens status should show agent: attached and mode: precise.");
-        lines.add("Setup guide: " + README_URL);
+        lines.add(SETUP_GUIDE_PREFIX + README_URL);
         return List.copyOf(lines);
     }
 
@@ -40,15 +42,16 @@ public final class AgentInstallHints {
                     "Client agent not attached — dispatch timing only.",
                     "Fabric client agent is not supported yet.",
                     "NeoForge and Forge can use the client Java agent for per-mod timing.",
-                    "Setup guide: " + README_URL);
+                    SETUP_GUIDE_PREFIX + README_URL);
         }
         List<String> lines = new ArrayList<>();
         lines.add("Client agent not attached — per-mod handler timing unavailable.");
-        lines.add("Add to your Minecraft launcher JVM args:");
+        lines.add("Do NOT put the client agent jar in mods/ — it is not a mod file.");
+        lines.add("Add to your Minecraft launcher JVM args (not mods/):");
         lines.add(clientJvmArgument(version));
         lines.add("Place " + observabilityJarName(version) + " in the same folder as the agent jar.");
         lines.add("Restart the client. /eventlens status should show precise.");
-        lines.add("Setup guide: " + README_URL);
+        lines.add(SETUP_GUIDE_PREFIX + README_URL);
         return List.copyOf(lines);
     }
 }

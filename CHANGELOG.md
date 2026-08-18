@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.10.5-beta] - 2026-08-18
 
+### Fixed
+
+- Status and README now warn explicitly that the client agent jar must **not** go in `mods/` (use launcher `-javaagent:` instead)
+
 ### Changed
 
 - README adds a dedicated **[Java agents](#java-agents-optional)** section with copy-paste JVM args and release download steps (no longer buried in collapsed blocks)

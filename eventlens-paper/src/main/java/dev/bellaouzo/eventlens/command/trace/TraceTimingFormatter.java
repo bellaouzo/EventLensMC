@@ -3,11 +3,11 @@ package dev.bellaouzo.eventlens.command.trace;
 import dev.bellaouzo.eventlens.application.ListenerChangeAnalyzer;
 import dev.bellaouzo.eventlens.application.SessionTimingAnalyzer;
 import dev.bellaouzo.eventlens.application.TraceDispatchAnalyzer;
+import dev.bellaouzo.eventlens.domain.instrumentation.AgentInstallHints;
 import dev.bellaouzo.eventlens.domain.observability.DurationStats;
 import dev.bellaouzo.eventlens.domain.observability.RankedListenerTiming;
 import dev.bellaouzo.eventlens.domain.observability.RankedPluginTiming;
 import dev.bellaouzo.eventlens.domain.observability.SessionTimingSummary;
-import dev.bellaouzo.eventlens.domain.instrumentation.AgentInstallHints;
 import dev.bellaouzo.eventlens.domain.trace.ListenerTimingRecord;
 import dev.bellaouzo.eventlens.domain.trace.TraceDispatchRecord;
 import dev.bellaouzo.eventlens.domain.trace.TracePartialReason;
@@ -65,8 +65,7 @@ public final class TraceTimingFormatter {
             sender.sendMessage(Component.text(
                     "Per-listener timing needs the Paper Java agent. Run /eventlens status for JVM args.",
                     NamedTextColor.RED));
-            sender.sendMessage(Component.text(
-                    "Install guide: " + AgentInstallHints.README_URL, NamedTextColor.GRAY));
+            sender.sendMessage(Component.text("Install guide: " + AgentInstallHints.README_URL, NamedTextColor.GRAY));
         }
 
         if (timing.sessionPartialReasons().contains(TracePartialReason.THROTTLED)) {
