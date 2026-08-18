@@ -116,12 +116,12 @@ function traceEntryFromDispatch(dispatch: TraceDispatch): RecentTraceEntry {
 
 export function statusLabel(status: 'critical' | 'warn' | 'ok'): string {
   if (status === 'critical') {
-    return 'critical';
+    return 'CRITICAL';
   }
   if (status === 'warn') {
-    return 'warn';
+    return 'WARN';
   }
-  return 'ok';
+  return 'OK';
 }
 
 export function formatTickPercent(nanos: number): string {

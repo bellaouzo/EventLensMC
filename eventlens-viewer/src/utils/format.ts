@@ -9,7 +9,18 @@ export function formatNanos(nanos: number): string {
 }
 
 export function formatMillis(nanos: number): string {
-  return `${(nanos / 1_000_000).toFixed(2)}ms`;
+  return `${(nanos / 1_000_000).toFixed(2)} ms`;
+}
+
+export function formatUptimeMs(millis: number): string {
+  return `${Math.max(0, Math.round(millis))}ms`;
+}
+
+export function shortSessionId(sessionId: string): string {
+  if (!sessionId || sessionId === '—') {
+    return '—';
+  }
+  return sessionId.length > 10 ? sessionId.slice(0, 8) : sessionId;
 }
 
 export function simpleEventName(className: string): string {

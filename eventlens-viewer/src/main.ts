@@ -17,8 +17,10 @@ import {
   updateLiveStatusLabel,
   updateSessionCaptureCount,
   updateSessionOptions,
+  updateSourceMode,
   updateStatusBar,
   type ShellContext,
+  type SourceMode,
   type ViewId,
 } from './shell';
 import type { DashboardSession, DashboardStatus, TraceReport } from './types';
@@ -30,7 +32,7 @@ import { renderPluginGraph } from './views/pluginGraph';
 import { renderCompare } from './views/compare';
 import { liveSessionDuration } from './utils/metrics';
 import { isLiveSessionState } from './utils/sessionState';
-import { formatUptime } from './utils/format';
+import { formatUptimeMs } from './utils/format';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
 
@@ -46,6 +48,9 @@ let stopLiveStream: (() => void) | null = null;
 let agentPresent = false;
 let protocolVersion = 0;
 let paperVersion = 'Paper —';
+let eventLensVersion = '1.3.0';
+let sourceMode: SourceMode = isLiveMode() ? 'live' : 'offline';
+let cachedReports: Array<{ fileName: string }> = [];
 let serverStatus: DashboardStatus | null = null;
 let shellInitialized = false;
 let backgroundSyncTimer: number | null = null;
@@ -68,6 +73,9 @@ function applyReportMetadata(report: TraceReport): void {
       paperVersion = `${kind} client · ${loader}`;
     }
   }
+  if (env?.eventLensVersion) {
+    eventLensVersion = env.eventLensVersion;
+  }
   if (report.instrumentation) {
     agentPresent = report.instrumentation.agentPresent;
     protocolVersion = report.instrumentation.protocolVersion;
@@ -80,6 +88,9 @@ function applyServerStatus(status: DashboardStatus): void {
   protocolVersion = status.protocolVersion;
   if (status.paperVersion) {
     paperVersion = status.paperVersion;
+  }
+  if (status.eventLensVersion) {
+    eventLensVersion = status.eventLensVersion;
   }
   if (
     !selectedSessionId &&
@@ -106,19 +117,31 @@ function resolvedSessionState(): string | null {
 function shellContext(): ShellContext {
   return {
     activeView,
-    liveMode: isLiveMode(),
+    liveAvailable: isLiveMode(),
+    sourceMode,
     streamConnected,
     agentPresent,
     protocolVersion,
     paperVersion,
+    eventLensVersion,
     serverStatus,
     report: currentReport,
     sessionState: resolvedSessionState(),
     selectedSessionId,
+    selectedReportFile,
+    dataSource,
     onNavigate: (view) => {
       activeView = view;
       setActiveNav(view);
       void renderActiveView();
+    },
+    onSourceModeChange: (mode) => {
+      sourceMode = mode;
+      updateSourceMode(app, mode);
+      if (mode === 'live' && isLiveMode() && !selectedSessionId) {
+        void maybeAutoSelectSession(cachedSessions);
+      }
+      updateStatusBar(app, shellContext());
     },
     onSessionChange: (sessionId) => {
       void selectSession(sessionId, true);
@@ -248,14 +271,8 @@ async function syncFullReportInBackground(): Promise<void> {
 async function refreshSessionOptions(): Promise<DashboardSession[]> {
   const [sessions, reports] = await Promise.all([fetchSessions(), fetchReports()]);
   cachedSessions = sessions;
-  updateSessionOptions(
-    app,
-    sessions,
-    reports,
-    selectedSessionId,
-    selectedReportFile,
-    resolvedSessionState(),
-  );
+  cachedReports = reports;
+  updateSessionOptions(app, sessions, reports, selectedSessionId, selectedReportFile);
   return sessions;
 }
 
@@ -263,6 +280,7 @@ async function selectSession(sessionId: string, userInitiated: boolean): Promise
   selectedSessionId = sessionId;
   selectedReportFile = '';
   dataSource = 'session';
+  sourceMode = 'live';
   userPickedSession = userInitiated;
   resetTimelineSelection();
   setSessionSelectValue(app, sessionId, '');
@@ -276,6 +294,7 @@ async function selectReport(fileName: string): Promise<void> {
   selectedReportFile = fileName;
   selectedSessionId = '';
   dataSource = 'report';
+  sourceMode = 'offline';
   userPickedSession = false;
   resetTimelineSelection();
   setSessionSelectValue(app, '', fileName);
@@ -317,12 +336,16 @@ async function maybeLoadBundledReport(): Promise<void> {
 
 async function loadOfflineFile(file: File): Promise<void> {
   dataSource = 'offline';
+  sourceMode = 'offline';
+  selectedSessionId = '';
+  selectedReportFile = '';
   userPickedSession = false;
   resetTimelineSelection();
   currentReport = parseReportJson(await file.text());
   applyReportMetadata(currentReport);
   activeView = 'overview';
   ensureShell();
+  updateStatusBar(app, shellContext());
   setActiveNav(activeView);
   await renderActiveView(false);
 }
@@ -516,7 +539,7 @@ async function bootstrapLiveData(): Promise<void> {
     const connected = stream.connected();
     if (connected !== streamConnected) {
       streamConnected = connected;
-      updateLiveStatusLabel(app, streamConnected, resolvedSessionState());
+      updateLiveStatusLabel(app, streamConnected, isLiveMode());
     }
   };
   syncStreamLabel();
@@ -544,6 +567,10 @@ function renderActiveView(showLoading = true): Promise<void> {
 
   return prepare.then(() => {
     if (activeView === 'events') {
+      if (currentReport) {
+        renderEventGraph(root, { title: '', truncated: false, nodes: [], edges: [] }, currentReport);
+        return;
+      }
       void fetchEventGraph()
         .then((graph) => renderEventGraph(root, graph, currentReport))
         .catch(() => {
@@ -570,14 +597,10 @@ function renderActiveView(showLoading = true): Promise<void> {
             : 0;
         root.innerHTML = `
           <section class="page">
-            <header class="page-header">
-              <h1>Overview</h1>
-              <p class="page-subtitle">Trace session is active. Waiting for first dispatch…</p>
-            </header>
             <div class="stat-grid">
               <div class="stat-card">
-                <div class="stat-label">Session uptime</div>
-                <div class="stat-value" id="stat-session-uptime">${formatUptime(uptimeMillis)}</div>
+                <div class="stat-label">Uptime</div>
+                <div class="stat-value" id="stat-session-uptime">${formatUptimeMs(uptimeMillis)}</div>
               </div>
             </div>
             <p class="empty">Interact in-game to capture events, or wait for the live feed to populate.</p>
@@ -596,12 +619,24 @@ function renderActiveView(showLoading = true): Promise<void> {
     } else if (activeView === 'flame') {
       renderFlameGraph(root, currentReport);
     } else if (activeView === 'compare') {
-      renderCompare(root, currentReport, compareReport, (file) => {
-        void file.text().then((text) => {
-          compareReport = parseReportJson(text);
-          void renderActiveView(false);
-        });
-      });
+      renderCompare(
+        root,
+        currentReport,
+        compareReport,
+        cachedReports,
+        (file) => {
+          void file.text().then((text) => {
+            compareReport = parseReportJson(text);
+            void renderActiveView(false);
+          });
+        },
+        (fileName) => {
+          void fetchReportFile(fileName).then((report) => {
+            compareReport = report;
+            void renderActiveView(false);
+          });
+        },
+      );
     }
   });
 }

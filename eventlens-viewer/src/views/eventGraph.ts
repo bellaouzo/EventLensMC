@@ -1,173 +1,97 @@
-import type { DashboardGraph, TraceReport } from '../types';
+import type { DashboardGraph, DashboardGraphEdge, DashboardGraphNode, TraceReport } from '../types';
 import { escapeHtml, simpleEventName } from '../utils/format';
+import { resolveListenerTimings } from '../utils/listenerData';
 import { sessionStateBannerHtml } from '../utils/sessionState';
-
-interface FlowNode {
-  id: string;
-  label: string;
-  sublabel: string;
-  primary: boolean;
-  x: number;
-  y: number;
-}
-
-interface FlowEdge {
-  from: string;
-  to: string;
-  primary: boolean;
-}
 
 export function renderEventGraph(
   container: HTMLElement,
   graph: DashboardGraph,
   report: TraceReport | null,
 ): void {
-  const rootEvent = report ? simpleEventName(report.session.eventClassName) : null;
-  const layout = buildFlowLayout(graph, rootEvent);
+  const layout = report ? graphFromReport(report) : filterGraph(graph, null);
+  const eventName = report ? simpleEventName(report.session.eventClassName) : layout.eventLabel;
 
   if (!layout.nodes.length) {
     container.innerHTML = '<section class="page"><p class="empty">No event graph data available.</p></section>';
     return;
   }
 
-  const width = 960;
-  const height = 420;
-
-  const edgesSvg = layout.edges
-    .map((edge) => {
-      const from = layout.nodes.find((n) => n.id === edge.from);
-      const to = layout.nodes.find((n) => n.id === edge.to);
-      if (!from || !to) {
-        return '';
-      }
-      const x1 = from.x + 70;
-      const y1 = from.y + 30;
-      const x2 = to.x + 70;
-      const y2 = to.y + 30;
-      return `<line class="flow-edge${edge.primary ? ' primary' : ''}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" />`;
+  const nodes = layout.nodes
+    .map((node) => {
+      const count = node.kind === 'PLUGIN' ? ` x${node.weight}` : '';
+      return `<div class="graph-pill${node.kind === 'EVENT' ? ' event' : ''}">${escapeHtml(node.label)}${count}<span class="graph-pill-kind">${node.kind}</span></div>`;
     })
     .join('');
 
-  const nodesHtml = layout.nodes
-    .map(
-      (node) => `
-      <div class="flow-node${node.primary ? ' primary' : ''}" style="left:${node.x}px;top:${node.y}px">
-        <div class="flow-node-title">${escapeHtml(node.label)}</div>
-        <div class="flow-node-sub">${escapeHtml(node.sublabel)}</div>
-      </div>`,
-    )
+  const edges = layout.edges
+    .map((edge) => {
+      const from = layout.nodes.find((node) => node.id === edge.sourceId);
+      const to = layout.nodes.find((node) => node.id === edge.targetId);
+      if (!from || !to) {
+        return '';
+      }
+      return `<div class="graph-edge"><span>${escapeHtml(from.label)}</span><span class="graph-edge-action">+ ${escapeHtml(edge.label)} →</span><span>${escapeHtml(to.label)}</span><span class="graph-edge-weight">x${edge.weight}</span></div>`;
+    })
     .join('');
-
-  const subtitle = rootEvent
-    ? `Cascades observed downstream of ${rootEvent} this session. Node size = frequency.`
-    : 'Event and plugin relationships across active trace sessions.';
 
   container.innerHTML = `
     <section class="page">
-      <header class="page-header">
-        <h1>Event graph</h1>
-        <p class="page-subtitle">${subtitle}</p>
-      </header>
       ${report ? sessionStateBannerHtml(report.session.state) : ''}
-      <div class="flow-panel">
-        <div class="flow-canvas" style="width:${width}px;height:${height}px">
-          <svg class="flow-edges" width="${width}" height="${height}">${edgesSvg}</svg>
-          ${nodesHtml}
-        </div>
+      <header class="page-header">
+        <h1>${escapeHtml(eventName || 'Event graph')} — listener relationships</h1>
+      </header>
+      <div>
+        <div class="graph-section-label">Nodes</div>
+        <div class="graph-nodes">${nodes}</div>
+        <div class="graph-section-label">Edges</div>
+        <div class="graph-edges">${edges || '<p class="empty">No listener edges for this event.</p>'}</div>
       </div>
     </section>
   `;
 }
 
-function buildFlowLayout(graph: DashboardGraph, rootEvent: string | null): { nodes: FlowNode[]; edges: FlowEdge[] } {
-  const eventNodes = graph.nodes.filter((n) => n.kind === 'EVENT');
-  const pluginNodes = graph.nodes.filter((n) => n.kind === 'PLUGIN');
+function graphFromReport(report: TraceReport): {
+  nodes: DashboardGraphNode[];
+  edges: DashboardGraphEdge[];
+  eventLabel: string;
+} {
+  const eventLabel = simpleEventName(report.session.eventClassName);
+  const counts = new Map<string, number>();
 
-  if (!eventNodes.length && !pluginNodes.length) {
-    return { nodes: [], edges: [] };
+  for (const dispatch of report.dispatches) {
+    for (const timing of resolveListenerTimings(dispatch)) {
+      counts.set(timing.pluginName, (counts.get(timing.pluginName) ?? 0) + 1);
+    }
   }
 
+  const eventId = `event:${eventLabel}`;
+  const nodes: DashboardGraphNode[] = [{ id: eventId, label: eventLabel, kind: 'EVENT', weight: report.session.capturedEvents }];
+  const edges: DashboardGraphEdge[] = [];
+
+  for (const [plugin, count] of [...counts.entries()].sort((a, b) => b[1] - a[1])) {
+    const pluginId = `plugin:${plugin}`;
+    nodes.push({ id: pluginId, label: plugin, kind: 'PLUGIN', weight: count });
+    edges.push({ sourceId: pluginId, targetId: eventId, weight: count, label: 'listens' });
+  }
+
+  return { nodes, edges, eventLabel };
+}
+
+function filterGraph(
+  graph: DashboardGraph,
+  rootEvent: string | null,
+): { nodes: DashboardGraphNode[]; edges: DashboardGraphEdge[]; eventLabel: string } {
+  const events = graph.nodes.filter((node) => node.kind === 'EVENT');
   const root =
-    eventNodes.find((n) => rootEvent && n.label === rootEvent) ??
-    eventNodes.sort((a, b) => b.weight - a.weight)[0] ??
+    events.find((node) => rootEvent && node.label === rootEvent) ??
+    [...events].sort((a, b) => b.weight - a.weight)[0] ??
     null;
-
-  const downstream = eventNodes.filter((n) => n !== root).sort((a, b) => b.weight - a.weight).slice(0, 3);
-  const chain = eventNodes.filter((n) => n !== root && !downstream.includes(n)).sort((a, b) => b.weight - a.weight).slice(0, 1);
-
-  const nodes: FlowNode[] = [];
-  const edges: FlowEdge[] = [];
-
-  if (root) {
-    nodes.push({
-      id: root.id,
-      label: root.label,
-      sublabel: `${root.weight.toLocaleString()} / session`,
-      primary: true,
-      x: 20,
-      y: 190,
-    });
+  if (!root) {
+    return { nodes: graph.nodes.slice(0, 8), edges: graph.edges.slice(0, 8), eventLabel: 'Events' };
   }
 
-  downstream.forEach((event, index) => {
-    const yPositions = [60, 190, 320];
-    nodes.push({
-      id: event.id,
-      label: event.label,
-      sublabel: `${event.weight.toLocaleString()} observed`,
-      primary: index === 0 && chain.length > 0,
-      x: 270,
-      y: yPositions[index] ?? 190,
-    });
-    if (root) {
-      edges.push({ from: root.id, to: event.id, primary: index === 0 });
-    }
-  });
-
-  if (chain.length && downstream[0]) {
-    nodes.push({
-      id: chain[0].id,
-      label: chain[0].label,
-      sublabel: `${chain[0].weight.toLocaleString()} observed`,
-      primary: true,
-      x: 530,
-      y: 60,
-    });
-    edges.push({ from: downstream[0].id, to: chain[0].id, primary: true });
-
-    const terminal = eventNodes.find((n) => !nodes.some((existing) => existing.id === n.id));
-    if (terminal) {
-      nodes.push({
-        id: terminal.id,
-        label: terminal.label,
-        sublabel: `${terminal.weight.toLocaleString()} observed`,
-        primary: false,
-        x: 790,
-        y: 60,
-      });
-      edges.push({ from: chain[0].id, to: terminal.id, primary: true });
-    }
-  }
-
-  if (!downstream.length) {
-    pluginNodes
-      .sort((a, b) => b.weight - a.weight)
-      .slice(0, 4)
-      .forEach((plugin, index) => {
-        const yPositions = [60, 190, 320, 190];
-        nodes.push({
-          id: plugin.id,
-          label: plugin.label,
-          sublabel: `${plugin.weight.toLocaleString()} invocations`,
-          primary: index === 0,
-          x: 270 + Math.floor(index / 2) * 260,
-          y: yPositions[index] ?? 190,
-        });
-        if (root) {
-          edges.push({ from: root.id, to: plugin.id, primary: index === 0 });
-        }
-      });
-  }
-
-  return { nodes, edges };
+  const related = graph.edges.filter((edge) => edge.sourceId === root.id || edge.targetId === root.id);
+  const ids = new Set<string>([root.id, ...related.flatMap((edge) => [edge.sourceId, edge.targetId])]);
+  const nodes = graph.nodes.filter((node) => ids.has(node.id)).sort((a, b) => (a.kind === 'EVENT' ? -1 : b.kind === 'EVENT' ? 1 : b.weight - a.weight));
+  return { nodes, edges: related, eventLabel: root.label };
 }

@@ -1,5 +1,5 @@
 import type { TraceReport } from '../types';
-import { formatDispatchTime, formatMillis, formatUptime, escapeHtml } from '../utils/format';
+import { formatDispatchTime, formatMillis, formatUptimeMs, escapeHtml } from '../utils/format';
 import { computeSessionMetrics, formatTickPercent, liveSessionDuration, statusLabel } from '../utils/metrics';
 import { sessionStateBannerHtml } from '../utils/sessionState';
 
@@ -13,18 +13,9 @@ function tickClass(status: 'critical' | 'warn' | 'ok'): string {
   return 'offender-tick-ok';
 }
 
-function severityClass(severity: 'critical' | 'warn' | 'ok'): string {
-  if (severity === 'critical') {
-    return 'severity-crit';
-  }
-  if (severity === 'warn') {
-    return 'severity-warn';
-  }
-  return 'severity-ok';
-}
-
 export function renderOverview(container: HTMLElement, report: TraceReport): void {
   const metrics = computeSessionMetrics(report);
+  const flagged = metrics.flaggedListeners;
 
   const offenderRows =
     metrics.topOffenders.length > 0
@@ -49,10 +40,10 @@ export function renderOverview(container: HTMLElement, report: TraceReport): voi
             (entry) => `
           <div class="feed-row">
             <div class="feed-time">${formatDispatchTime(entry.startedAtMillis)}</div>
-            <div class="feed-body">
-              ${escapeHtml(entry.label)}${entry.detail ? ` <span class="feed-detail">${escapeHtml(entry.detail)}</span>` : ''}
-            </div>
-            <div class="feed-ms ${severityClass(entry.severity)}">${formatMillis(entry.durationNanos)}</div>
+            <div class="feed-event">${escapeHtml(entry.label)}</div>
+            <div class="feed-detail">${entry.detail ? escapeHtml(entry.detail) : '—'}</div>
+            <div class="feed-ms ${tickClass(entry.severity)}">${formatMillis(entry.durationNanos)}</div>
+            <div><span class="pill pill-${entry.severity}">${statusLabel(entry.severity)}</span></div>
           </div>`,
           )
           .join('')
@@ -60,15 +51,11 @@ export function renderOverview(container: HTMLElement, report: TraceReport): voi
 
   container.innerHTML = `
     <section class="page">
-      <header class="page-header">
-        <h1>Overview</h1>
-        <p class="page-subtitle">Session-wide listener activity across all traced event types.</p>
-      </header>
       ${sessionStateBannerHtml(report.session.state)}
       <div class="stat-grid">
         <div class="stat-card">
-          <div class="stat-label">Session uptime</div>
-          <div class="stat-value" id="stat-session-uptime">${formatUptime(liveSessionDuration(report.session))}</div>
+          <div class="stat-label">Uptime</div>
+          <div class="stat-value" id="stat-session-uptime">${formatUptimeMs(liveSessionDuration(report.session))}</div>
         </div>
         <div class="stat-card">
           <div class="stat-label">Events traced</div>
@@ -77,29 +64,35 @@ export function renderOverview(container: HTMLElement, report: TraceReport): voi
         <div class="stat-card">
           <div class="stat-label">Listeners invoked</div>
           <div class="stat-value">${metrics.listenersInvoked.toLocaleString()}</div>
-          <div class="stat-hint">avg ${metrics.avgListenersPerEvent.toFixed(1)} / event</div>
+          <div class="stat-hint">avg ${metrics.avgListenersPerEvent.toFixed(1)}/event</div>
         </div>
-        <div class="stat-card stat-card-alert">
+        <div class="stat-card${flagged > 0 ? ' stat-card-alert' : ''}">
           <div class="stat-label">Flagged listeners</div>
-          <div class="stat-value stat-value-danger">${metrics.flaggedListeners}</div>
-          <div class="stat-hint">warn or critical this session</div>
+          <div class="stat-value${flagged > 0 ? ' stat-value-danger' : ''}">${flagged}</div>
         </div>
       </div>
       <div class="stack-panels">
         <div class="panel">
           <div class="panel-head">Top offenders</div>
           <div class="offender-grid">
-            <div>Plugin</div>
-            <div>Event</div>
-            <div>Time</div>
-            <div>% tick</div>
+            <div>Name</div>
+            <div>Event type</div>
+            <div>Execution time</div>
+            <div>%</div>
             <div>Status</div>
           </div>
           ${offenderRows}
         </div>
         <div class="panel">
-          <div class="panel-head">Recent trace feed</div>
-          <div class="feed-list">${feedItems}</div>
+          <div class="panel-head">Recent dispatches</div>
+          <div class="feed-head">
+            <div>Timestamp</div>
+            <div>Event type</div>
+            <div>Object</div>
+            <div>Time</div>
+            <div>Status</div>
+          </div>
+          ${feedItems}
         </div>
       </div>
     </section>
@@ -109,6 +102,6 @@ export function renderOverview(container: HTMLElement, report: TraceReport): voi
 export function updateOverviewUptime(container: HTMLElement, uptimeMillis: number): void {
   const element = container.querySelector('#stat-session-uptime');
   if (element) {
-    element.textContent = formatUptime(uptimeMillis);
+    element.textContent = formatUptimeMs(uptimeMillis);
   }
 }

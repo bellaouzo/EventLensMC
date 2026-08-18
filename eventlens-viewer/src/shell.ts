@@ -1,108 +1,86 @@
 import type { DashboardSession, DashboardStatus, TraceReport } from './types';
-import { icons } from './utils/icons';
-import {
-  describeSessionState,
-  formatSessionOptionText,
-  sessionOptionClass,
-  sessionSelectClass,
-  traceStatusIndicatorHtml,
-} from './utils/sessionState';
+import { escapeHtml, shortSessionId, simpleEventName } from './utils/format';
+import { describeSessionState } from './utils/sessionState';
 
 export type ViewId = 'overview' | 'timeline' | 'flame' | 'events' | 'plugins' | 'compare';
+export type SourceMode = 'live' | 'offline';
 
 export interface ShellContext {
   activeView: ViewId;
-  liveMode: boolean;
+  liveAvailable: boolean;
+  sourceMode: SourceMode;
   streamConnected: boolean;
   agentPresent: boolean;
   protocolVersion: number;
   paperVersion: string;
+  eventLensVersion: string;
   serverStatus: DashboardStatus | null;
   report: TraceReport | null;
   sessionState: string | null;
   selectedSessionId: string;
+  selectedReportFile: string;
+  dataSource: 'session' | 'report' | 'offline';
   onNavigate: (view: ViewId) => void;
+  onSourceModeChange: (mode: SourceMode) => void;
   onSessionChange: (sessionId: string) => void;
   onReportChange: (fileName: string) => void;
   onFileLoad: (file: File) => void;
 }
 
-const NAV: Array<{ id: ViewId; label: string; icon: string }> = [
-  { id: 'overview', label: 'Overview', icon: icons.overview },
-  { id: 'timeline', label: 'Timeline', icon: icons.timeline },
-  { id: 'flame', label: 'Flame graph', icon: icons.flame },
-  { id: 'events', label: 'Event graph', icon: icons.events },
-  { id: 'plugins', label: 'Plugin graph', icon: icons.plugins },
-  { id: 'compare', label: 'Compare', icon: icons.overview },
+const NAV: Array<{ id: ViewId; label: string }> = [
+  { id: 'overview', label: 'Overview' },
+  { id: 'timeline', label: 'Timeline' },
+  { id: 'flame', label: 'Flame graph' },
+  { id: 'events', label: 'Event graph' },
+  { id: 'plugins', label: 'Plugin graph' },
+  { id: 'compare', label: 'Compare' },
 ];
 
 export function renderShell(app: HTMLElement, ctx: ShellContext): void {
-  const sessionId = resolveSessionLabel(ctx);
-  const sessionState = ctx.sessionState;
-  const worldLine = resolveWorldLine(ctx);
-  const agentLabel = ctx.agentPresent ? `agent v${ctx.protocolVersion}` : 'agent absent';
-  const tps = ctx.serverStatus?.tps;
-  const tpsLabel = tps != null ? tps.toFixed(1) : '—';
-  const tpsClass = tps != null && tps >= 18 ? 'tps-ok' : 'status-highlight';
-
   app.className = 'app-shell';
   app.innerHTML = `
-    <aside class="sidebar">
+    <header class="app-header">
       <div class="brand">
-        <div class="brand-mark">EL</div>
-        <div class="brand-text">
+        <div class="brand-row">
           <span class="brand-name">EventLens</span>
-          <span class="brand-sub">DIAGNOSTICS</span>
+          <span class="brand-version" id="brand-version">v${escapeHtml(ctx.eventLensVersion)}</span>
         </div>
+        <span class="brand-sub">diagnostics — observer only</span>
       </div>
-      <nav class="sidebar-nav">
+      <nav class="top-nav">
         ${NAV.map(
           (item) => `
           <button type="button" class="nav-item${ctx.activeView === item.id ? ' active' : ''}" data-view="${item.id}">
-            <span class="nav-icon">${item.icon}</span>
-            <span>${item.label}</span>
+            ${item.label}
           </button>`,
         ).join('')}
       </nav>
-      <div class="sidebar-footer">
-        <span>${escapeAttr(ctx.paperVersion)}</span><br>
-        <span>${escapeAttr(agentLabel)}</span>
-      </div>
-    </aside>
-    <div class="main-column">
-      <header class="status-bar">
-        <div class="status-left">
-          ${
-            ctx.liveMode
-              ? `${traceStatusIndicatorHtml(sessionState, ctx.streamConnected)}<div class="status-divider"></div>`
-              : `<span class="status-muted">Offline report</span><div class="status-divider"></div>`
-          }
-          <div class="status-mono">session <span class="status-highlight">${escapeHtml(sessionId)}</span></div>
-          <div class="status-mono">world <span class="status-highlight">${escapeHtml(worldLine)}</span></div>
+      <div class="header-session" id="header-session">${headerSessionHtml(ctx)}</div>
+    </header>
+    <div class="app-body">
+      <aside class="sidebar">
+        <div class="mode-toggle">
+          <button type="button" class="mode-btn${ctx.sourceMode === 'live' ? ' active' : ''}" data-mode="live"${ctx.liveAvailable ? '' : ' disabled'}>Live</button>
+          <button type="button" class="mode-btn${ctx.sourceMode === 'offline' ? ' active' : ''}" data-mode="offline">Offline</button>
         </div>
-        <div class="status-right">
-          <div class="status-mono">TPS <span id="status-tps" class="${tpsClass}">${escapeHtml(tpsLabel)}</span></div>
-          <div class="status-mono">tick budget <span class="status-highlight">50ms</span></div>
-          <span class="agent-pill${ctx.agentPresent ? '' : ' absent'}">${escapeHtml(agentLabel)}</span>
-        </div>
-      </header>
-      ${
-        ctx.liveMode
-          ? `<div class="source-bar">
-              <select id="session-select" class="source-select ${sessionSelectClass(sessionState)}">
-                <option value="">Live session…</option>
-              </select>
-              <select id="report-select" class="source-select">
-                <option value="">Saved report…</option>
-              </select>
-            </div>`
-          : `<div class="source-bar">
-              <label class="file-upload">
-                <input type="file" id="file-input" accept=".json,application/json" />
-                Load trace report JSON
-              </label>
-            </div>`
-      }
+        <section class="sidebar-section">
+          <div class="sidebar-heading">Live sessions</div>
+          <div id="stream-status">${streamStatusHtml(ctx.streamConnected, ctx.liveAvailable)}</div>
+          <div id="session-list" class="session-list"></div>
+        </section>
+        <section class="sidebar-section">
+          <div class="sidebar-heading">Saved reports</div>
+          <div id="report-list" class="report-list"></div>
+          <label class="file-upload">
+            <input type="file" id="file-input" accept=".json,application/json" />
+            Load JSON
+          </label>
+        </section>
+        <section class="sidebar-section context-section">
+          <div class="sidebar-heading">Context</div>
+          <dl id="context-list" class="context-list">${contextRowsHtml(ctx)}</dl>
+        </section>
+      </aside>
       <main id="view-root" class="view-root"></main>
     </div>
   `;
@@ -113,28 +91,36 @@ export function renderShell(app: HTMLElement, ctx: ShellContext): void {
     });
   });
 
-  if (ctx.liveMode) {
-    app.querySelector<HTMLSelectElement>('#session-select')?.addEventListener('change', (event) => {
-      const value = (event.target as HTMLSelectElement).value;
-      if (value) {
-        ctx.onSessionChange(value);
+  app.querySelectorAll<HTMLButtonElement>('.mode-btn[data-mode]').forEach((button) => {
+    button.addEventListener('click', () => {
+      if (button.disabled) {
+        return;
       }
+      ctx.onSourceModeChange(button.dataset.mode as SourceMode);
     });
-    app.querySelector<HTMLSelectElement>('#report-select')?.addEventListener('change', (event) => {
-      const value = (event.target as HTMLSelectElement).value;
-      if (value) {
-        ctx.onReportChange(value);
-      }
-    });
-  } else {
-    app.querySelector<HTMLInputElement>('#file-input')?.addEventListener('change', async (event) => {
-      const input = event.target as HTMLInputElement;
-      const file = input.files?.[0];
-      if (file) {
-        ctx.onFileLoad(file);
-      }
-    });
-  }
+  });
+
+  app.querySelector('#session-list')?.addEventListener('click', (event) => {
+    const card = (event.target as HTMLElement).closest<HTMLElement>('[data-session-id]');
+    if (card?.dataset.sessionId) {
+      ctx.onSessionChange(card.dataset.sessionId);
+    }
+  });
+
+  app.querySelector('#report-list')?.addEventListener('click', (event) => {
+    const item = (event.target as HTMLElement).closest<HTMLElement>('[data-report]');
+    if (item?.dataset.report) {
+      ctx.onReportChange(item.dataset.report);
+    }
+  });
+
+  app.querySelector<HTMLInputElement>('#file-input')?.addEventListener('change', (event) => {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (file) {
+      ctx.onFileLoad(file);
+    }
+  });
 }
 
 export function updateSessionCaptureCount(
@@ -144,51 +130,38 @@ export function updateSessionCaptureCount(
   eventClassName: string,
   state?: string,
 ): void {
-  const sessionSelect = app.querySelector<HTMLSelectElement>('#session-select');
-  if (!sessionSelect) {
+  const card = app.querySelector<HTMLElement>(`[data-session-id="${cssEscape(sessionId)}"]`);
+  if (!card) {
     return;
   }
-  for (const option of sessionSelect.options) {
-    if (option.value !== sessionId) {
-      continue;
+  if (state) {
+    card.dataset.state = state;
+    const badge = card.querySelector('.session-badge');
+    if (badge) {
+      const info = describeSessionState(state);
+      badge.textContent = info.shortLabel;
+      badge.className = `session-badge badge-${info.tone}`;
     }
-    const optionState = state ?? option.dataset.state ?? 'ACTIVE';
-    option.className = sessionOptionClass(optionState);
-    option.dataset.state = optionState;
-    option.textContent = formatSessionOptionText(sessionId, eventClassName, capturedEvents, optionState);
-    break;
+  }
+  const sub = card.querySelector('.session-card-sub');
+  if (sub) {
+    sub.textContent = `${simpleEventName(eventClassName)} — ${capturedEvents} captured`;
   }
 }
 
 export function setSessionSelectValue(app: HTMLElement, sessionId: string, reportFile: string): void {
-  const sessionSelect = app.querySelector<HTMLSelectElement>('#session-select');
-  const reportSelect = app.querySelector<HTMLSelectElement>('#report-select');
-  if (sessionSelect && sessionId) {
-    sessionSelect.value = sessionId;
-  }
-  if (reportSelect && reportFile) {
-    reportSelect.value = reportFile;
-  } else if (reportSelect && sessionId) {
-    reportSelect.value = '';
-  }
+  app.querySelectorAll<HTMLElement>('[data-session-id]').forEach((card) => {
+    card.classList.toggle('selected', card.dataset.sessionId === sessionId);
+  });
+  app.querySelectorAll<HTMLElement>('[data-report]').forEach((item) => {
+    item.classList.toggle('selected', !!reportFile && item.dataset.report === reportFile);
+  });
 }
 
-export function updateLiveStatusLabel(
-  app: HTMLElement,
-  streamConnected: boolean,
-  sessionState: string | null,
-): void {
-  const indicator = app.querySelector('#trace-status-indicator');
-  if (indicator) {
-    indicator.outerHTML = traceStatusIndicatorHtml(sessionState, streamConnected);
-    return;
-  }
-  const label = app.querySelector('.trace-status-group .status-muted');
-  if (label) {
-    label.textContent =
-      sessionState && !describeSessionState(sessionState).isActive
-        ? '· trace ended'
-        : `· ${streamConnected ? 'live stream' : 'refreshes every 2s'}`;
+export function updateLiveStatusLabel(app: HTMLElement, streamConnected: boolean, liveAvailable: boolean): void {
+  const status = app.querySelector('#stream-status');
+  if (status) {
+    status.innerHTML = streamStatusHtml(streamConnected, liveAvailable);
   }
 }
 
@@ -198,101 +171,126 @@ export function updateSessionOptions(
   reports: Array<{ fileName: string }>,
   selectedSessionId: string,
   selectedReport: string,
-  selectedSessionState?: string | null,
 ): void {
-  const sessionSelect = app.querySelector<HTMLSelectElement>('#session-select');
-  const reportSelect = app.querySelector<HTMLSelectElement>('#report-select');
-  if (!sessionSelect || !reportSelect) {
-    return;
+  const sessionList = app.querySelector('#session-list');
+  const reportList = app.querySelector('#report-list');
+  if (sessionList) {
+    sessionList.innerHTML = sessions.length
+      ? sessions
+          .map((session) => sessionCardHtml(session, session.sessionId === selectedSessionId && !selectedReport))
+          .join('')
+      : '<p class="sidebar-empty">No live sessions</p>';
   }
-  const previousSession = sessionSelect.value;
-  const previousReport = reportSelect.value;
-  sessionSelect.innerHTML =
-    '<option value="">Live session…</option>' +
-    sessions
-      .map((s) => {
-        const optionClass = sessionOptionClass(s.state);
-        const label = formatSessionOptionText(s.sessionId, s.eventClassName, s.capturedEvents, s.state);
-        return `<option value="${escapeAttr(s.sessionId)}" class="${optionClass}" data-state="${escapeAttr(s.state)}">${escapeHtml(label)}</option>`;
-      })
-      .join('');
-  reportSelect.innerHTML =
-    '<option value="">Saved report…</option>' +
-    reports
-      .map((r) => `<option value="${escapeAttr(r.fileName)}">${escapeHtml(r.fileName)}</option>`)
-      .join('');
-  const nextSession = selectedSessionId || previousSession;
-  const nextReport = selectedReport || previousReport;
-  if (nextSession && sessions.some((s) => s.sessionId === nextSession)) {
-    sessionSelect.value = nextSession;
-  }
-  const activeState =
-    selectedSessionState ??
-    sessions.find((s) => s.sessionId === sessionSelect.value)?.state ??
-    null;
-  sessionSelect.classList.remove('session-select-active', 'session-select-warn', 'session-select-stopped');
-  const selectClass = sessionSelectClass(activeState);
-  if (selectClass) {
-    sessionSelect.classList.add(selectClass);
-  }
-  if (nextReport && reports.some((r) => r.fileName === nextReport)) {
-    reportSelect.value = nextReport;
-  } else if (nextSession) {
-    reportSelect.value = '';
+  if (reportList) {
+    reportList.innerHTML = reports.length
+      ? reports.map((report) => reportItemHtml(report.fileName, report.fileName === selectedReport)).join('')
+      : '<p class="sidebar-empty">No saved reports</p>';
   }
 }
 
+export function updateSourceMode(app: HTMLElement, mode: SourceMode): void {
+  app.querySelectorAll<HTMLButtonElement>('.mode-btn[data-mode]').forEach((button) => {
+    button.classList.toggle('active', button.dataset.mode === mode);
+  });
+}
+
 export function updateStatusBar(app: HTMLElement, ctx: ShellContext): void {
+  const header = app.querySelector('#header-session');
+  if (header) {
+    header.innerHTML = headerSessionHtml(ctx);
+  }
+  const version = app.querySelector('#brand-version');
+  if (version) {
+    version.textContent = `v${ctx.eventLensVersion}`;
+  }
+  const context = app.querySelector('#context-list');
+  if (context) {
+    context.innerHTML = contextRowsHtml(ctx);
+  }
+  updateLiveStatusLabel(app, ctx.streamConnected, ctx.liveAvailable);
+  updateSourceMode(app, ctx.sourceMode);
+  setSessionSelectValue(app, ctx.selectedSessionId, ctx.selectedReportFile);
+}
+
+function headerSessionHtml(ctx: ShellContext): string {
   const sessionId = resolveSessionLabel(ctx);
-  const sessionState = ctx.sessionState;
-  const worldLine = resolveWorldLine(ctx);
-  const agentLabel = ctx.agentPresent ? `agent v${ctx.protocolVersion}` : 'agent absent';
-  const tps = ctx.serverStatus?.tps;
-  const tpsLabel = tps != null ? tps.toFixed(1) : '—';
-  const tpsClass = tps != null && tps >= 18 ? 'tps-ok' : 'status-highlight';
+  const state = ctx.sessionState;
+  if (!sessionId || sessionId === '—') {
+    return '<span class="header-session-id">—</span>';
+  }
+  const info = state ? describeSessionState(state) : null;
+  const badge = info
+    ? `<span class="header-state-badge badge-${info.tone}">${escapeHtml(info.shortLabel)}</span>`
+    : '';
+  return `<span class="header-session-id">${escapeHtml(shortSessionId(sessionId))}</span>${badge}`;
+}
 
-  const statusLeft = app.querySelector('.status-left');
-  const existingIndicator = statusLeft?.querySelector('.trace-status-group');
-  if (statusLeft && ctx.liveMode) {
-    const indicatorHtml = traceStatusIndicatorHtml(sessionState, ctx.streamConnected);
-    if (existingIndicator) {
-      existingIndicator.outerHTML = indicatorHtml;
-    }
+function streamStatusHtml(streamConnected: boolean, liveAvailable: boolean): string {
+  if (!liveAvailable) {
+    return `<div class="stream-status"><span class="stream-dot off"></span>offline viewer</div>`;
   }
+  return `<div class="stream-status${streamConnected ? ' connected' : ''}"><span class="stream-dot${streamConnected ? '' : ' off'}"></span>${streamConnected ? 'stream connected' : 'stream disconnected'}</div>`;
+}
 
-  const sessionSelect = app.querySelector<HTMLSelectElement>('#session-select');
-  if (sessionSelect) {
-    sessionSelect.classList.remove('session-select-active', 'session-select-warn', 'session-select-stopped');
-    const selectClass = sessionSelectClass(sessionState);
-    if (selectClass) {
-      sessionSelect.classList.add(selectClass);
-    }
-  }
+function sessionCardHtml(session: DashboardSession, selected: boolean): string {
+  const info = describeSessionState(session.state);
+  return `
+    <button type="button" class="session-card${selected ? ' selected' : ''}" data-session-id="${escapeAttr(session.sessionId)}" data-state="${escapeAttr(session.state)}">
+      <div class="session-card-top">
+        <span class="session-id">${escapeHtml(shortSessionId(session.sessionId))}</span>
+        <span class="session-badge badge-${info.tone}">${escapeHtml(info.shortLabel)}</span>
+      </div>
+      <div class="session-card-sub">${escapeHtml(simpleEventName(session.eventClassName))} — ${session.capturedEvents} captured</div>
+    </button>`;
+}
 
-  const sessionHighlight = app.querySelector('.status-left .status-highlight');
-  if (sessionHighlight) {
-    sessionHighlight.textContent = sessionId;
-  }
-  const worldHighlights = app.querySelectorAll('.status-left .status-highlight');
-  if (worldHighlights.length >= 2) {
-    worldHighlights[1].textContent = worldLine;
-  }
-  const tpsElement = app.querySelector('#status-tps');
-  if (tpsElement) {
-    tpsElement.textContent = tpsLabel;
-    tpsElement.classList.toggle('tps-ok', tps != null && tps >= 18);
-    tpsElement.classList.toggle('status-highlight', tps == null || tps < 18);
-  }
-  const agentPill = app.querySelector('.agent-pill');
-  if (agentPill) {
-    agentPill.textContent = agentLabel;
-    agentPill.classList.toggle('absent', !ctx.agentPresent);
-  }
+function reportItemHtml(fileName: string, selected: boolean): string {
+  return `<button type="button" class="report-item${selected ? ' selected' : ''}" data-report="${escapeAttr(fileName)}">${escapeHtml(fileName)}</button>`;
+}
 
-  const sidebarFooter = app.querySelector('.sidebar-footer');
-  if (sidebarFooter) {
-    sidebarFooter.innerHTML = `<span>${escapeHtml(ctx.paperVersion)}</span><br><span>${escapeHtml(agentLabel)}</span>`;
-  }
+function contextRowsHtml(ctx: ShellContext): string {
+  const report = ctx.report;
+  const status = ctx.serverStatus;
+  const session = report?.session;
+  const source =
+    ctx.dataSource === 'session' ? 'live session' : ctx.dataSource === 'report' ? 'saved report' : 'offline file';
+  const world = report?.dispatches.find((dispatch) => dispatch.worldName)?.worldName ?? status?.defaultWorldName ?? '—';
+  const tps = status?.tps != null ? status.tps.toFixed(1) : report?.dispatches.find((d) => d.tps != null)?.tps?.toFixed(1) ?? '—';
+  const agent = ctx.agentPresent ? 'present' : 'absent';
+  const protocol = ctx.protocolVersion > 0 ? `v${ctx.protocolVersion}` : '—';
+  const mode = report?.instrumentation?.mode ?? (ctx.agentPresent ? 'precise' : 'dispatch');
+  const rows: Array<[string, string]> = [
+    ['Source', source],
+    ['Session ID', session?.sessionId ?? (ctx.selectedSessionId || '—')],
+    ['State', session?.state ?? ctx.sessionState ?? '—'],
+    ['Event', session ? simpleEventName(session.eventClassName) : '—'],
+    [
+      'Captured / dropped / sampled out',
+      session ? `${session.capturedEvents} / ${session.droppedEvents} / ${session.sampledOutEvents}` : '—',
+    ],
+    ['Owner', session?.ownerName || '—'],
+    ['Filters', session?.filters || '—'],
+    ['World', world],
+    ['Game mode', status?.defaultGameMode || '—'],
+    ['Players online', status ? String(status.onlinePlayers) : '—'],
+    ['Server TPS', tps],
+    ['Tick budget', '50 ms'],
+    ['Runtime', ctx.paperVersion],
+    ['EventLens', `v${ctx.eventLensVersion}`],
+    ['Agent', agent],
+    ['Protocol', protocol],
+    ['Mode', mode],
+    ['Redaction', report?.redactionMode || '—'],
+  ];
+  return rows
+    .map(
+      ([label, value]) => `
+      <div class="context-row">
+        <dt>${escapeHtml(label)}</dt>
+        <dd>${escapeHtml(value)}</dd>
+      </div>`,
+    )
+    .join('');
 }
 
 function resolveSessionLabel(ctx: ShellContext): string {
@@ -304,26 +302,10 @@ function resolveSessionLabel(ctx: ShellContext): string {
   );
 }
 
-function resolveWorldLine(ctx: ShellContext): string {
-  const dispatchWorld = ctx.report?.dispatches.find((dispatch) => dispatch.worldName)?.worldName;
-  if (dispatchWorld) {
-    return dispatchWorld;
-  }
-  const status = ctx.serverStatus;
-  if (!status?.defaultWorldName) {
-    return '—';
-  }
-  return `${status.defaultWorldName} · ${status.defaultGameMode} · ${status.onlinePlayers} players`;
-}
-
-function escapeHtml(value: string): string {
-  return value
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;');
-}
-
 function escapeAttr(value: string): string {
   return escapeHtml(value).replaceAll("'", '&#39;');
+}
+
+function cssEscape(value: string): string {
+  return value.replaceAll('\\', '\\\\').replaceAll('"', '\\"');
 }

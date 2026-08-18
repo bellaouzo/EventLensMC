@@ -1,5 +1,5 @@
 import type { TraceReport } from '../types';
-import { escapeHtml, formatMillis } from '../utils/format';
+import { escapeHtml, formatMillis, simpleEventName } from '../utils/format';
 import { formatTickPercent } from '../utils/metrics';
 import { resolveListenerTimings } from '../utils/listenerData';
 import { sessionStateBannerHtml } from '../utils/sessionState';
@@ -17,15 +17,16 @@ interface PluginCard {
 export function renderPluginGraph(container: HTMLElement, report: TraceReport | null): void {
   if (!report?.dispatches.length) {
     const banner = report ? sessionStateBannerHtml(report.session.state) : '';
-    container.innerHTML = `${banner ? `<section class="page"><header class="page-header"><h1>Plugin graph</h1></header>${banner}<p class="empty">No dispatch data for plugin graph.</p></section>` : '<section class="page"><p class="empty">No dispatch data for plugin graph.</p></section>'}`;
+    container.innerHTML = `<section class="page">${banner}<p class="empty">No dispatch data for plugin graph.</p></section>`;
     return;
   }
 
   const dispatch = [...report.dispatches].sort((a, b) => b.durationNanos - a.durationNanos)[0];
   const cards = buildPluginCards(dispatch);
+  const eventName = simpleEventName(dispatch.eventClassName);
 
   const columnBlocks = PRIORITY_COLUMNS.map((priority) => {
-    const items = cards.filter((c) => c.priority === priority || (priority === 'HIGH' && c.priority === 'HIGHEST'));
+    const items = cards.filter((card) => card.priority === priority || (priority === 'HIGH' && card.priority === 'HIGHEST'));
     return `
       <div class="priority-column">
         <div class="priority-label">${priorityLabel(priority)}</div>
@@ -37,47 +38,33 @@ export function renderPluginGraph(container: HTMLElement, report: TraceReport | 
               <div class="plugin-card card-${card.status}">
                 <div class="plugin-name">${escapeHtml(card.plugin)}</div>
                 <div class="plugin-time">${formatMillis(card.durationNanos)}</div>
-                <div class="plugin-tick">${formatTickPercent(card.durationNanos)} tick${card.status === 'critical' ? ' · flagged' : ''}${card.readOnly ? card.status !== 'critical' ? ' · read-only' : '' : ''}</div>
+                <div class="plugin-tick">${formatTickPercent(card.durationNanos)}</div>
+                ${card.readOnly ? '<div class="plugin-note">read-only</div>' : ''}
               </div>`,
                 )
                 .join('')
             : ''
         }
       </div>`;
-  });
-
-  const gridHtml = columnBlocks
-    .map((column, index) => (index === 0 ? column : `<div class="priority-arrow">›</div>${column}`))
-    .join('');
+  }).join('');
 
   container.innerHTML = `
     <section class="page">
-      <header class="page-header">
-        <h1>Plugin graph</h1>
-        <p class="page-subtitle">Execution order for this trace, grouped by listener priority. Node color = severity.</p>
-      </header>
       ${sessionStateBannerHtml(report.session.state)}
-      <div class="plugin-panel">
-        <div class="priority-grid">${gridHtml}</div>
-      </div>
+      <header class="page-header">
+        <h1>${escapeHtml(eventName)}</h1>
+        <p class="page-subtitle">slowest dispatch, by priority</p>
+      </header>
+      <div class="priority-grid">${columnBlocks}</div>
     </section>
   `;
 }
 
 function priorityLabel(priority: string): string {
-  if (priority === 'LOWEST') {
-    return 'Lowest';
-  }
-  if (priority === 'LOW') {
-    return 'Low';
-  }
-  if (priority === 'NORMAL') {
-    return 'Normal';
-  }
   if (priority === 'HIGH') {
-    return 'High';
+    return 'HIGH / HIGHEST';
   }
-  return 'Monitor';
+  return priority;
 }
 
 function buildPluginCards(dispatch: TraceReport['dispatches'][0]): PluginCard[] {
@@ -106,8 +93,9 @@ function buildPluginCards(dispatch: TraceReport['dispatches'][0]): PluginCard[] 
   }
 
   return cards.sort((a, b) => {
-    const pi = PRIORITY_COLUMNS.indexOf(a.priority === 'HIGHEST' ? 'HIGH' : a.priority) -
-      PRIORITY_COLUMNS.indexOf(b.priority === 'HIGHEST' ? 'HIGH' : b.priority);
+    const mappedA = a.priority === 'HIGHEST' ? 'HIGH' : a.priority;
+    const mappedB = b.priority === 'HIGHEST' ? 'HIGH' : b.priority;
+    const pi = PRIORITY_COLUMNS.indexOf(mappedA) - PRIORITY_COLUMNS.indexOf(mappedB);
     if (pi !== 0) {
       return pi;
     }

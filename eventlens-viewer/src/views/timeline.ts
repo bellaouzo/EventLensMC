@@ -2,7 +2,7 @@ import type { ListenerTiming, TraceDispatch, TraceReport } from '../types';
 import { escapeHtml, formatMillis, simpleEventName } from '../utils/format';
 import { resolveListenerTimings } from '../utils/listenerData';
 import { sessionStateBannerHtml } from '../utils/sessionState';
-import { TICK_BUDGET_NANOS } from '../utils/metrics';
+import { statusLabel, TICK_BUDGET_NANOS } from '../utils/metrics';
 
 const PRIORITY_ORDER = ['LOWEST', 'LOW', 'NORMAL', 'HIGH', 'HIGHEST', 'MONITOR'];
 
@@ -16,7 +16,7 @@ export function renderTimeline(container: HTMLElement, report: TraceReport): voi
   const banner = sessionStateBannerHtml(report.session.state);
 
   if (!report.dispatches.length) {
-    container.innerHTML = `<section class="page"><header class="page-header"><h1>Timeline</h1></header>${banner}<p class="empty">No dispatches captured.</p></section>`;
+    container.innerHTML = `<section class="page">${banner}<p class="empty">No dispatches captured.</p></section>`;
     return;
   }
 
@@ -24,37 +24,33 @@ export function renderTimeline(container: HTMLElement, report: TraceReport): voi
     selectedDispatchIndex = 0;
   }
 
-  const dispatch = pickHighlightDispatch(report.dispatches, selectedDispatchIndex);
-  const dispatchIndex = report.dispatches.indexOf(dispatch);
-  const maxMs = Math.max(12, Math.ceil(dispatch.durationNanos / 1_000_000) + 1);
+  const dispatch = report.dispatches[selectedDispatchIndex];
+  const dispatchIndex = selectedDispatchIndex;
   const tickPercent = (dispatch.durationNanos / TICK_BUDGET_NANOS) * 100;
-  const severity = tickPercent >= 15 ? 'crit' : tickPercent >= 5 ? 'warn' : 'ok';
-
   const location = formatLocation(dispatch);
-  const lanes = buildPriorityLanes(dispatch, maxMs);
+  const handlers = buildHandlerGroups(dispatch);
 
   container.innerHTML = `
     <section class="page">
-      <header class="page-header">
-        <h1>Timeline</h1>
-        <p class="page-subtitle mono">
-          ${escapeHtml(simpleEventName(dispatch.eventClassName))}${location ? ` · ${escapeHtml(location)}` : ''}${dispatch.peerSessionId ? ` · linked ${escapeHtml(dispatch.peerSessionId)}` : ''}${dispatch.serverTick != null ? ` · server tick ${dispatch.serverTick}` : ''}${dispatch.msptMillis != null ? ` · ${dispatch.msptMillis.toFixed(1)} mspt` : ''} · #${dispatch.sequence} · total <span class="severity-${severity}">${formatMillis(dispatch.durationNanos)} (${tickPercent.toFixed(1)}% of tick budget)</span>
-        </p>
-      </header>
       ${banner}
-      <div class="timeline-panel">
-        <div class="timeline-controls">
-          <button type="button" class="btn-ghost" id="timeline-prev"${dispatchIndex <= 0 ? ' disabled' : ''}>← Previous</button>
-          <span class="mono status-muted">Dispatch ${dispatchIndex + 1} of ${report.dispatches.length}</span>
-          <button type="button" class="btn-ghost" id="timeline-next"${dispatchIndex >= report.dispatches.length - 1 ? ' disabled' : ''}>Next →</button>
-        </div>
-        <div class="timeline-axis">
-          ${axisLabels(maxMs)
-            .map((ms) => `<span>${ms}ms</span>`)
-            .join('')}
-        </div>
-        <div class="timeline-lanes">${lanes}</div>
+      <div class="timeline-controls">
+        <button type="button" class="btn-ghost" id="timeline-prev"${dispatchIndex <= 0 ? ' disabled' : ''}>← Previous</button>
+        <span class="mono status-muted">dispatch ${dispatchIndex + 1} / ${report.dispatches.length}</span>
+        <button type="button" class="btn-ghost" id="timeline-next"${dispatchIndex >= report.dispatches.length - 1 ? ' disabled' : ''}>Next →</button>
       </div>
+      <div class="dispatch-summary">
+        <h1 class="dispatch-title">${escapeHtml(simpleEventName(dispatch.eventClassName))}</h1>
+        <div class="dispatch-facts">
+          ${fact('Sequence', `#${dispatch.sequence}`)}
+          ${fact('Duration', `${formatMillis(dispatch.durationNanos)} (${tickPercent.toFixed(1)}% of tick)`)}
+          ${fact('Location', location || '—')}
+          ${fact('Player', dispatch.playerName || '—')}
+          ${fact('World', dispatch.worldName || '—')}
+          ${fact('Server tick', dispatch.serverTick != null ? String(dispatch.serverTick) : '—')}
+          ${fact('MSPT', dispatch.msptMillis != null ? `${dispatch.msptMillis.toFixed(1)} ms` : '—')}
+        </div>
+      </div>
+      <div class="handler-groups">${handlers}</div>
     </section>
   `;
 
@@ -68,11 +64,8 @@ export function renderTimeline(container: HTMLElement, report: TraceReport): voi
   });
 }
 
-function pickHighlightDispatch(dispatches: TraceDispatch[], index: number): TraceDispatch {
-  if (index >= 0 && index < dispatches.length) {
-    return dispatches[index];
-  }
-  return [...dispatches].sort((a, b) => b.durationNanos - a.durationNanos)[0];
+function fact(label: string, value: string): string {
+  return `<div><div class="dispatch-fact-label">${escapeHtml(label)}</div><div class="dispatch-fact-value">${escapeHtml(value)}</div></div>`;
 }
 
 function formatLocation(dispatch: TraceDispatch): string {
@@ -81,25 +74,18 @@ function formatLocation(dispatch: TraceDispatch): string {
     parts.push(dispatch.blockMaterial);
   }
   if (dispatch.blockX != null && dispatch.blockY != null && dispatch.blockZ != null) {
-    parts.push(`@ ${dispatch.blockX},${dispatch.blockY},${dispatch.blockZ}`);
+    parts.push(`(${dispatch.blockX}, ${dispatch.blockY}, ${dispatch.blockZ})`);
   }
   return parts.join(' ');
 }
 
-function axisLabels(maxMs: number): number[] {
-  const step = maxMs <= 12 ? 2 : Math.ceil(maxMs / 6);
-  const labels: number[] = [];
-  for (let ms = 0; ms <= maxMs; ms += step) {
-    labels.push(ms);
-  }
-  if (labels[labels.length - 1] !== maxMs) {
-    labels.push(maxMs);
-  }
-  return labels;
-}
-
-function buildPriorityLanes(dispatch: TraceDispatch, maxMs: number): string {
+function buildHandlerGroups(dispatch: TraceDispatch): string {
   const timings = resolveListenerTimings(dispatch);
+  if (!timings.length) {
+    const hasAgentTimings = dispatch.listenerTimings.length > 0;
+    return `<p class="empty">${hasAgentTimings ? 'No listeners matched the timeline filters.' : 'No per-listener timings for this dispatch. Attach the EventLens agent for measured timings, or wait for the full trace sync.'}</p>`;
+  }
+
   const grouped = new Map<string, ListenerTiming[]>();
   for (const timing of timings) {
     const key = normalizePriority(timing.priority);
@@ -108,72 +94,46 @@ function buildPriorityLanes(dispatch: TraceDispatch, maxMs: number): string {
     grouped.set(key, list);
   }
 
-  let cursorMs = 0;
-  const lanes: string[] = [];
+  const maxNanos = Math.max(...timings.map((timing) => timing.durationNanos), 1);
+  const groups: string[] = [];
 
   for (const priority of PRIORITY_ORDER) {
-    const timings = grouped.get(priority);
-    if (!timings?.length) {
+    const list = grouped.get(priority);
+    if (!list?.length) {
       continue;
     }
-    timings.sort((a, b) => a.invocationOrder - b.invocationOrder);
-
-    const isMonitor = priority === 'MONITOR';
-    const bars = timings
+    list.sort((a, b) => a.invocationOrder - b.invocationOrder);
+    const rows = list
       .map((timing) => {
-        const startMs = cursorMs;
         const widthMs = timing.durationNanos / 1_000_000;
-        cursorMs += widthMs;
-        const leftPct = (startMs / maxMs) * 100;
-        const widthPct = Math.max(isMonitor ? 0.6 : 0.8, (widthMs / maxMs) * 100);
         const severity = barSeverity(timing, widthMs);
-        const tone = isMonitor ? 'monitor' : severity;
-        const shortName = shortenPlugin(timing.pluginName);
-        const flagged = timing.exceedsSlowThreshold ? ' · flagged' : '';
-        const label = isMonitor
-          ? ''
-          : `<span>${escapeHtml(shortName)} ${formatMillis(timing.durationNanos)}${flagged}</span>`;
+        const widthPct = Math.max(18, (timing.durationNanos / maxNanos) * 100);
+        const method = formatListenerPath(timing);
         return `
-          <div class="timeline-bar bar-${tone}" style="left:${leftPct.toFixed(2)}%;width:${widthPct.toFixed(2)}%;" title="${escapeHtml(timing.pluginName)}.${escapeHtml(timing.methodName)} · ${formatMillis(timing.durationNanos)}">
-            ${label}
+          <div class="handler-row">
+            <div class="handler-plugin">${escapeHtml(timing.pluginName)}</div>
+            <div class="handler-method" title="${escapeHtml(method)}">${escapeHtml(method)}</div>
+            <div class="handler-time">${formatMillis(timing.durationNanos)}</div>
+            <div class="handler-bar ${severity}" style="width:${widthPct.toFixed(0)}%">${statusLabel(severity)}</div>
           </div>`;
       })
       .join('');
-
-    const monitorNote =
-      isMonitor && timings.length
-        ? `<div class="lane-note">${timings.map((t) => `${escapeHtml(t.pluginName)} ${formatMillis(t.durationNanos)}`).join(', ')} (read-only observers)</div>`
-        : '';
-
-    lanes.push(`
-      <div class="timeline-lane-block">
-        <div class="lane-label">${priorityLabel(priority)}</div>
-        <div class="lane-track">${bars}</div>
-        ${monitorNote}
-      </div>`);
+    groups.push(`<div><div class="handler-priority">${priorityLabel(priority)}</div>${rows}</div>`);
   }
 
-  if (!lanes.length) {
-    const hasAgentTimings = dispatch.listenerTimings.length > 0;
-    return `<div class="empty">${hasAgentTimings ? 'No listeners matched the timeline filters.' : 'No per-listener timings for this dispatch. Attach the EventLens agent for measured timings, or wait for the full trace sync.'}</div>`;
-  }
-  return lanes.join('');
+  return groups.join('');
+}
+
+function formatListenerPath(timing: ListenerTiming): string {
+  const className = simpleEventName(timing.listenerClassName);
+  return `${timing.pluginName}.${className}#${timing.methodName}`;
 }
 
 function priorityLabel(priority: string): string {
-  if (priority === 'LOWEST') {
-    return 'Lowest';
-  }
-  if (priority === 'LOW') {
-    return 'Low';
-  }
-  if (priority === 'NORMAL') {
-    return 'Normal';
-  }
   if (priority === 'HIGH' || priority === 'HIGHEST') {
-    return 'High';
+    return priority === 'HIGHEST' ? 'HIGHEST' : 'HIGH';
   }
-  return 'Monitor';
+  return priority;
 }
 
 function barSeverity(timing: ListenerTiming, widthMs: number): 'critical' | 'warn' | 'ok' {
@@ -204,11 +164,4 @@ function normalizePriority(priority: string): string {
     return 'HIGH';
   }
   return 'NORMAL';
-}
-
-function shortenPlugin(name: string): string {
-  if (name.length <= 14) {
-    return name;
-  }
-  return name.slice(0, 12) + '…';
 }
