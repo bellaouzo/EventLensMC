@@ -5,6 +5,21 @@ All notable changes to EventLens are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.12.0] - 2026-08-18
+
+### Added
+
+- **Setup wizard** (`eventlens-setup-1.12.0.jar`) copies the Paper plugin or a client mod, optionally installs the matching Java agent, and writes Paper `user_jvm_args.txt` / `start.bat` or Prism/MultiMC `instance.cfg` when those files are present
+- The last wizard page always shows the `-javaagent:` line so CurseForge, Modrinth, and other launchers can paste it by hand
+- GitHub Releases attach the setup jar, **`EventLens-1.12.0-manual.zip`** (all individual jars in one folder), and each jar on its own
+
+### Changed
+
+- README leads with the wizard and still documents the full manual Paper, client, and agent steps
+- Setup wizard **Browse** opens the Windows folder picker (File Explorer), not the Swing file dialog
+- Setup wizard last page highlights the JVM argument in its own box with a **Copy JVM argument** button when the launcher could not be patched automatically
+- Setup wizard last page points to the README Java agents section for Prism / CurseForge / Modrinth steps, and colors the install summary (copied / updated / next steps)
+
 ## [1.11.0] - 2026-08-18
 
 ### Added

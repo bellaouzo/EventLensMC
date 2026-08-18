@@ -32,14 +32,46 @@ jobs:
       - name: Stage artifacts
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
-          mkdir -p dist
-          cp "eventlens-paper/build/libs/EventLens-${VERSION}.jar" dist/
-          cp "eventlens-agent/build/libs/eventlens-agent-${VERSION}.jar" dist/
-          cp "eventlens-client-agent/build/libs/eventlens-client-agent-${VERSION}.jar" dist/
-          cp "eventlens-observability/build/libs/eventlens-observability-${VERSION}.jar" dist/
-          cp "eventlens-neoforge/build/libs/eventlens-neoforge-${VERSION}.jar" dist/
-          cp "eventlens-forge/build/libs/eventlens-forge-${VERSION}.jar" dist/
-          cp "eventlens-fabric/build/libs/eventlens-fabric-${VERSION}.jar" dist/
+          export VERSION
+          mkdir -p dist "dist/manual/EventLens-${VERSION}-manual"
+          cp "eventlens-setup/build/libs/eventlens-setup-${VERSION}.jar" dist/
+          for f in \
+            "eventlens-paper/build/libs/EventLens-${VERSION}.jar" \
+            "eventlens-agent/build/libs/eventlens-agent-${VERSION}.jar" \
+            "eventlens-client-agent/build/libs/eventlens-client-agent-${VERSION}.jar" \
+            "eventlens-observability/build/libs/eventlens-observability-${VERSION}.jar" \
+            "eventlens-neoforge/build/libs/eventlens-neoforge-${VERSION}.jar" \
+            "eventlens-forge/build/libs/eventlens-forge-${VERSION}.jar" \
+            "eventlens-fabric/build/libs/eventlens-fabric-${VERSION}.jar"
+          do
+            cp "$f" dist/
+            cp "$f" "dist/manual/EventLens-${VERSION}-manual/"
+          done
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          from textwrap import dedent
+          version = os.environ["VERSION"]
+          text = dedent(f"""\
+          EventLens {version} — manual install
+
+          Paper plugin:  EventLens-{version}.jar → plugins/
+          Paper agent:   eventlens-agent-{version}.jar → JVM args (not plugins/)
+          NeoForge:      eventlens-neoforge-{version}.jar → mods/
+          Forge:         eventlens-forge-{version}.jar → mods/
+          Fabric:        eventlens-fabric-{version}.jar → mods/
+          Client agent:  eventlens-client-agent-{version}.jar → launcher JVM args (not mods/)
+          Optional:      eventlens-observability-{version}.jar beside an agent (fat agents work alone)
+
+          Prefer the wizard? Download eventlens-setup-{version}.jar from the same GitHub release.
+
+          Full steps:  https://github.com/bellaouzo/EventLensMC#install
+          JVM args:    https://github.com/bellaouzo/EventLensMC#java-agents-optional
+          """)
+          Path(f"dist/manual/EventLens-{version}-manual/INSTALL.txt").write_text(text, encoding="utf-8")
+          PY
+          (cd dist/manual && zip -r "../EventLens-${VERSION}-manual.zip" "EventLens-${VERSION}-manual")
+          rm -rf dist/manual
           ls -la dist/
 
       - name: Create GitHub release
@@ -61,6 +93,12 @@ jobs:
           rest = text[start:]
           nxt = rest.find("\n## [", 1)
           section = rest if nxt < 0 else rest[:nxt]
+          print("## Downloads")
+          print()
+          print(f"- **Setup wizard (start here):** `eventlens-setup-{version}.jar`")
+          print(f"- **Manual install folder:** `EventLens-{version}-manual.zip`")
+          print("- Individual jars are attached too if you only need one file")
+          print()
           print(section.strip())
           PY
           )"

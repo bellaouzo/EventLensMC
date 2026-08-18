@@ -2,7 +2,7 @@
 
 **See which plugins handled a Minecraft event — in what order, who cancelled it, who threw, and who was slow — without changing the event.**
 
-[![Version](https://img.shields.io/badge/version-1.11.0-1f6feb)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.12.0-1f6feb)](CHANGELOG.md)
 [![Paper](https://img.shields.io/badge/Paper-26.2-00aa00)](#paper-server)
 [![Java](https://img.shields.io/badge/Java-25-orange)](#paper-server)
 [![NeoForge](https://img.shields.io/badge/NeoForge-26.2-green)](#minecraft-client)
@@ -11,9 +11,9 @@
 [![CI](https://github.com/bellaouzo/EventLensMC/actions/workflows/ci.yml/badge.svg)](https://github.com/bellaouzo/EventLensMC/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-**1.11.0** is the full release for **Paper 26.2** (Java **25**) and **Minecraft 26.2** clients (NeoForge, Forge, and Fabric).
+**1.12.0** is the full release for **Paper 26.2** (Java **25**) and **Minecraft 26.2** clients (NeoForge, Forge, and Fabric).
 
-**[Download 1.11.0](https://github.com/bellaouzo/EventLensMC/releases/tag/v1.11.0)** · [Paper](#paper-server) · [Client](#minecraft-client) · [Agents](#java-agents-optional) · [First trace](#first-trace) · [Commands](#commands) · [FAQ](#faq)
+**[Download 1.12.0](https://github.com/bellaouzo/EventLensMC/releases/tag/v1.12.0)** · [Wizard](#setup-wizard) · [Paper](#paper-server) · [Client](#minecraft-client) · [Agents](#java-agents-optional) · [First trace](#first-trace) · [Commands](#commands) · [FAQ](#faq)
 
 ---
 
@@ -49,23 +49,51 @@ flowchart LR
 
 ## What to download
 
-Everything is on the same **[1.11.0 release](https://github.com/bellaouzo/EventLensMC/releases/tag/v1.11.0)**. Use matching versions.
+Everything is on the same **[1.12.0 release](https://github.com/bellaouzo/EventLensMC/releases/tag/v1.12.0)**. Use matching versions.
+
+| Download | What it is |
+|---|---|
+| **`eventlens-setup-1.12.0.jar`** | **Start here.** Desktop wizard — copies the right jars and can write Paper / Prism JVM args. See [Setup wizard](#setup-wizard). |
+| **`EventLens-1.12.0-manual.zip`** | All individual jars in one folder if you want to install by hand. Unzip, then follow [Paper](#paper-server), [Client](#minecraft-client), or [Agents](#java-agents-optional). |
+
+The same jars are also attached one-by-one on the release if you only need a single file:
 
 | File | Who | Where it goes |
 |---|---|---|
-| **`EventLens-1.11.0.jar`** | Paper server | `plugins/` |
-| **`eventlens-agent-1.11.0.jar`** | Paper, for precise per-listener timing | JVM args — **not** `plugins/` |
-| **`eventlens-neoforge-1.11.0.jar`** | NeoForge 26.2 client | `mods/` |
-| **`eventlens-forge-1.11.0.jar`** | Forge 26.2 client | `mods/` |
-| **`eventlens-fabric-1.11.0.jar`** | Fabric 26.2 client | `mods/` |
-| **`eventlens-client-agent-1.11.0.jar`** | Any of those clients, for precise per-mod timing | Launcher JVM args — **not** `mods/` |
-| `eventlens-observability-1.11.0.jar` | Optional next to an agent | Same folder as the agent (fat agents work alone) |
+| **`EventLens-1.12.0.jar`** | Paper server | `plugins/` |
+| **`eventlens-agent-1.12.0.jar`** | Paper, for precise per-listener timing | JVM args — **not** `plugins/` |
+| **`eventlens-neoforge-1.12.0.jar`** | NeoForge 26.2 client | `mods/` |
+| **`eventlens-forge-1.12.0.jar`** | Forge 26.2 client | `mods/` |
+| **`eventlens-fabric-1.12.0.jar`** | Fabric 26.2 client | `mods/` |
+| **`eventlens-client-agent-1.12.0.jar`** | Any of those clients, for precise per-mod timing | Launcher JVM args — **not** `mods/` |
+| `eventlens-observability-1.12.0.jar` | Optional next to an agent | Same folder as the agent (fat agents work alone) |
 
-Install the **Paper plugin** for server traces. Install **one** client mod if you also want the click on the player’s game. Agents are recommended so `/eventlens status` says **precise**.
+Install the **Paper plugin** for server traces. Install **one** client mod if you also want the click on the player’s game. Agents are recommended so `/eventlens status` says **precise**. The setup jar already contains those files — you do not need to download them separately if you use the wizard.
 
 ---
 
 ## Install
+
+### Setup wizard
+
+The easiest path if you already have a Paper server, a `mods` folder, or a [Prism](https://prismlauncher.org/) / MultiMC instance. It does **not** create a new official Minecraft or CurseForge profile.
+
+1. Download **`eventlens-setup-1.12.0.jar`** from the [1.12.0 release](https://github.com/bellaouzo/EventLensMC/releases/tag/v1.12.0) (not the manual zip).
+2. Double-click it, or run `java -jar eventlens-setup-1.12.0.jar` (desktop **Java 21+**; Java 25 is fine).
+3. Choose **Paper**, **NeoForge**, **Forge**, or **Fabric**.
+4. Browse to your `plugins/` folder, `mods/` folder, or Prism/MultiMC instance.
+5. Leave **Install the Java agent** checked unless you only want dispatch-only mode.
+6. Click **Install**, then **fully restart** the server or quit the launcher and start again.
+7. Run `/eventlens status`. You want version **1.12.0**. If the agent attached, status says **precise**.
+
+The wizard copies the matching jars. When it can, it also writes:
+
+- Paper: `user_jvm_args.txt`, and `start.bat` / `start.cmd` / `start.sh` / `start.ps1` if those files exist
+- Prism / MultiMC: `OverrideJavaArgs=true` and `JvmArgs=` on `instance.cfg`
+
+The last page puts the `-javaagent:` line in a highlighted box with **Copy JVM argument** and a button that opens the [Java agents](#java-agents-optional) README (Prism, CurseForge, Modrinth, and start scripts). **CurseForge and Modrinth** still need that line pasted into JVM arguments by hand.
+
+Manual steps below if you prefer not to use the wizard. Download **`EventLens-1.12.0-manual.zip`** (or a single jar) from the same release, or build from source.
 
 ### Paper server
 
@@ -75,14 +103,14 @@ Install the **Paper plugin** for server traces. Install **one** client mod if yo
 | Java | **25** (`java -version` should say 25) |
 | Permission | Commands default to **op** |
 
-1. Download **`EventLens-1.11.0.jar`**.
+1. Download **`EventLens-1.12.0.jar`**.
 2. Put it in the server’s `plugins/` folder.
 3. **Stop** the server, then start it again. Do **not** `/reload`.
-4. Run `/eventlens status`. You should see **1.11.0**.
+4. Run `/eventlens status`. You should see **1.12.0**.
 
 For precise per-listener timing, also add the [Paper Java agent](#paper-server-agent-optional).
 
-> **Building from source?** After `.\gradlew.bat build` the plugin is `eventlens-paper/build/libs/EventLens-1.11.0.jar`. Most people should use the [release download](https://github.com/bellaouzo/EventLensMC/releases/tag/v1.11.0).
+> **Building from source?** After `.\gradlew.bat build` the plugin is `eventlens-paper/build/libs/EventLens-1.12.0.jar`. Most people should use the [release download](https://github.com/bellaouzo/EventLensMC/releases/tag/v1.12.0).
 
 ### Minecraft client
 
@@ -90,9 +118,9 @@ Pick **one** jar that matches your loader. Put it in that instance’s `mods/` f
 
 | Your client | File |
 |---|---|
-| **NeoForge** 26.2.x | `eventlens-neoforge-1.11.0.jar` |
-| **Minecraft Forge** 65.1+ | `eventlens-forge-1.11.0.jar` |
-| **Fabric** Loader 0.19 + Fabric API 0.157+ | `eventlens-fabric-1.11.0.jar` |
+| **NeoForge** 26.2.x | `eventlens-neoforge-1.12.0.jar` |
+| **Minecraft Forge** 65.1+ | `eventlens-forge-1.12.0.jar` |
+| **Fabric** Loader 0.19 + Fabric API 0.157+ | `eventlens-fabric-1.12.0.jar` |
 
 Then launch the game and run `/eventlens status` (or `/eventlens ui`). You should see the EventLens Screen, HUD toggle, and the same `/eventlens` / `/el` family as the server.
 
@@ -108,8 +136,8 @@ There are two agent jars. Do not mix them up.
 
 | Agent | File | Goes in |
 |---|---|---|
-| **Paper** (server) | `eventlens-agent-1.11.0.jar` | Server JVM args — **not** `plugins/` |
-| **Client** (NeoForge, Forge, or Fabric) | `eventlens-client-agent-1.11.0.jar` | Launcher JVM args — **not** `mods/` |
+| **Paper** (server) | `eventlens-agent-1.12.0.jar` | Server JVM args — **not** `plugins/` |
+| **Client** (NeoForge, Forge, or Fabric) | `eventlens-client-agent-1.12.0.jar` | Launcher JVM args — **not** `mods/` |
 
 ### What goes where (client)
 
@@ -121,26 +149,26 @@ There are two agent jars. Do not mix them up.
 
 ### Client agent (NeoForge, Forge, and Fabric) — step by step
 
-This is for **your Minecraft launcher**, not the server. The same `eventlens-client-agent-1.11.0.jar` works on NeoForge, Forge, and Fabric.
+This is for **your Minecraft launcher**, not the server. The same `eventlens-client-agent-1.12.0.jar` works on NeoForge, Forge, and Fabric.
 
-**Step 1 — Download** `eventlens-client-agent-1.11.0.jar` from the [1.11.0 release](https://github.com/bellaouzo/EventLensMC/releases/tag/v1.11.0).
+**Step 1 — Download** `eventlens-client-agent-1.12.0.jar` from the [1.12.0 release](https://github.com/bellaouzo/EventLensMC/releases/tag/v1.12.0).
 
 `eventlens-observability-*.jar` beside it is optional on **1.10.7+** (the agent jar is fat).
 
 **Step 2 — Put the agent jar in a normal folder** (not `mods/`):
 
 ```
-C:\Users\You\AppData\Roaming\eventlens-agents\eventlens-client-agent-1.11.0.jar
+C:\Users\You\AppData\Roaming\eventlens-agents\eventlens-client-agent-1.12.0.jar
 ```
 
 **Step 3 — Copy this JVM argument** (use **your** path, forward slashes even on Windows):
 
 ```
--javaagent:C:/Users/You/AppData/Roaming/eventlens-agents/eventlens-client-agent-1.11.0.jar
+-javaagent:C:/Users/You/AppData/Roaming/eventlens-agents/eventlens-client-agent-1.12.0.jar
 ```
 
 - One line, no line breaks. Starts with `-javaagent:` then the full path.
-- Spaces in the path: `-javaagent:"C:/Users/You/My Agents/eventlens-client-agent-1.11.0.jar"`
+- Spaces in the path: `-javaagent:"C:/Users/You/My Agents/eventlens-client-agent-1.12.0.jar"`
 - Do not use a relative path unless you know the launcher’s working directory.
 
 **Step 4 — Paste into JVM arguments**, not game arguments.
@@ -179,7 +207,7 @@ If there is no JVM box, import the instance into [Prism Launcher](https://prisml
 <summary><strong>Other launchers or a <code>.bat</code> file</strong></summary>
 
 ```
-java -javaagent:C:/path/to/eventlens-client-agent-1.11.0.jar ... (rest of launch command)
+java -javaagent:C:/path/to/eventlens-client-agent-1.12.0.jar ... (rest of launch command)
 ```
 
 The official Microsoft Minecraft Launcher does not expose JVM args for modded profiles. Use Prism, CurseForge, or Modrinth.
@@ -206,14 +234,14 @@ The official Microsoft Minecraft Launcher does not expose JVM args for modded pr
 
 ### Paper server agent (optional)
 
-1. Download `eventlens-agent-1.11.0.jar`. Put it next to the server jar — **not** in `plugins/`.
+1. Download `eventlens-agent-1.12.0.jar`. Put it next to the server jar — **not** in `plugins/`.
 2. Add to Paper’s startup JVM arguments:
 
 ```
--javaagent:/full/path/to/eventlens-agent-1.11.0.jar
+-javaagent:/full/path/to/eventlens-agent-1.12.0.jar
 ```
 
-Windows example: `-javaagent:C:/server/eventlens-agent-1.11.0.jar`
+Windows example: `-javaagent:C:/server/eventlens-agent-1.12.0.jar`
 
 3. `stop`, then start (not `/reload`).
 4. `/eventlens status` → **Agent: attached**, **Mode: precise**.
@@ -403,7 +431,9 @@ Default limits: 4 concurrent sessions, 4,096 records per session, 256 listener r
 
 ## FAQ
 
-**Do I need a Java agent?** EventLens works without one (`dispatch-only`). Add the matching [agent](#java-agents-optional) if you want **precise** per-listener or per-mod times.
+**Is there an installer?** Yes — download **`eventlens-setup-1.12.0.jar`** and see [Setup wizard](#setup-wizard). It copies jars and can patch Paper or Prism startup files. For hand install, use **`EventLens-1.12.0-manual.zip`** or the individual jars on the same release.
+
+**Do I need a Java agent?** EventLens works without one (`dispatch-only`). Add the matching [agent](#java-agents-optional) if you want **precise** per-listener or per-mod times. The wizard can do this for you.
 
 **Can I `/reload`?** No. Always `stop`, then start.
 
@@ -535,6 +565,7 @@ Not in this project: Folia, Velocity, packet sniffing, event replay, network tel
 ```powershell
 .\gradlew.bat check
 .\gradlew.bat runServer
+.\gradlew.bat :eventlens-setup:runSetup
 ```
 
 Java **25**, Gradle Wrapper **9.6.1**, Paper **26.2**. Stop the test server with `stop`. CI runs `./gradlew check` and Windows `paperSmokeTest` on push/PR.
@@ -568,6 +599,7 @@ $env:Path = "$env:JAVA_HOME\bin;" + $env:Path
 | `eventlens-client-agent` | Optional client `-javaagent` |
 | `eventlens-mod-common` | Shared client command / trace logic |
 | `eventlens-neoforge` / `forge` / `fabric` | Client mods |
+| `eventlens-setup` | Desktop setup wizard |
 | `eventlens-viewer` | Dashboard TypeScript (bundled into the plugin) |
 | `eventlens-testkit` | Fixture plugin for tests |
 

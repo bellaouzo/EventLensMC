@@ -5,7 +5,7 @@ plugins {
 }
 
 group = 'dev.bellaouzo'
-version = '1.11.0'
+version = '1.12.0'
 
 ext {
     resolveFileLengthLimit = { String relPath, String fileName ->
@@ -106,4 +106,10 @@ tasks.register('runFabricClient') {
     group = 'run'
     description = 'Delegates to eventlens-fabric runClient.'
     dependsOn ':eventlens-fabric:runClient'
+}
+
+tasks.register('runSetup') {
+    group = 'run'
+    description = 'Opens the EventLens setup wizard.'
+    dependsOn ':eventlens-setup:runSetup'
 }

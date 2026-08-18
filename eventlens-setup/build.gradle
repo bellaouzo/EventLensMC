@@ -1,0 +1,138 @@
+plugins {
+    id 'java'
+    id 'jacoco'
+    id 'com.diffplug.spotless'
+    id 'name.remal.sonarlint'
+}
+
+group = 'dev.bellaouzo'
+version = rootProject.version
+
+base {
+    archivesName = 'eventlens-setup'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 21
+}
+
+dependencies {
+    compileOnly 'org.jspecify:jspecify:1.0.0'
+
+    testImplementation platform('org.junit:junit-bom:5.11.4')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.withType(Test).configureEach {
+    useJUnitPlatform()
+    finalizedBy jacocoTestReport
+}
+
+jacoco {
+    toolVersion = '0.8.13'
+}
+
+tasks.named('jacocoTestReport') {
+    dependsOn tasks.named('test')
+    reports {
+        xml.required = true
+        html.required = true
+    }
+}
+
+spotless {
+    java {
+        target 'src/*/java/**/*.java'
+        palantirJavaFormat('2.74.0')
+        removeUnusedImports()
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
+}
+
+sonarLint {
+    failOnSeverity('WARNING')
+    languages {
+        include('java')
+    }
+    logging {
+        withDescription = false
+    }
+}
+
+def artifactJars = [
+        [project: ':eventlens-paper', file: { "EventLens-${version}.jar" }],
+        [project: ':eventlens-agent', file: { "eventlens-agent-${version}.jar" }],
+        [project: ':eventlens-client-agent', file: { "eventlens-client-agent-${version}.jar" }],
+        [project: ':eventlens-neoforge', file: { "eventlens-neoforge-${version}.jar" }],
+        [project: ':eventlens-forge', file: { "eventlens-forge-${version}.jar" }],
+        [project: ':eventlens-fabric', file: { "eventlens-fabric-${version}.jar" }],
+]
+
+tasks.register('stageSetupArtifacts', Copy) {
+    group = 'build'
+    description = 'Copies release jars into setup resources for the wizard.'
+    artifactJars.each { spec ->
+        dependsOn spec.project + ':jar'
+        from(project(spec.project).layout.buildDirectory.dir('libs')) {
+            include spec.file()
+        }
+    }
+    into layout.buildDirectory.dir('setup-artifacts')
+}
+
+tasks.named('jar', Jar) {
+    dependsOn tasks.named('stageSetupArtifacts')
+    from(layout.buildDirectory.dir('setup-artifacts')) {
+        into 'setup-artifacts'
+    }
+    manifest {
+        attributes(
+                'Main-Class': 'dev.bellaouzo.eventlens.setup.EventLensSetup',
+                'Implementation-Title': 'EventLens Setup',
+                'Implementation-Version': project.version)
+    }
+}
+
+tasks.register('runSetup', JavaExec) {
+    group = 'run'
+    description = 'Opens the EventLens setup wizard.'
+    dependsOn tasks.named('classes'), tasks.named('stageSetupArtifacts')
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'dev.bellaouzo.eventlens.setup.EventLensSetup'
+    systemProperty 'eventlens.setup.artifactsDir', layout.buildDirectory.dir('setup-artifacts').get().asFile
+}
+
+tasks.register('checkFileLengths') {
+    group = 'verification'
+    def srcDir = layout.projectDirectory.dir('src')
+    def projectDir = layout.projectDirectory.asFile
+    doLast {
+        def violations = []
+        fileTree(srcDir) { include '**/java/**/*.java' }.each { File file ->
+            int lines = file.readLines().size()
+            String relPath = projectDir.toPath().relativize(file.toPath()).toString().replace('\\', '/')
+            def limit = rootProject.ext.resolveFileLengthLimit(relPath, file.name)
+            if (lines > limit.max) {
+                violations << [relPath, lines, limit.max, limit.category]
+            }
+        }
+        if (!violations.isEmpty()) {
+            throw new GradleException("File length check failed: ${violations.size()} file(s)")
+        }
+    }
+}
+
+tasks.named('check') {
+    dependsOn 'spotlessCheck'
+    dependsOn 'checkFileLengths'
+    dependsOn tasks.matching { it.name.startsWith('sonarLint') && !it.name.endsWith('Rules') && !it.name.endsWith('Properties') }
+}

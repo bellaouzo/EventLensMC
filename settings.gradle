@@ -29,7 +29,8 @@ include(
         'eventlens-mod-common',
         'eventlens-neoforge',
         'eventlens-forge',
-        'eventlens-fabric'
+        'eventlens-fabric',
+        'eventlens-setup'
 )
 
 dependencyResolutionManagement {
