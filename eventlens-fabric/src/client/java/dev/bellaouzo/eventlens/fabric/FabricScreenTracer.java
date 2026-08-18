@@ -18,22 +18,24 @@ final class FabricScreenTracer {
 
     static void register(ModDispatchRecorder recorder) {
         ScreenEvents.AFTER_INIT.register((client, screen, width, height) -> {
-            ScreenMouseEvents.afterMouseClick(screen).register((clicked, mouseX, mouseY, button) ->
-                    recorder.recordImmediate(
-                            SupportedModEventTypes.CLIENT_SCREEN_CLICK_EVENT,
-                            List.of(
-                                    ModSnapshotFields.text("screen", clicked.getClass().getSimpleName()),
-                                    ModSnapshotFields.number("button", button),
-                                    ModSnapshotFields.number("x", mouseX),
-                                    ModSnapshotFields.number("y", mouseY)),
-                            playerName(),
-                            worldName()));
-            ScreenKeyboardEvents.afterKeyPress(screen).register((pressed, key, scancode, modifiers) ->
+            ScreenMouseEvents.afterMouseClick(screen).register((clicked, event, consumed) -> {
+                recorder.recordImmediate(
+                        SupportedModEventTypes.CLIENT_SCREEN_CLICK_EVENT,
+                        List.of(
+                                ModSnapshotFields.text("screen", clicked.getClass().getSimpleName()),
+                                ModSnapshotFields.number("button", event.button()),
+                                ModSnapshotFields.number("x", event.x()),
+                                ModSnapshotFields.number("y", event.y())),
+                        playerName(),
+                        worldName());
+                return false;
+            });
+            ScreenKeyboardEvents.afterKeyPress(screen).register((pressed, event) ->
                     recorder.recordImmediate(
                             SupportedModEventTypes.CLIENT_SCREEN_KEY_EVENT,
                             List.of(
                                     ModSnapshotFields.text("screen", pressed.getClass().getSimpleName()),
-                                    ModSnapshotFields.number("key", key)),
+                                    ModSnapshotFields.number("key", event.key())),
                             playerName(),
                             worldName()));
         });

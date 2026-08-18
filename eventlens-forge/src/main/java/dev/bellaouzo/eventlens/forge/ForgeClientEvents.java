@@ -16,6 +16,8 @@ public final class ForgeClientEvents {
 
     public static void registerHud(AddGuiOverlayLayersEvent event) {
         event.getLayeredDraw()
-                .add(Identifier.fromNamespaceAndPath(EventLensForgeMod.MOD_ID, "hud"), EventLensHudOverlay::render);
+                .add(
+                        Identifier.fromNamespaceAndPath(EventLensForgeMod.MOD_ID, "hud"),
+                        (graphics, delta) -> EventLensHudOverlay.render(graphics, delta));
     }
 }

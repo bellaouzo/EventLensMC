@@ -24,8 +24,8 @@ final class FabricCorrelationChannel implements ModCorrelationChannelPort {
     }
 
     static void register(FabricCorrelationChannel channel) {
-        PayloadTypeRegistry.playC2S().register(FabricCorrelationPayload.TYPE, FabricCorrelationPayload.STREAM_CODEC);
-        PayloadTypeRegistry.playS2C().register(FabricCorrelationPayload.TYPE, FabricCorrelationPayload.STREAM_CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(FabricCorrelationPayload.TYPE, FabricCorrelationPayload.STREAM_CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(FabricCorrelationPayload.TYPE, FabricCorrelationPayload.STREAM_CODEC);
         ClientPlayNetworking.registerGlobalReceiver(FabricCorrelationPayload.TYPE, (payload, context) -> {
             if (channel.bridge != null) {
                 channel.bridge.receiveReply(payload.data());

@@ -2,19 +2,19 @@
 
 **See how Minecraft events travel through plugins and mods — without changing them.**
 
-[![Version](https://img.shields.io/badge/version-1.10.2--beta-1f6feb)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.10.3--beta-1f6feb)](CHANGELOG.md)
 [![Paper](https://img.shields.io/badge/Paper-26.2-00aa00)](#quick-start)
 [![Java](https://img.shields.io/badge/Java-25-orange)](#development)
 [![Minecraft](https://img.shields.io/badge/client-26.2%20(NeoForge)-green)](#client-mods)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-EventLens is a **preview/beta** diagnostics plugin for **Paper 26.2**, with an optional **NeoForge 26.2** client mod (Forge and Fabric 26.2 ports are in progress). It answers the questions chat logs and spark usually cannot: who listened, in what order, who cancelled or threw, which handler was slow, and what a single click actually did.
+EventLens is a **preview/beta** diagnostics plugin for **Paper 26.2**, with optional **NeoForge**, **Forge**, and **Fabric** **26.2** client mods. It answers the questions chat logs and spark usually cannot: who listened, in what order, who cancelled or threw, which handler was slow, and what a single click actually did.
 
 It observes. It does not cancel, reorder, re-fire, or hide exceptions.
 
 | Paper plugin | Client mods | License |
 |---|---|---|
-| Paper **26.2** · Java **25** · `/eventlens` (`/el`) | Minecraft **26.2** · NeoForge client mod (Forge/Fabric port in progress) | [MIT](LICENSE) |
+| Paper **26.2** · Java **25** · `/eventlens` (`/el`) | Minecraft **26.2** · NeoForge / Forge / Fabric client mods | [MIT](LICENSE) |
 
 **[Features](#features)** · **[Quick start](#quick-start)** · **[Commands](#commands)** · **[Client mods](#client-mods)** · **[Dashboard](#dashboard)** · **[Configuration](#configuration)** · **[Development](#development)**
 
@@ -31,11 +31,12 @@ It observes. It does not cancel, reorder, re-fire, or hide exceptions.
 
 | Piece | Who it is for | Required? |
 |---|---|---|
-| **Paper plugin** `EventLens-1.10.2-beta.jar` | Server operators and plugin authors | Yes, for server traces |
-| **Paper Java agent** `eventlens-agent-1.10.2-beta.jar` | Per-listener timing and exception attribution | Optional |
+| **Paper plugin** `EventLens-1.10.3-beta.jar` | Server operators and plugin authors | Yes, for server traces |
+| **Paper Java agent** `eventlens-agent-1.10.3-beta.jar` | Per-listener timing and exception attribution | Optional |
 | **NeoForge client mod** (26.2) | Client-side traces, Screen, HUD | Optional; preview |
-| **Forge / Fabric client mods** | Same as NeoForge | 26.2 port in progress — not in this pre-release build |
-| **Client Java agent** `eventlens-client-agent-1.10.2-beta.jar` | Per-mod handler timing on NeoForge and Forge | Optional; not on Fabric yet |
+| **Forge client mod** (26.2) | Client-side traces, Screen, HUD | Optional; preview |
+| **Fabric client mod** (26.2) | Client-side traces, Screen, HUD | Optional; preview |
+| **Client Java agent** `eventlens-client-agent-1.10.3-beta.jar` | Per-mod handler timing on NeoForge and Forge | Optional; not on Fabric yet |
 | **Dashboard** at `http://127.0.0.1:8765` | Live graphs, timeline, compare | Ships with the Paper plugin |
 | **Bundle export** | Share a self-contained `index.html` report | Paper command |
 
@@ -45,7 +46,7 @@ The plugin is useful without any agent or client mod. Agents add precise timings
 
 ## Quick start
 
-1. Run **Java 25**. Drop `eventlens-paper/build/libs/EventLens-1.10.2-beta.jar` into `plugins/`.
+1. Run **Java 25**. Drop `eventlens-paper/build/libs/EventLens-1.10.3-beta.jar` into `plugins/`.
 2. Restart the server (`stop`, then start — do not `/reload`). Commands default to **op**.
 3. Trace a click, then open the dashboard or an exported bundle.
 
@@ -64,7 +65,7 @@ Then open the exported folder’s `index.html`, or the live dashboard at [http:/
 Built artifact after `.\gradlew.bat build`:
 
 ```
-eventlens-paper/build/libs/EventLens-1.10.2-beta.jar
+eventlens-paper/build/libs/EventLens-1.10.3-beta.jar
 ```
 
 <details>
@@ -75,7 +76,7 @@ Without the agent, EventLens still lists listeners and reports **dispatch-level*
 Add a JVM argument on the **same** Paper process:
 
 ```
--javaagent:eventlens-agent-1.10.2-beta.jar
+-javaagent:eventlens-agent-1.10.3-beta.jar
 ```
 
 Development `runServer` / `runServerDebug` attach this automatically.
@@ -83,25 +84,25 @@ Development `runServer` / `runServerDebug` attach this automatically.
 </details>
 
 <details>
-<summary><strong>Optional client mods (Minecraft 1.21.1)</strong></summary>
+<summary><strong>Optional client mods (Minecraft 26.2)</strong></summary>
 
 Install **one** loader jar that matches your client:
 
 | Loader | Minecraft | Artifact |
 |---|---|---|
-| **NeoForge** 26.2.x | 26.2 | `eventlens-neoforge/build/libs/eventlens-neoforge-1.10.2-beta.jar` |
-| **Minecraft Forge** | 26.2 | Port in progress (not in preview build) |
-| **Fabric** Loader 0.19 + Fabric API | 26.2 | Port in progress (not in preview build) |
+| **NeoForge** 26.2.x | 26.2 | `eventlens-neoforge/build/libs/eventlens-neoforge-1.10.3-beta.jar` |
+| **Minecraft Forge** 65.1+ | 26.2 | `eventlens-forge/build/libs/eventlens-forge-1.10.3-beta.jar` |
+| **Fabric** Loader 0.19 + Fabric API 0.157+ | 26.2 | `eventlens-fabric/build/libs/eventlens-fabric-1.10.3-beta.jar` |
 
 Put the jar in the client `mods/` folder. Chat commands work on all three. Screen, HUD, and keybinds work on all three (Fabric’s Screen is a lighter list UI). Precise per-mod timing needs the **client agent** on NeoForge and Forge only.
 
 **Client Java agent (NeoForge and Forge)**
 
 ```
--javaagent:eventlens-client-agent-1.10.2-beta.jar
+-javaagent:eventlens-client-agent-1.10.3-beta.jar
 ```
 
-Place `eventlens-observability-1.10.2-beta.jar` in the **same folder** as the agent jar. Dev tasks `:eventlens-neoforge:runClient` attach it automatically. Forge/Fabric `runClient` are gated until the 26.2 port compiles again.
+Place `eventlens-observability-1.10.3-beta.jar` in the **same folder** as the agent jar. Dev tasks `:eventlens-neoforge:runClient` and `:eventlens-forge:runClient` attach it automatically.
 
 </details>
 

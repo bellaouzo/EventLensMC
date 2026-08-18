@@ -5,7 +5,7 @@ plugins {
 }
 
 group = 'dev.bellaouzo'
-version = '1.10.2-beta'
+version = '1.10.3-beta'
 
 ext {
     resolveFileLengthLimit = { String relPath, String fileName ->
@@ -53,13 +53,11 @@ spotless {
 }
 
 tasks.named('check') {
-    dependsOn subprojects.findAll { it.name != 'eventlens-forge' && it.name != 'eventlens-fabric' }
-            .collect { it.path + ':check' }
+    dependsOn subprojects.collect { it.path + ':check' }
 }
 
 tasks.named('build') {
-    dependsOn subprojects.findAll { it.name != 'eventlens-forge' && it.name != 'eventlens-fabric' }
-            .collect { it.path + ':build' }
+    dependsOn subprojects.collect { it.path + ':build' }
 }
 
 tasks.register('paperSmokeTest') {

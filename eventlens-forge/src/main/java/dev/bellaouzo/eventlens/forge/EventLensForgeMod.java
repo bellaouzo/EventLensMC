@@ -10,8 +10,9 @@ import dev.bellaouzo.eventlens.neoforge.ui.EventLensClientAccess;
 import dev.bellaouzo.eventlens.neoforge.ui.EventLensUiPreferences;
 import dev.bellaouzo.eventlens.trace.TraceSessionManager;
 import java.nio.file.Path;
+import net.minecraftforge.client.event.AddGuiOverlayLayersEvent;
+import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLPaths;
@@ -50,9 +51,8 @@ public final class EventLensForgeMod {
         MinecraftForge.EVENT_BUS.register(new ForgeInputTracer(recorder));
         MinecraftForge.EVENT_BUS.register(new ForgeWorldTracer(recorder));
         MinecraftForge.EVENT_BUS.register(new ForgeGameplayTracer(recorder));
-        IEventBus modBus = context.getModEventBus();
-        modBus.addListener(ForgeClientEvents::registerKeys);
-        modBus.addListener(ForgeClientEvents::registerHud);
+        RegisterKeyMappingsEvent.BUS.addListener(ForgeClientEvents::registerKeys);
+        AddGuiOverlayLayersEvent.BUS.addListener(ForgeClientEvents::registerHud);
     }
 
     public static ModTraceCoordinator coordinator() {

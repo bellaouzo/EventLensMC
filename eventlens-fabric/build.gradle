@@ -27,6 +27,8 @@ dependencies {
     implementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
     implementation project(':eventlens-mod-common')
     implementation project(':eventlens-core')
+    include project(':eventlens-mod-common')
+    include project(':eventlens-core')
 }
 
 loom {
@@ -89,12 +91,4 @@ tasks.register('checkFileLengths') {
 
 tasks.named('check') {
     dependsOn 'checkFileLengths'
-}
-
-// Minecraft 26.2 port in progress — re-enable when compileClientJava passes again.
-tasks.matching { it.name == 'compileClientJava' || it.name == 'compileJava' }.configureEach {
-    enabled = false
-}
-tasks.named('build') {
-    enabled = false
 }

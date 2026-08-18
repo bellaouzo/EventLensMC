@@ -14,7 +14,7 @@ final class FabricWorldTracer {
     private FabricWorldTracer() {}
 
     static void register(ModDispatchRecorder recorder) {
-        ClientTickEvents.END_WORLD_TICK.register(world -> recorder.recordImmediate(
+        ClientTickEvents.END_LEVEL_TICK.register(world -> recorder.recordImmediate(
                 SupportedModEventTypes.CLIENT_WORLD_TICK_EVENT,
                 List.of(ModSnapshotFields.text("dimension", world.dimension().identifier().toString())),
                 FabricClientContext.playerName(),

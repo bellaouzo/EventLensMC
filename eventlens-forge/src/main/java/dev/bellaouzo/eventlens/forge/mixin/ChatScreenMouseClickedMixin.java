@@ -1,8 +1,10 @@
 package dev.bellaouzo.eventlens.forge.mixin;
 
+import dev.bellaouzo.eventlens.forge.ForgeChatClicks;
 import dev.bellaouzo.eventlens.forge.ForgeClientClickCommands;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.ChatScreen;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Style;
 import org.spongepowered.asm.mixin.Mixin;
@@ -14,15 +16,15 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class ChatScreenMouseClickedMixin {
 
     @Inject(method = "mouseClicked", at = @At("HEAD"), cancellable = true)
-    private void eventlens$openUiClick(double mouseX, double mouseY, int button, CallbackInfoReturnable<Boolean> cir) {
-        if (button != 0) {
+    private void eventlens$openUiClick(MouseButtonEvent event, boolean doubleClick, CallbackInfoReturnable<Boolean> cir) {
+        if (event.button() != 0) {
             return;
         }
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft == null || minecraft.gui == null) {
             return;
         }
-        Style style = minecraft.gui.hud.getChat().getClickedComponentStyleAt(mouseX, mouseY);
+        Style style = ForgeChatClicks.clickedChatStyle(minecraft, event.x(), event.y());
         if (style == null || style.getClickEvent() == null) {
             return;
         }

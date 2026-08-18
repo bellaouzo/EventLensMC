@@ -29,11 +29,11 @@ final class ForgeModIdResolver implements AgentRuntime.OwnerIdResolver {
     private static String lookup(Class<?> type) {
         try {
             String moduleName = type.getModule().getName();
-            if (moduleName != null && ModList.get().isLoaded(moduleName)) {
+            if (moduleName != null && ModList.isLoaded(moduleName)) {
                 return moduleName;
             }
             String className = type.getName();
-            for (var fileInfo : ModList.get().getModFiles()) {
+            for (var fileInfo : ModList.getModFiles()) {
                 if (fileInfo.getMods().isEmpty()) {
                     continue;
                 }

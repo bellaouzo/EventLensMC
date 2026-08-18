@@ -18,13 +18,13 @@ final class FabricChatClicks {
             if (!(screen instanceof ChatScreen)) {
                 return;
             }
-            ScreenMouseEvents.afterMouseClick(screen).register((clicked, mouseX, mouseY, button) -> {
-                if (button != 0 || client.gui == null) {
-                    return;
+            ScreenMouseEvents.afterMouseClick(screen).register((clicked, event, consumed) -> {
+                if (event.button() != 0 || client.gui == null) {
+                    return false;
                 }
-                Style style = clickedChatStyle(client, mouseX, mouseY);
+                Style style = clickedChatStyle(client, event.x(), event.y());
                 if (style == null || style.getClickEvent() == null) {
-                    return;
+                    return false;
                 }
                 ClickEvent clickEvent = style.getClickEvent();
                 if (clickEvent instanceof ClickEvent.CopyToClipboard copy
@@ -32,6 +32,7 @@ final class FabricChatClicks {
                         && !copy.value().isBlank()) {
                     FabricToasts.copied();
                 }
+                return false;
             });
         });
     }

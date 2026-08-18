@@ -11,7 +11,7 @@ import dev.bellaouzo.eventlens.modcommon.command.ModClientCommands;
 import dev.bellaouzo.eventlens.modcommon.command.ModClientTabCompleter;
 import java.util.ArrayList;
 import java.util.List;
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
+import net.fabricmc.fabric.api.client.command.v2.ClientCommands;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.minecraft.client.Minecraft;
@@ -30,15 +30,15 @@ final class FabricClientCommands {
 
     private static LiteralArgumentBuilder<FabricClientCommandSource> root(
             ModTraceCoordinator coordinator, String name) {
-        return ClientCommandManager.literal(name)
+        return ClientCommands.literal(name)
                 .executes(context -> run(coordinator, context, List.of("status")))
-                .then(ClientCommandManager.literal("status")
+                .then(ClientCommands.literal("status")
                         .executes(context -> run(coordinator, context, List.of("status"))))
                 .then(listeners(coordinator))
                 .then(mod(coordinator))
                 .then(exceptions(coordinator))
                 .then(trace(coordinator))
-                .then(ClientCommandManager.literal("ui")
+                .then(ClientCommands.literal("ui")
                         .executes(context -> {
                             net.minecraft.client.Minecraft.getInstance()
                                     .execute(() -> dev.bellaouzo.eventlens.neoforge.ui.EventLensScreen.open());
@@ -47,12 +47,12 @@ final class FabricClientCommands {
     }
 
     private static LiteralArgumentBuilder<FabricClientCommandSource> mod(ModTraceCoordinator coordinator) {
-        return ClientCommandManager.literal("mod")
+        return ClientCommands.literal("mod")
                 .executes(context -> run(coordinator, context, List.of("mod")))
-                .then(ClientCommandManager.literal("compare")
-                        .then(ClientCommandManager.argument("left", StringArgumentType.word())
+                .then(ClientCommands.literal("compare")
+                        .then(ClientCommands.argument("left", StringArgumentType.word())
                                 .suggests(suggestMods(coordinator))
-                                .then(ClientCommandManager.argument("right", StringArgumentType.word())
+                                .then(ClientCommands.argument("right", StringArgumentType.word())
                                         .suggests(suggestMods(coordinator))
                                         .executes(context -> run(
                                                 coordinator,
@@ -62,16 +62,16 @@ final class FabricClientCommands {
                                                         "compare",
                                                         StringArgumentType.getString(context, "left"),
                                                         StringArgumentType.getString(context, "right")))))))
-                .then(ClientCommandManager.argument("id", StringArgumentType.word())
+                .then(ClientCommands.argument("id", StringArgumentType.word())
                         .suggests(suggestMods(coordinator))
                         .executes(context -> run(
                                 coordinator, context, List.of("mod", StringArgumentType.getString(context, "id")))));
     }
 
     private static LiteralArgumentBuilder<FabricClientCommandSource> exceptions(ModTraceCoordinator coordinator) {
-        return ClientCommandManager.literal("exceptions")
+        return ClientCommands.literal("exceptions")
                 .executes(context -> run(coordinator, context, List.of("exceptions")))
-                .then(ClientCommandManager.argument("page", IntegerArgumentType.integer(1))
+                .then(ClientCommands.argument("page", IntegerArgumentType.integer(1))
                         .executes(context -> run(
                                 coordinator,
                                 context,
@@ -81,9 +81,9 @@ final class FabricClientCommands {
     }
 
     private static LiteralArgumentBuilder<FabricClientCommandSource> listeners(ModTraceCoordinator coordinator) {
-        return ClientCommandManager.literal("listeners")
+        return ClientCommands.literal("listeners")
                 .executes(context -> run(coordinator, context, List.of("listeners")))
-                .then(ClientCommandManager.argument("event", StringArgumentType.word())
+                .then(ClientCommands.argument("event", StringArgumentType.word())
                         .suggests(suggestEvents())
                         .executes(context -> run(
                                 coordinator,
@@ -92,28 +92,28 @@ final class FabricClientCommands {
     }
 
     private static LiteralArgumentBuilder<FabricClientCommandSource> trace(ModTraceCoordinator coordinator) {
-        return ClientCommandManager.literal("trace")
+        return ClientCommands.literal("trace")
                 .executes(context -> run(coordinator, context, List.of("trace")))
                 .then(start(coordinator))
                 .then(sessionCommand(coordinator, "stop"))
                 .then(sessionCommand(coordinator, "pause"))
                 .then(sessionCommand(coordinator, "resume"))
                 .then(restart(coordinator))
-                .then(ClientCommandManager.literal("list")
+                .then(ClientCommands.literal("list")
                         .executes(context -> run(coordinator, context, List.of("trace", "list"))))
                 .then(view(coordinator))
                 .then(sessionCommand(coordinator, "export"));
     }
 
     private static LiteralArgumentBuilder<FabricClientCommandSource> start(ModTraceCoordinator coordinator) {
-        return ClientCommandManager.literal("start")
-                .then(ClientCommandManager.argument("event", StringArgumentType.word())
+        return ClientCommands.literal("start")
+                .then(ClientCommands.argument("event", StringArgumentType.word())
                         .suggests(suggestEvents())
                         .executes(context -> run(
                                 coordinator,
                                 context,
                                 List.of("trace", "start", StringArgumentType.getString(context, "event"))))
-                        .then(ClientCommandManager.argument("flags", StringArgumentType.greedyString())
+                        .then(ClientCommands.argument("flags", StringArgumentType.greedyString())
                                 .suggests(suggestStartFlags(coordinator))
                                 .executes(context -> {
                                     List<String> args = new ArrayList<>();
@@ -126,14 +126,14 @@ final class FabricClientCommands {
     }
 
     private static LiteralArgumentBuilder<FabricClientCommandSource> view(ModTraceCoordinator coordinator) {
-        return ClientCommandManager.literal("view")
-                .then(ClientCommandManager.argument("session", StringArgumentType.word())
+        return ClientCommands.literal("view")
+                .then(ClientCommands.argument("session", StringArgumentType.word())
                         .suggests(suggestSessions(coordinator))
                         .executes(context -> run(
                                 coordinator,
                                 context,
                                 List.of("trace", "view", StringArgumentType.getString(context, "session"))))
-                        .then(ClientCommandManager.argument("page", IntegerArgumentType.integer(1))
+                        .then(ClientCommands.argument("page", IntegerArgumentType.integer(1))
                                 .executes(context -> run(
                                         coordinator,
                                         context,
@@ -146,8 +146,8 @@ final class FabricClientCommands {
     }
 
     private static LiteralArgumentBuilder<FabricClientCommandSource> restart(ModTraceCoordinator coordinator) {
-        return ClientCommandManager.literal("restart")
-                .then(ClientCommandManager.argument("session", StringArgumentType.word())
+        return ClientCommands.literal("restart")
+                .then(ClientCommands.argument("session", StringArgumentType.word())
                         .suggests(suggestSessions(coordinator))
                         .executes(context -> run(
                                 coordinator,
@@ -157,14 +157,14 @@ final class FabricClientCommands {
 
     private static LiteralArgumentBuilder<FabricClientCommandSource> sessionCommand(
             ModTraceCoordinator coordinator, String name) {
-        var session = ClientCommandManager.argument("session", StringArgumentType.word())
+        var session = ClientCommands.argument("session", StringArgumentType.word())
                 .suggests(suggestSessions(coordinator))
                 .executes(context -> run(
                         coordinator,
                         context,
                         List.of("trace", name, StringArgumentType.getString(context, "session"))));
         if ("export".equals(name)) {
-            session.then(ClientCommandManager.argument("flags", StringArgumentType.greedyString())
+            session.then(ClientCommands.argument("flags", StringArgumentType.greedyString())
                     .suggests(suggestExportFlags())
                     .executes(context -> run(
                             coordinator,
@@ -173,7 +173,7 @@ final class FabricClientCommands {
                                     StringArgumentType.getString(context, "session"),
                                     StringArgumentType.getString(context, "flags")))));
         }
-        return ClientCommandManager.literal(name)
+        return ClientCommands.literal(name)
                 .executes(context -> run(coordinator, context, List.of("trace", name)))
                 .then(session);
     }

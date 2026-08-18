@@ -7,8 +7,8 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.eventbus.api.listener.Priority;
+import net.minecraftforge.eventbus.api.listener.SubscribeEvent;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.forgespi.language.ModFileScanData;
 
@@ -28,7 +28,7 @@ public final class ForgeListenerRegistry implements ModListenerRegistryPort {
         }
         Map<String, List<ModHandlerRegistration>> index = new LinkedHashMap<>();
         try {
-            ModList.get().getModFiles().forEach(fileInfo -> {
+            ModList.getModFiles().forEach(fileInfo -> {
                 String modId = fileInfo.getMods().isEmpty() ? "unknown" : fileInfo.getMods().getFirst().getModId();
                 ModFileScanData scan = fileInfo.getFile().getScanResult();
                 if (scan == null) {
@@ -92,16 +92,19 @@ public final class ForgeListenerRegistry implements ModListenerRegistryPort {
     }
 
     private static int priorityOrdinal(Object priority) {
-        if (priority instanceof EventPriority eventPriority) {
-            return eventPriority.ordinal();
+        if (priority instanceof Number number) {
+            return number.intValue();
         }
         if (priority instanceof String name) {
-            try {
-                return EventPriority.valueOf(name).ordinal();
-            } catch (IllegalArgumentException ignored) {
-                return EventPriority.NORMAL.ordinal();
-            }
+            return switch (name) {
+                case "HIGHEST" -> Priority.HIGHEST;
+                case "HIGH" -> Priority.HIGH;
+                case "LOW" -> Priority.LOW;
+                case "LOWEST" -> Priority.LOWEST;
+                case "MONITOR" -> Priority.MONITOR;
+                default -> Priority.NORMAL;
+            };
         }
-        return EventPriority.NORMAL.ordinal();
+        return Priority.NORMAL;
     }
 }

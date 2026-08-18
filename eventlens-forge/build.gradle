@@ -110,6 +110,15 @@ tasks.named('jar', Jar) {
     manifest {
         attributes 'MixinConfigs': 'eventlens.mixins.json'
     }
+    dependsOn ':eventlens-mod-common:jar', ':eventlens-core:jar', ':eventlens-observability:jar'
+    from {
+        [
+            project(':eventlens-mod-common').tasks.named('jar').get().archiveFile,
+            project(':eventlens-core').tasks.named('jar').get().archiveFile,
+            project(':eventlens-observability').tasks.named('jar').get().archiveFile,
+        ].collect { zipTree(it) }
+    }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
 tasks.withType(JavaCompile).configureEach {
@@ -139,12 +148,4 @@ tasks.register('checkFileLengths') {
 
 tasks.named('check') {
     dependsOn 'checkFileLengths'
-}
-
-// Minecraft 26.2 port in progress — re-enable when compileJava passes again.
-tasks.named('compileJava') {
-    enabled = false
-}
-tasks.named('build') {
-    enabled = false
 }

@@ -6,7 +6,6 @@ import dev.bellaouzo.eventlens.observability.ListenerSnapshotBridge;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
-import net.minecraftforge.eventbus.api.Event;
 
 final class ForgeListenerSnapshotBridge implements ListenerSnapshotBridge {
 
@@ -20,9 +19,6 @@ final class ForgeListenerSnapshotBridge implements ListenerSnapshotBridge {
             return CompactEventSnapshot.empty(checkpoint);
         }
         List<CompactField> fields = new ArrayList<>();
-        if (event instanceof Event cancellable) {
-            fields.add(new CompactField("cancelled", "boolean", Boolean.toString(cancellable.isCanceled())));
-        }
         for (String accessor : ACCESSORS) {
             if (fields.size() >= MAX_FIELDS) {
                 break;

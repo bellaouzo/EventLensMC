@@ -5,6 +5,23 @@ All notable changes to EventLens are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.10.3-beta] - 2026-08-18
+
+### Added
+
+- **Forge 26.2** and **Fabric 26.2** client mods ship with the preview release (Screen, HUD, chat commands, 55 client events)
+- GitHub pre-release includes Paper, NeoForge, Forge, and Fabric client mod JARs
+
+### Changed
+
+- Forge client mod migrated to **EventBus 7** (`SubscribeEvent`, static `ModList`, tick record events, `ForgeLayer` HUD registration)
+- Fabric client mod migrated to Fabric API **0.157+26.2** (`ClientCommands`, `KeyMappingHelper`, `HudElementRegistry`, `END_LEVEL_TICK`, play payload registries)
+
+### Fixed
+
+- NeoForge client mod no longer crashes on startup with `NoClassDefFoundError: AgentRuntime$OwnerIdResolver`; `eventlens-observability` is bundled in the mod JAR again
+- Forge and Fabric are included in the default Gradle `check` / `build` again
+
 ## [1.10.2-beta] - 2026-08-18
 
 ### Added

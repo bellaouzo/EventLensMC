@@ -44,6 +44,7 @@ dependencies {
     compileOnly project(':eventlens-observability')
     jarJar project(':eventlens-mod-common')
     jarJar project(':eventlens-core')
+    jarJar project(':eventlens-observability')
 }
 
 def clientAgentArgument() {

@@ -23,8 +23,7 @@ public final class ForgeEnvironmentAdapter implements ModEnvironmentPort {
 
     @Override
     public String loaderVersion() {
-        return ModList.get()
-                .getModContainerById("forge")
+        return ModList.getModContainerById("forge")
                 .map(container -> container.getModInfo().getVersion().toString())
                 .orElse("unknown");
     }
@@ -32,7 +31,7 @@ public final class ForgeEnvironmentAdapter implements ModEnvironmentPort {
     @Override
     public Map<String, String> loadedModVersions() {
         Map<String, String> versions = new LinkedHashMap<>();
-        ModList.get().getMods().forEach(modInfo -> {
+        ModList.getMods().forEach(modInfo -> {
             if (versions.size() >= 64) {
                 return;
             }

@@ -15,7 +15,7 @@ import net.minecraftforge.client.event.ScreenEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.eventbus.api.listener.SubscribeEvent;
 
 public final class ForgeEventTracer {
 
@@ -133,7 +133,7 @@ public final class ForgeEventTracer {
     }
 
     @SubscribeEvent
-    public void onUseEntity(PlayerInteractEvent.EntityInteract event) {
+    public void onUseEntity(PlayerInteractEvent.EntityInteractSpecific event) {
         if (!event.getLevel().isClientSide()) {
             return;
         }

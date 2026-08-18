@@ -18,7 +18,7 @@ import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.EntityLeaveLevelEvent;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.event.level.ChunkEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.eventbus.api.listener.SubscribeEvent;
 
 public final class ForgeWorldTracer {
 
@@ -137,12 +137,12 @@ public final class ForgeWorldTracer {
 
     @SubscribeEvent
     public void onWorldTick(TickEvent.LevelTickEvent.Post event) {
-        if (!event.level.isClientSide()) {
+        if (!event.level().isClientSide()) {
             return;
         }
         recorder.recordImmediate(
                 SupportedModEventTypes.CLIENT_WORLD_TICK_EVENT,
-                List.of(ModSnapshotFields.text("dimension", event.level.dimension().identifier().toString())),
+                List.of(ModSnapshotFields.text("dimension", event.level().dimension().identifier().toString())),
                 ForgeClientContext.playerName(),
                 ForgeClientContext.worldName(),
                 event);
@@ -150,7 +150,7 @@ public final class ForgeWorldTracer {
 
     @SubscribeEvent
     public void onPlayerTick(TickEvent.PlayerTickEvent.Post event) {
-        if (!(event.player instanceof LocalPlayer) || !event.player.level().isClientSide()) {
+        if (!(event.player() instanceof LocalPlayer) || !event.player().level().isClientSide()) {
             return;
         }
         recorder.recordImmediate(
