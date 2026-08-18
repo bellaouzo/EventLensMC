@@ -7,7 +7,6 @@ import java.util.Optional;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.listener.SubscribeEvent;
 
 public final class ForgePlayerStateTracer {
 
@@ -19,8 +18,11 @@ public final class ForgePlayerStateTracer {
         this.recorder = recorder;
     }
 
-    @SubscribeEvent
-    public void onClientTickPre(TickEvent.ClientTickEvent.Pre event) {
+    public void register() {
+        TickEvent.ClientTickEvent.Pre.BUS.addListener(this::onClientTickPre);
+    }
+
+    private void onClientTickPre(TickEvent.ClientTickEvent.Pre event) {
         LocalPlayer player = Minecraft.getInstance().player;
         if (player == null) {
             hurtDetector.reset();

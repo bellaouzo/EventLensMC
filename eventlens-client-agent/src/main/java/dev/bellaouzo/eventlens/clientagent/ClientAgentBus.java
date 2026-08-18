@@ -18,6 +18,11 @@ final class ClientAgentBus {
             "net.minecraftforge.eventbus.api.Event",
             List.of("net.minecraftforge.eventbus.ASMEventHandler"));
 
+    static final TargetSet FABRIC = new TargetSet(
+            "Fabric",
+            null,
+            List.of("net.fabricmc.fabric.impl.base.event.ArrayBackedEvent"));
+
     private ClientAgentBus() {}
 
     record TargetSet(String name, String eventClass, List<String> classes) {
@@ -26,7 +31,7 @@ final class ClientAgentBus {
                 if (!classes.contains(loadedClass.getName())) {
                     continue;
                 }
-                if (!ClientAgentTargets.matches(loadedClass, eventClass)) {
+                if (eventClass != null && !ClientAgentTargets.matches(loadedClass, eventClass)) {
                     return false;
                 }
             }

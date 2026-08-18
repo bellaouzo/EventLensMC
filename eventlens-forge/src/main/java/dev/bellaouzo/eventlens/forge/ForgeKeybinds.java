@@ -7,13 +7,9 @@ import dev.bellaouzo.eventlens.neoforge.ui.EventLensUiPreferences;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.Identifier;
-import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.listener.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
 import org.lwjgl.glfw.GLFW;
 
-@Mod.EventBusSubscriber(modid = EventLensForgeMod.MOD_ID, value = Dist.CLIENT)
 public final class ForgeKeybinds {
 
     public static final KeyMapping.Category CATEGORY = KeyMapping.Category.register(
@@ -26,8 +22,11 @@ public final class ForgeKeybinds {
 
     private ForgeKeybinds() {}
 
-    @SubscribeEvent
-    public static void onClientTick(TickEvent.ClientTickEvent.Post event) {
+    public static void register() {
+        TickEvent.ClientTickEvent.Post.BUS.addListener(ForgeKeybinds::onClientTick);
+    }
+
+    private static void onClientTick(TickEvent.ClientTickEvent.Post event) {
         while (OPEN.consumeClick()) {
             if (EventLensScreen.isOpen()) {
                 Minecraft.getInstance().gui.setScreen(null);

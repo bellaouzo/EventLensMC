@@ -13,7 +13,6 @@ import dev.bellaouzo.eventlens.trace.TraceSessionManager;
 import java.nio.file.Path;
 import net.minecraftforge.client.event.AddGuiOverlayLayersEvent;
 import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
-import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLPaths;
@@ -48,11 +47,14 @@ public final class EventLensForgeMod {
         sessionManager.setDispatchCaptureListener(correlationBridge);
         EventLensClientAccess.bind(coordinator, uiPreferences);
         ModDispatchRecorder recorder = instrumentation.recorder();
-        MinecraftForge.EVENT_BUS.register(new ForgeEventTracer(recorder));
-        MinecraftForge.EVENT_BUS.register(new ForgePlayerStateTracer(recorder));
-        MinecraftForge.EVENT_BUS.register(new ForgeInputTracer(recorder));
-        MinecraftForge.EVENT_BUS.register(new ForgeWorldTracer(recorder));
-        MinecraftForge.EVENT_BUS.register(new ForgeGameplayTracer(recorder));
+        new ForgeEventTracer(recorder).register();
+        new ForgePlayerStateTracer(recorder).register();
+        new ForgeInputTracer(recorder).register();
+        new ForgeWorldTracer(recorder).register();
+        new ForgeGameplayTracer(recorder).register();
+        ForgeClientBootstrap.register();
+        ForgeKeybinds.register();
+        ForgeChatClicks.register();
         RegisterKeyMappingsEvent.BUS.addListener(ForgeClientEvents::registerKeys);
         AddGuiOverlayLayersEvent.BUS.addListener(ForgeClientEvents::registerHud);
     }

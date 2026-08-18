@@ -37,7 +37,7 @@ final class FabricEventTracer {
                 return;
             }
             tickDispatchKey.set(recorder.beginPaired(
-                    SupportedModEventTypes.CLIENT_TICK_EVENT, playerName(), worldName()));
+                    SupportedModEventTypes.CLIENT_TICK_EVENT, playerName(), worldName(), client));
             recordMove(recorder);
         });
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
@@ -46,7 +46,7 @@ final class FabricEventTracer {
                 return;
             }
             recorder.endPaired(
-                    key, SupportedModEventTypes.CLIENT_TICK_EVENT, List.of(), playerName(), worldName());
+                    key, SupportedModEventTypes.CLIENT_TICK_EVENT, List.of(), playerName(), worldName(), client);
         });
         ClientSendMessageEvents.CHAT.register(message -> recorder.recordImmediate(
                 SupportedModEventTypes.CLIENT_CHAT_EVENT,

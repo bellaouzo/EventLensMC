@@ -3,9 +3,9 @@ package dev.bellaouzo.eventlens.fabric;
 import dev.bellaouzo.eventlens.application.TraceReportBuilder;
 import dev.bellaouzo.eventlens.domain.runtime.ModRuntimeKind;
 import dev.bellaouzo.eventlens.modcommon.FileModExportAdapter;
+import dev.bellaouzo.eventlens.modcommon.ModAgentDiagnostics;
 import dev.bellaouzo.eventlens.modcommon.ModCorrelationBridge;
 import dev.bellaouzo.eventlens.modcommon.ModEnvironmentCollector;
-import dev.bellaouzo.eventlens.modcommon.ModNoOpInstrumentationAdapter;
 import dev.bellaouzo.eventlens.modcommon.ModDispatchRecorder;
 import dev.bellaouzo.eventlens.modcommon.ModTraceCoordinator;
 import dev.bellaouzo.eventlens.modcommon.port.ModEnvironmentPort;
@@ -26,12 +26,13 @@ public final class EventLensFabricMod implements ClientModInitializer {
     public void onInitializeClient() {
         Path configDir = FabricLoader.getInstance().getConfigDir().resolve("eventlens");
         TraceSessionManager sessionManager = new TraceSessionManager();
-        ModNoOpInstrumentationAdapter instrumentation = new ModNoOpInstrumentationAdapter();
-        sessionManager.setInstrumentationPort(instrumentation);
+        FabricClientInstrumentation.Result instrumentation = FabricClientInstrumentation.create(sessionManager);
+        sessionManager.setInstrumentationPort(instrumentation.port());
+        ModAgentDiagnostics.logStartupWarnings(instrumentation.port().isAgentPresent());
         FabricEnvironmentAdapter environmentAdapter = new FabricEnvironmentAdapter();
         ModEnvironmentCollector environmentCollector = new ModEnvironmentCollector(environmentAdapter);
         TraceReportBuilder reportBuilder =
-                new TraceReportBuilder(environmentCollector, instrumentation, environmentAdapter.platformLabel());
+                new TraceReportBuilder(environmentCollector, instrumentation.port(), environmentAdapter.platformLabel());
         FileModExportAdapter exportAdapter = new FileModExportAdapter(configDir);
         FabricListenerRegistry listenerRegistry = new FabricListenerRegistry();
         coordinator = new ModTraceCoordinator(
@@ -42,7 +43,8 @@ public final class EventLensFabricMod implements ClientModInitializer {
         correlationChannel.bind(correlationBridge);
         sessionManager.setDispatchCaptureListener(correlationBridge);
         FabricCorrelationChannel.register(correlationChannel);
-        FabricEventTracer.register(new ModDispatchRecorder(sessionManager));
+        ModDispatchRecorder recorder = instrumentation.recorder();
+        FabricEventTracer.register(recorder);
         FabricClientCommands.register(coordinator);
         FabricChatClicks.register();
         dev.bellaouzo.eventlens.fabric.ui.EventLensKeybinds.register();

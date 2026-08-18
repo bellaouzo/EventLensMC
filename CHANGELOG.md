@@ -5,6 +5,20 @@ All notable changes to EventLens are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.10.7-beta] - 2026-08-18
+
+### Added
+
+- **Fabric client Java agent** — per-mod Fabric API callback timing via launcher `-javaagent:` (same client agent jar as NeoForge and Forge)
+
+### Fixed
+
+- Forge client mod no longer instant-crashes on startup: removed mixins targeting Minecraft 26.2 methods that no longer exist (`Screen.handleComponentClicked`, `ClientPacketListener.sendUnsignedCommand`)
+- Forge mixin config uses `JAVA_21` compatibility (Mixin 0.8.7 on Forge does not recognize `JAVA_25`)
+- Forge EventBus 7 registration for all client tracers and bootstrap handlers (no `MinecraftForge.EVENT_BUS.register` / `@SubscribeEvent`)
+- Fabric `runClient` attaches the client agent correctly (Loom `vmArg`, not an unresolved Gradle `Provider`)
+- Fabric mod bundles `eventlens-observability` so agent wiring works in dev and release jars
+
 ## [1.10.6-beta] - 2026-08-18
 
 ### Fixed

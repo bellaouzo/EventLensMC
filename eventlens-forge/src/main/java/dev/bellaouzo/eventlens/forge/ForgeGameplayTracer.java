@@ -17,7 +17,6 @@ import net.minecraftforge.event.entity.player.EntityItemPickupEvent;
 import net.minecraftforge.event.entity.player.PlayerContainerEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.eventbus.api.listener.SubscribeEvent;
 
 public final class ForgeGameplayTracer {
 
@@ -27,24 +26,32 @@ public final class ForgeGameplayTracer {
         this.recorder = recorder;
     }
 
-    @SubscribeEvent
-    public void onToss(ItemTossEvent event) {
+    public void register() {
+        ItemTossEvent.BUS.addListener(this::onToss);
+        EntityItemPickupEvent.BUS.addListener(this::onPickup);
+        LivingDeathEvent.BUS.addListener(this::onDeath);
+        LivingHurtEvent.BUS.addListener(this::onHurt);
+        LivingEntityUseItemEvent.Finish.BUS.addListener(this::onUseItemFinish);
+        PlayerContainerEvent.Open.BUS.addListener(this::onContainerOpen);
+        PlayerContainerEvent.Close.BUS.addListener(this::onContainerClose);
+        PlayerEvent.BreakSpeed.BUS.addListener(this::onBreakSpeed);
+    }
+
+    private void onToss(ItemTossEvent event) {
         if (!event.getEntity().level().isClientSide()) {
             return;
         }
         recordItem(SupportedModEventTypes.CLIENT_ITEM_TOSS_EVENT, event.getEntity(), event);
     }
 
-    @SubscribeEvent
-    public void onPickup(EntityItemPickupEvent event) {
+    private void onPickup(EntityItemPickupEvent event) {
         if (!event.getEntity().level().isClientSide()) {
             return;
         }
         recordItem(SupportedModEventTypes.CLIENT_ITEM_PICKUP_EVENT, event.getItem(), event);
     }
 
-    @SubscribeEvent
-    public void onDeath(LivingDeathEvent event) {
+    private void onDeath(LivingDeathEvent event) {
         if (!event.getEntity().level().isClientSide()) {
             return;
         }
@@ -56,8 +63,7 @@ public final class ForgeGameplayTracer {
                 event);
     }
 
-    @SubscribeEvent
-    public void onHurt(LivingHurtEvent event) {
+    private void onHurt(LivingHurtEvent event) {
         if (!event.getEntity().level().isClientSide()) {
             return;
         }
@@ -72,8 +78,7 @@ public final class ForgeGameplayTracer {
                 event);
     }
 
-    @SubscribeEvent
-    public void onUseItemFinish(LivingEntityUseItemEvent.Finish event) {
+    private void onUseItemFinish(LivingEntityUseItemEvent.Finish event) {
         if (!event.getEntity().level().isClientSide()) {
             return;
         }
@@ -86,24 +91,21 @@ public final class ForgeGameplayTracer {
                 event);
     }
 
-    @SubscribeEvent
-    public void onContainerOpen(PlayerContainerEvent.Open event) {
+    private void onContainerOpen(PlayerContainerEvent.Open event) {
         if (!event.getEntity().level().isClientSide()) {
             return;
         }
         recordContainer(SupportedModEventTypes.CLIENT_CONTAINER_OPEN_EVENT, event, event.getContainer().getClass());
     }
 
-    @SubscribeEvent
-    public void onContainerClose(PlayerContainerEvent.Close event) {
+    private void onContainerClose(PlayerContainerEvent.Close event) {
         if (!event.getEntity().level().isClientSide()) {
             return;
         }
         recordContainer(SupportedModEventTypes.CLIENT_CONTAINER_CLOSE_EVENT, event, event.getContainer().getClass());
     }
 
-    @SubscribeEvent
-    public void onBreakSpeed(PlayerEvent.BreakSpeed event) {
+    private void onBreakSpeed(PlayerEvent.BreakSpeed event) {
         if (!event.getEntity().level().isClientSide()) {
             return;
         }

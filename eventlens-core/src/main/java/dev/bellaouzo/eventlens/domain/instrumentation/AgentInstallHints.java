@@ -1,6 +1,5 @@
 package dev.bellaouzo.eventlens.domain.instrumentation;
 
-import dev.bellaouzo.eventlens.domain.runtime.ModRuntimeKind;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,14 +35,7 @@ public final class AgentInstallHints {
         return List.copyOf(lines);
     }
 
-    public static List<String> clientSetupLines(ModRuntimeKind runtimeKind, String version) {
-        if (runtimeKind == ModRuntimeKind.FABRIC) {
-            return List.of(
-                    "Client agent not attached — dispatch timing only.",
-                    "Fabric client agent is not supported yet.",
-                    "NeoForge and Forge can use the client Java agent for per-mod timing.",
-                    SETUP_GUIDE_PREFIX + README_URL);
-        }
+    public static List<String> clientSetupLines(String version) {
         List<String> lines = new ArrayList<>();
         lines.add("Client agent not attached — per-mod handler timing unavailable.");
         lines.add("Do NOT put the client agent jar in mods/ — it is not a mod file.");

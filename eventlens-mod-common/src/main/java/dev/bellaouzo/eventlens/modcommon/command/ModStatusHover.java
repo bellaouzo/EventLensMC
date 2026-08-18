@@ -59,11 +59,7 @@ public final class ModStatusHover {
                     .lines()) {
                 lines.add(line.message());
             }
-            if (runtimeKind == ModRuntimeKind.FABRIC) {
-                lines.add("Fabric client agent is not supported yet.");
-            } else {
-                lines.add("Launcher JVM arg (not mods/): " + AgentInstallHints.clientJvmArgument(status.version()));
-            }
+            lines.add("Launcher JVM arg (not mods/): " + AgentInstallHints.clientJvmArgument(status.version()));
         }
         lines.add("EventLens " + status.version());
         return lines;

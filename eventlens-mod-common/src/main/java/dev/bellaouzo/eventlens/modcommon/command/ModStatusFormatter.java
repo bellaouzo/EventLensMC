@@ -78,21 +78,16 @@ public final class ModStatusFormatter {
         lines.add(ModChatLine.text(
                 "Do NOT put eventlens-client-agent in mods/ — launchers reject it as not a mod.",
                 ModChatColor.RED));
-        if (runtimeKind == ModRuntimeKind.FABRIC) {
-            lines.add(ModChatLine.text(
-                    "Fabric client agent is not supported yet. Dispatch timing still works.", ModChatColor.GRAY));
-        } else {
-            String jvmArg = AgentInstallHints.clientJvmArgument(status.version());
-            lines.add(ModChatLine.builder()
-                    .add("Launcher JVM arg (not mods/): ", ModChatColor.WHITE)
-                    .copy(jvmArg, ModChatColor.AQUA, jvmArg, "Copy client -javaagent argument")
-                    .build());
-            lines.add(ModChatLine.text(
-                    "Optional: place "
-                            + AgentInstallHints.observabilityJarName(status.version())
-                            + " next to the agent jar (fat agent jar also works).",
-                    ModChatColor.GRAY));
-        }
+        String jvmArg = AgentInstallHints.clientJvmArgument(status.version());
+        lines.add(ModChatLine.builder()
+                .add("Launcher JVM arg (not mods/): ", ModChatColor.WHITE)
+                .copy(jvmArg, ModChatColor.AQUA, jvmArg, "Copy client -javaagent argument")
+                .build());
+        lines.add(ModChatLine.text(
+                "Optional: place "
+                        + AgentInstallHints.observabilityJarName(status.version())
+                        + " next to the agent jar (fat agent jar also works).",
+                ModChatColor.GRAY));
         lines.add(ModChatLine.text(
                 "After restart, /eventlens status should show precise.", ModChatColor.GRAY));
         return lines;

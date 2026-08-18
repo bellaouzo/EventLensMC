@@ -11,7 +11,6 @@ import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.client.event.MovementInputUpdateEvent;
 import net.minecraftforge.client.event.ScreenEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.eventbus.api.listener.SubscribeEvent;
 
 public final class ForgeInputTracer {
 
@@ -21,8 +20,18 @@ public final class ForgeInputTracer {
         this.recorder = recorder;
     }
 
-    @SubscribeEvent
-    public void onKey(InputEvent.Key event) {
+    public void register() {
+        InputEvent.Key.BUS.addListener(this::onKey);
+        InputEvent.MouseButton.Post.BUS.addListener(this::onMouseButton);
+        InputEvent.MouseScrollingEvent.BUS.addListener(this::onMouseScroll);
+        InputEvent.InteractionKeyMappingTriggered.BUS.addListener(this::onInteractionKey);
+        MovementInputUpdateEvent.BUS.addListener(this::onMovementInput);
+        ScreenEvent.MouseButtonPressed.Pre.BUS.addListener(this::onScreenClick);
+        ScreenEvent.KeyPressed.Pre.BUS.addListener(this::onScreenKey);
+        PlayerInteractEvent.RightClickEmpty.BUS.addListener(this::onUseEmpty);
+    }
+
+    private void onKey(InputEvent.Key event) {
         if (event.getAction() == InputConstants.REPEAT) {
             return;
         }
@@ -36,8 +45,7 @@ public final class ForgeInputTracer {
                 event);
     }
 
-    @SubscribeEvent
-    public void onMouseButton(InputEvent.MouseButton.Post event) {
+    private void onMouseButton(InputEvent.MouseButton.Post event) {
         recorder.recordImmediate(
                 SupportedModEventTypes.CLIENT_MOUSE_BUTTON_EVENT,
                 List.of(
@@ -48,8 +56,7 @@ public final class ForgeInputTracer {
                 event);
     }
 
-    @SubscribeEvent
-    public void onMouseScroll(InputEvent.MouseScrollingEvent event) {
+    private void onMouseScroll(InputEvent.MouseScrollingEvent event) {
         recorder.recordImmediate(
                 SupportedModEventTypes.CLIENT_MOUSE_SCROLL_EVENT,
                 List.of(
@@ -60,8 +67,7 @@ public final class ForgeInputTracer {
                 event);
     }
 
-    @SubscribeEvent
-    public void onInteractionKey(InputEvent.InteractionKeyMappingTriggered event) {
+    private void onInteractionKey(InputEvent.InteractionKeyMappingTriggered event) {
         recorder.recordImmediate(
                 SupportedModEventTypes.CLIENT_INTERACTION_KEY_EVENT,
                 List.of(
@@ -74,8 +80,7 @@ public final class ForgeInputTracer {
                 event);
     }
 
-    @SubscribeEvent
-    public void onMovementInput(MovementInputUpdateEvent event) {
+    private void onMovementInput(MovementInputUpdateEvent event) {
         ClientInput input = event.getInput();
         Input keys = input.keyPresses;
         recorder.recordImmediate(
@@ -90,8 +95,7 @@ public final class ForgeInputTracer {
                 event);
     }
 
-    @SubscribeEvent
-    public void onScreenClick(ScreenEvent.MouseButtonPressed.Pre event) {
+    private void onScreenClick(ScreenEvent.MouseButtonPressed.Pre event) {
         recorder.recordImmediate(
                 SupportedModEventTypes.CLIENT_SCREEN_CLICK_EVENT,
                 List.of(
@@ -104,8 +108,7 @@ public final class ForgeInputTracer {
                 event);
     }
 
-    @SubscribeEvent
-    public void onScreenKey(ScreenEvent.KeyPressed.Pre event) {
+    private void onScreenKey(ScreenEvent.KeyPressed.Pre event) {
         recorder.recordImmediate(
                 SupportedModEventTypes.CLIENT_SCREEN_KEY_EVENT,
                 List.of(
@@ -116,8 +119,7 @@ public final class ForgeInputTracer {
                 event);
     }
 
-    @SubscribeEvent
-    public void onUseEmpty(PlayerInteractEvent.RightClickEmpty event) {
+    private void onUseEmpty(PlayerInteractEvent.RightClickEmpty event) {
         recorder.recordImmediate(
                 SupportedModEventTypes.CLIENT_USE_EMPTY_EVENT,
                 List.of(

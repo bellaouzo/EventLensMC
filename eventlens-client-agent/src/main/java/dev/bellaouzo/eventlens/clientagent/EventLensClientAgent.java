@@ -24,7 +24,8 @@ public final class EventLensClientAgent {
             appendObservabilityToBootstrap(instrumentation);
             boolean neoForge = install(instrumentation, ClientAgentBus.NEOFORGE, false);
             boolean forge = install(instrumentation, ClientAgentBus.FORGE, true);
-            if (neoForge || forge) {
+            boolean fabric = installFabric(instrumentation);
+            if (neoForge || forge || fabric) {
                 AgentRuntime.markAgentLoaded();
                 System.out.println("[EventLens] Client agent loaded (protocol " + ProtocolVersion.CURRENT + ").");
                 return;
@@ -52,6 +53,31 @@ public final class EventLensClientAgent {
                     .type(matcher)
                     .transform((builder, type, classLoader, module, domain) ->
                             installAdvice(builder, type, classLoader, module, domain, bus.eventClass()))
+                    .installOn(instrumentation);
+            System.out.println("[EventLens] Client agent installed " + bus.name() + " targets.");
+            return true;
+        } catch (Exception ex) {
+            System.err.println("[EventLens] " + bus.name() + " client agent installation failed: " + ex.getMessage());
+            ex.printStackTrace(System.err);
+            return false;
+        }
+    }
+
+    private static boolean installFabric(Instrumentation instrumentation) {
+        ClientAgentBus.TargetSet bus = ClientAgentBus.FABRIC;
+        if (!bus.verify(instrumentation)) {
+            System.err.println("[EventLens] " + bus.name() + " listener registration signature mismatch; skipped.");
+            return false;
+        }
+        try {
+            new AgentBuilder.Default()
+                    .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
+                    .type(ElementMatchers.namedOneOf(bus.classes().toArray(String[]::new)))
+                    .transform((builder, type, classLoader, module, domain) -> builder.visit(
+                            Advice.to(FabricListenerRegisterAdvice.class)
+                                    .on(ElementMatchers.named("register")
+                                            .and(ElementMatchers.takesArguments(1)
+                                                    .or(ElementMatchers.takesArguments(2))))))
                     .installOn(instrumentation);
             System.out.println("[EventLens] Client agent installed " + bus.name() + " targets.");
             return true;

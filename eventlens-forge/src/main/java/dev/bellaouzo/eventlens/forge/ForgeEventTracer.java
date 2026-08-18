@@ -15,7 +15,6 @@ import net.minecraftforge.client.event.ScreenEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.eventbus.api.listener.SubscribeEvent;
 
 public final class ForgeEventTracer {
 
@@ -26,8 +25,24 @@ public final class ForgeEventTracer {
         this.recorder = recorder;
     }
 
-    @SubscribeEvent
-    public void onClientTickPre(TickEvent.ClientTickEvent.Pre event) {
+    public void register() {
+        TickEvent.ClientTickEvent.Pre.BUS.addListener(this::onClientTickPre);
+        TickEvent.ClientTickEvent.Post.BUS.addListener(this::onClientTickPost);
+        ClientChatEvent.BUS.addListener(this::onClientChat);
+        ClientChatReceivedEvent.BUS.addListener(this::onClientChatReceived);
+        ClientPlayerNetworkEvent.LoggingIn.BUS.addListener(this::onJoin);
+        ClientPlayerNetworkEvent.LoggingOut.BUS.addListener(this::onDisconnect);
+        ScreenEvent.Opening.BUS.addListener(this::onScreenOpen);
+        ScreenEvent.Closing.BUS.addListener(this::onScreenClose);
+        AttackEntityEvent.BUS.addListener(this::onAttack);
+        PlayerInteractEvent.RightClickItem.BUS.addListener(this::onUseItem);
+        PlayerInteractEvent.EntityInteractSpecific.BUS.addListener(this::onUseEntity);
+        PlayerInteractEvent.LeftClickBlock.BUS.addListener(this::onAttackBlock);
+        PlayerInteractEvent.RightClickBlock.BUS.addListener(this::onUseBlock);
+        PlayerInteractEvent.LeftClickEmpty.BUS.addListener(this::onLeftClickEmpty);
+    }
+
+    private void onClientTickPre(TickEvent.ClientTickEvent.Pre event) {
         if (!recorder.isTracing()) {
             return;
         }
@@ -36,8 +51,7 @@ public final class ForgeEventTracer {
         recordMove();
     }
 
-    @SubscribeEvent
-    public void onClientTickPost(TickEvent.ClientTickEvent.Post event) {
+    private void onClientTickPost(TickEvent.ClientTickEvent.Post event) {
         if (tickDispatchKey < 0L) {
             return;
         }
@@ -51,8 +65,7 @@ public final class ForgeEventTracer {
         tickDispatchKey = -1L;
     }
 
-    @SubscribeEvent
-    public void onClientChat(ClientChatEvent event) {
+    private void onClientChat(ClientChatEvent event) {
         recorder.recordImmediate(
                 SupportedModEventTypes.CLIENT_CHAT_EVENT,
                 List.of(ModSnapshotFields.text("message", event.getMessage())),
@@ -61,8 +74,7 @@ public final class ForgeEventTracer {
                 event);
     }
 
-    @SubscribeEvent
-    public void onClientChatReceived(ClientChatReceivedEvent event) {
+    private void onClientChatReceived(ClientChatReceivedEvent event) {
         recorder.recordImmediate(
                 SupportedModEventTypes.CLIENT_CHAT_RECEIVED_EVENT,
                 List.of(ModSnapshotFields.text("message", event.getMessage().getString())),
@@ -71,19 +83,16 @@ public final class ForgeEventTracer {
                 event);
     }
 
-    @SubscribeEvent
-    public void onJoin(ClientPlayerNetworkEvent.LoggingIn event) {
+    private void onJoin(ClientPlayerNetworkEvent.LoggingIn event) {
         recorder.recordImmediate(SupportedModEventTypes.CLIENT_JOIN_EVENT, List.of(), playerName(), worldName(), event);
     }
 
-    @SubscribeEvent
-    public void onDisconnect(ClientPlayerNetworkEvent.LoggingOut event) {
+    private void onDisconnect(ClientPlayerNetworkEvent.LoggingOut event) {
         recorder.recordImmediate(
                 SupportedModEventTypes.CLIENT_DISCONNECT_EVENT, List.of(), playerName(), worldName(), event);
     }
 
-    @SubscribeEvent
-    public void onScreenOpen(ScreenEvent.Opening event) {
+    private void onScreenOpen(ScreenEvent.Opening event) {
         recorder.recordImmediate(
                 SupportedModEventTypes.CLIENT_SCREEN_OPEN_EVENT,
                 List.of(ModSnapshotFields.text("screen", event.getScreen().getClass().getSimpleName())),
@@ -92,8 +101,7 @@ public final class ForgeEventTracer {
                 event);
     }
 
-    @SubscribeEvent
-    public void onScreenClose(ScreenEvent.Closing event) {
+    private void onScreenClose(ScreenEvent.Closing event) {
         recorder.recordImmediate(
                 SupportedModEventTypes.CLIENT_SCREEN_CLOSE_EVENT,
                 List.of(ModSnapshotFields.text("screen", event.getScreen().getClass().getSimpleName())),
@@ -102,8 +110,7 @@ public final class ForgeEventTracer {
                 event);
     }
 
-    @SubscribeEvent
-    public void onAttack(AttackEntityEvent event) {
+    private void onAttack(AttackEntityEvent event) {
         if (!event.getEntity().level().isClientSide()) {
             return;
         }
@@ -117,8 +124,7 @@ public final class ForgeEventTracer {
                 event);
     }
 
-    @SubscribeEvent
-    public void onUseItem(PlayerInteractEvent.RightClickItem event) {
+    private void onUseItem(PlayerInteractEvent.RightClickItem event) {
         if (!event.getLevel().isClientSide()) {
             return;
         }
@@ -132,8 +138,7 @@ public final class ForgeEventTracer {
                 event);
     }
 
-    @SubscribeEvent
-    public void onUseEntity(PlayerInteractEvent.EntityInteractSpecific event) {
+    private void onUseEntity(PlayerInteractEvent.EntityInteractSpecific event) {
         if (!event.getLevel().isClientSide()) {
             return;
         }
@@ -148,8 +153,7 @@ public final class ForgeEventTracer {
                 event);
     }
 
-    @SubscribeEvent
-    public void onAttackBlock(PlayerInteractEvent.LeftClickBlock event) {
+    private void onAttackBlock(PlayerInteractEvent.LeftClickBlock event) {
         if (!event.getLevel().isClientSide()) {
             return;
         }
@@ -166,8 +170,7 @@ public final class ForgeEventTracer {
                 event);
     }
 
-    @SubscribeEvent
-    public void onUseBlock(PlayerInteractEvent.RightClickBlock event) {
+    private void onUseBlock(PlayerInteractEvent.RightClickBlock event) {
         if (!event.getLevel().isClientSide()) {
             return;
         }
@@ -184,8 +187,7 @@ public final class ForgeEventTracer {
                 event);
     }
 
-    @SubscribeEvent
-    public void onLeftClickEmpty(PlayerInteractEvent.LeftClickEmpty event) {
+    private void onLeftClickEmpty(PlayerInteractEvent.LeftClickEmpty event) {
         recorder.recordImmediate(
                 SupportedModEventTypes.CLIENT_ATTACK_EVENT,
                 List.of(ModSnapshotFields.text("target", "empty")),

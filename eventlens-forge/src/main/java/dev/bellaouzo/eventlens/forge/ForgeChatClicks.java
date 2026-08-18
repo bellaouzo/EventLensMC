@@ -8,17 +8,17 @@ import net.minecraft.client.gui.screens.ChatScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Style;
-import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ScreenEvent;
-import net.minecraftforge.eventbus.api.listener.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
 
-@Mod.EventBusSubscriber(modid = EventLensForgeMod.MOD_ID, value = Dist.CLIENT)
 public final class ForgeChatClicks {
 
     private ForgeChatClicks() {}
 
-    @SubscribeEvent
+    public static void register() {
+        ScreenEvent.MouseButtonPressed.Pre.BUS.addListener(ForgeChatClicks::onChatClick);
+        ScreenEvent.MouseButtonPressed.Post.BUS.addListener(ForgeChatClicks::onChatCopy);
+    }
+
     public static boolean onChatClick(ScreenEvent.MouseButtonPressed.Pre event) {
         Style style = clickedStyle(event.getButton(), event.getScreen(), event.getMouseX(), event.getMouseY());
         if (style == null || style.getClickEvent() == null) {
@@ -31,7 +31,6 @@ public final class ForgeChatClicks {
         return ForgeClientClickCommands.handle(run.command());
     }
 
-    @SubscribeEvent
     public static void onChatCopy(ScreenEvent.MouseButtonPressed.Post event) {
         Style style = clickedStyle(event.getButton(), event.getScreen(), event.getMouseX(), event.getMouseY());
         EventLensToasts.copiedFrom(style);

@@ -18,7 +18,6 @@ import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.EntityLeaveLevelEvent;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.event.level.ChunkEvent;
-import net.minecraftforge.eventbus.api.listener.SubscribeEvent;
 
 public final class ForgeWorldTracer {
 
@@ -28,8 +27,23 @@ public final class ForgeWorldTracer {
         this.recorder = recorder;
     }
 
-    @SubscribeEvent
-    public void onRespawn(ClientPlayerNetworkEvent.Clone event) {
+    public void register() {
+        ClientPlayerNetworkEvent.Clone.BUS.addListener(this::onRespawn);
+        ClientPlayerChangeGameTypeEvent.BUS.addListener(this::onGameType);
+        ClientPauseChangeEvent.Post.BUS.addListener(this::onPause);
+        ItemTooltipEvent.BUS.addListener(this::onTooltip);
+        ScreenshotEvent.BUS.addListener(this::onScreenshot);
+        ToastAddEvent.BUS.addListener(this::onToast);
+        PlaySoundEvent.BUS.addListener(this::onSound);
+        EntityJoinLevelEvent.BUS.addListener(this::onEntityJoin);
+        EntityLeaveLevelEvent.BUS.addListener(this::onEntityLeave);
+        ChunkEvent.Load.BUS.addListener(this::onChunkLoad);
+        ChunkEvent.Unload.BUS.addListener(this::onChunkUnload);
+        TickEvent.LevelTickEvent.Post.BUS.addListener(this::onWorldTick);
+        TickEvent.PlayerTickEvent.Post.BUS.addListener(this::onPlayerTick);
+    }
+
+    private void onRespawn(ClientPlayerNetworkEvent.Clone event) {
         recorder.recordImmediate(
                 SupportedModEventTypes.CLIENT_RESPAWN_EVENT,
                 List.of(),
@@ -38,8 +52,7 @@ public final class ForgeWorldTracer {
                 event);
     }
 
-    @SubscribeEvent
-    public void onGameType(ClientPlayerChangeGameTypeEvent event) {
+    private void onGameType(ClientPlayerChangeGameTypeEvent event) {
         recorder.recordImmediate(
                 SupportedModEventTypes.CLIENT_GAME_TYPE_CHANGE_EVENT,
                 List.of(
@@ -50,8 +63,7 @@ public final class ForgeWorldTracer {
                 event);
     }
 
-    @SubscribeEvent
-    public void onPause(ClientPauseChangeEvent.Post event) {
+    private void onPause(ClientPauseChangeEvent.Post event) {
         recorder.recordImmediate(
                 SupportedModEventTypes.CLIENT_PAUSE_EVENT,
                 List.of(ModSnapshotFields.bool("paused", event.isPaused())),
@@ -60,8 +72,7 @@ public final class ForgeWorldTracer {
                 event);
     }
 
-    @SubscribeEvent
-    public void onTooltip(ItemTooltipEvent event) {
+    private void onTooltip(ItemTooltipEvent event) {
         recorder.recordImmediate(
                 SupportedModEventTypes.CLIENT_TOOLTIP_EVENT,
                 List.of(
@@ -72,8 +83,7 @@ public final class ForgeWorldTracer {
                 event);
     }
 
-    @SubscribeEvent
-    public void onScreenshot(ScreenshotEvent event) {
+    private void onScreenshot(ScreenshotEvent event) {
         String file = event.getScreenshotFile() == null ? "" : event.getScreenshotFile().getName();
         recorder.recordImmediate(
                 SupportedModEventTypes.CLIENT_SCREENSHOT_EVENT,
@@ -83,8 +93,7 @@ public final class ForgeWorldTracer {
                 event);
     }
 
-    @SubscribeEvent
-    public void onToast(ToastAddEvent event) {
+    private void onToast(ToastAddEvent event) {
         recorder.recordImmediate(
                 SupportedModEventTypes.CLIENT_TOAST_EVENT,
                 List.of(ModSnapshotFields.text("toast", event.getToast().getClass().getSimpleName())),
@@ -93,8 +102,7 @@ public final class ForgeWorldTracer {
                 event);
     }
 
-    @SubscribeEvent
-    public void onSound(PlaySoundEvent event) {
+    private void onSound(PlaySoundEvent event) {
         recorder.recordImmediate(
                 SupportedModEventTypes.CLIENT_SOUND_EVENT,
                 List.of(ModSnapshotFields.text("sound", event.getName())),
@@ -103,40 +111,35 @@ public final class ForgeWorldTracer {
                 event);
     }
 
-    @SubscribeEvent
-    public void onEntityJoin(EntityJoinLevelEvent event) {
+    private void onEntityJoin(EntityJoinLevelEvent event) {
         if (!event.getLevel().isClientSide()) {
             return;
         }
         recordEntity(SupportedModEventTypes.CLIENT_ENTITY_JOIN_EVENT, event.getEntity(), event);
     }
 
-    @SubscribeEvent
-    public void onEntityLeave(EntityLeaveLevelEvent event) {
+    private void onEntityLeave(EntityLeaveLevelEvent event) {
         if (!event.getLevel().isClientSide()) {
             return;
         }
         recordEntity(SupportedModEventTypes.CLIENT_ENTITY_LEAVE_EVENT, event.getEntity(), event);
     }
 
-    @SubscribeEvent
-    public void onChunkLoad(ChunkEvent.Load event) {
+    private void onChunkLoad(ChunkEvent.Load event) {
         if (event.getLevel() == null || !event.getLevel().isClientSide()) {
             return;
         }
         recordChunk(SupportedModEventTypes.CLIENT_CHUNK_LOAD_EVENT, event.getChunk(), event);
     }
 
-    @SubscribeEvent
-    public void onChunkUnload(ChunkEvent.Unload event) {
+    private void onChunkUnload(ChunkEvent.Unload event) {
         if (event.getLevel() == null || !event.getLevel().isClientSide()) {
             return;
         }
         recordChunk(SupportedModEventTypes.CLIENT_CHUNK_UNLOAD_EVENT, event.getChunk(), event);
     }
 
-    @SubscribeEvent
-    public void onWorldTick(TickEvent.LevelTickEvent.Post event) {
+    private void onWorldTick(TickEvent.LevelTickEvent.Post event) {
         if (!event.level().isClientSide()) {
             return;
         }
@@ -148,8 +151,7 @@ public final class ForgeWorldTracer {
                 event);
     }
 
-    @SubscribeEvent
-    public void onPlayerTick(TickEvent.PlayerTickEvent.Post event) {
+    private void onPlayerTick(TickEvent.PlayerTickEvent.Post event) {
         if (!(event.player() instanceof LocalPlayer) || !event.player().level().isClientSide()) {
             return;
         }

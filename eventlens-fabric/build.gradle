@@ -3,6 +3,8 @@ plugins {
     id 'java-library'
 }
 
+evaluationDependsOn(':eventlens-client-agent')
+
 group = 'dev.bellaouzo'
 version = rootProject.version
 
@@ -27,12 +29,26 @@ dependencies {
     implementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
     implementation project(':eventlens-mod-common')
     implementation project(':eventlens-core')
+    implementation project(':eventlens-observability')
     include project(':eventlens-mod-common')
     include project(':eventlens-core')
+    include project(':eventlens-observability')
+}
+
+def clientAgentArgument() {
+    return project.provider {
+        def agentJar = project(':eventlens-client-agent').tasks.named('jar', Jar).get().archiveFile.get().asFile
+        "-javaagent:${agentJar.absolutePath}"
+    }
 }
 
 loom {
     splitEnvironmentSourceSets()
+    runs {
+        client {
+            vmArg(clientAgentArgument().get())
+        }
+    }
     mods {
         eventlens {
             sourceSet sourceSets.main
@@ -56,6 +72,12 @@ processResources {
     inputs.property 'version', version
     filesMatching('fabric.mod.json') {
         expand version: version
+    }
+}
+
+tasks.configureEach { task ->
+    if (task.name == 'runClient') {
+        task.dependsOn ':eventlens-client-agent:jar', ':eventlens-observability:jar'
     }
 }
 
