@@ -27,13 +27,20 @@ public final class EventCatalogService {
         List<EventCatalogEntry> entries = new ArrayList<>();
         for (String className : listenerRegistryPort.listKnownEventClassNames()) {
             String simple = SupportedEventTypes.displaySimpleName(className);
-            if (!normalized.isEmpty() && !simple.toLowerCase(Locale.ROOT).startsWith(normalized)) {
+            if (!normalized.isEmpty() && !matches(simple, className, normalized)) {
                 continue;
             }
             entries.add(new EventCatalogEntry(simple, className, coverage(className)));
         }
-        entries.sort(Comparator.comparing(EventCatalogEntry::simpleName, String.CASE_INSENSITIVE_ORDER));
+        entries.sort(Comparator.comparing((EventCatalogEntry entry) ->
+                        !entry.simpleName().toLowerCase(Locale.ROOT).startsWith(normalized))
+                .thenComparing(EventCatalogEntry::simpleName, String.CASE_INSENSITIVE_ORDER));
         return List.copyOf(entries);
+    }
+
+    private static boolean matches(String simpleName, String className, String needle) {
+        return simpleName.toLowerCase(Locale.ROOT).contains(needle)
+                || className.toLowerCase(Locale.ROOT).contains(needle);
     }
 
     private String coverage(String className) {

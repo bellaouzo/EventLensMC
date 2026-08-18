@@ -83,11 +83,11 @@ final class TraceStartTabCompleter {
                 }
             }
         }
-        String lowerFragment = fragment.toLowerCase(Locale.ROOT);
-        return eventNames.stream()
-                .filter(name -> !selected.contains(name.toLowerCase(Locale.ROOT)))
-                .filter(name -> name.toLowerCase(Locale.ROOT).startsWith(lowerFragment))
-                .map(name -> head + name)
-                .toList();
+        List<String> matches = CommandText.filterPrefix(
+                eventNames.stream()
+                        .filter(name -> !selected.contains(name.toLowerCase(Locale.ROOT)))
+                        .toList(),
+                fragment);
+        return matches.stream().map(name -> head + name).toList();
     }
 }

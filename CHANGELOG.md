@@ -5,6 +5,13 @@ All notable changes to EventLens are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.1] - 2026-08-17
+
+### Fixed
+
+- Event name completion and `/eventlens events <text>` now match a word anywhere in the name, so `explode` finds `EntityExplodeEvent`
+- `ClientHurtEvent` records when you take fall or mob damage on the client, instead of waiting for a server-only bus event
+
 ## [1.4.0] - 2026-08-17
 
 ### Added

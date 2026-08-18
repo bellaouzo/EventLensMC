@@ -29,8 +29,8 @@ public final class EventsCommandHandler {
         int shown = 0;
         for (EventCatalogService.EventCatalogEntry entry : entries) {
             if (shown++ >= 20) {
-                sender.sendMessage(Component.text(
-                        "… truncated. Filter with /eventlens events <prefix>", NamedTextColor.DARK_GRAY));
+                sender.sendMessage(
+                        Component.text("… truncated. Filter with /eventlens events <text>", NamedTextColor.DARK_GRAY));
                 break;
             }
             sender.sendMessage(

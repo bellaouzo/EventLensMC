@@ -2,7 +2,7 @@
 
 **See how Minecraft events travel through plugins and mods — without changing them.**
 
-[![Version](https://img.shields.io/badge/version-1.4.0-1f6feb)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.4.1-1f6feb)](CHANGELOG.md)
 [![Paper](https://img.shields.io/badge/Paper-26.2-00aa00)](#quick-start)
 [![Java](https://img.shields.io/badge/Java-25-orange)](#development)
 [![Minecraft](https://img.shields.io/badge/client-1.21.1-green)](#client-mods)
@@ -31,10 +31,10 @@ It observes. It does not cancel, reorder, re-fire, or hide exceptions.
 
 | Piece | Who it is for | Required? |
 |---|---|---|
-| **Paper plugin** `EventLens-1.4.0.jar` | Server operators and plugin authors | Yes, for server traces |
-| **Paper Java agent** `eventlens-agent-1.4.0.jar` | Per-listener timing and exception attribution | Optional |
+| **Paper plugin** `EventLens-1.4.1.jar` | Server operators and plugin authors | Yes, for server traces |
+| **Paper Java agent** `eventlens-agent-1.4.1.jar` | Per-listener timing and exception attribution | Optional |
 | **Client mods** NeoForge / Forge / Fabric | Client-side traces, Screen, HUD | Optional |
-| **Client Java agent** `eventlens-client-agent-1.4.0.jar` | Per-mod handler timing on NeoForge and Forge | Optional; not on Fabric yet |
+| **Client Java agent** `eventlens-client-agent-1.4.1.jar` | Per-mod handler timing on NeoForge and Forge | Optional; not on Fabric yet |
 | **Dashboard** at `http://127.0.0.1:8765` | Live graphs, timeline, compare | Ships with the Paper plugin |
 | **Bundle export** | Share a self-contained `index.html` report | Paper command |
 
@@ -44,7 +44,7 @@ The plugin is useful without any agent or client mod. Agents add precise timings
 
 ## Quick start
 
-1. Run **Java 25**. Drop `eventlens-paper/build/libs/EventLens-1.4.0.jar` into `plugins/`.
+1. Run **Java 25**. Drop `eventlens-paper/build/libs/EventLens-1.4.1.jar` into `plugins/`.
 2. Restart the server (`stop`, then start — do not `/reload`). Commands default to **op**.
 3. Trace a click, then open the dashboard or an exported bundle.
 
@@ -63,7 +63,7 @@ Then open the exported folder’s `index.html`, or the live dashboard at [http:/
 Built artifact after `.\gradlew.bat build`:
 
 ```
-eventlens-paper/build/libs/EventLens-1.4.0.jar
+eventlens-paper/build/libs/EventLens-1.4.1.jar
 ```
 
 <details>
@@ -74,7 +74,7 @@ Without the agent, EventLens still lists listeners and reports **dispatch-level*
 Add a JVM argument on the **same** Paper process:
 
 ```
--javaagent:eventlens-agent-1.4.0.jar
+-javaagent:eventlens-agent-1.4.1.jar
 ```
 
 Development `runServer` / `runServerDebug` attach this automatically.
@@ -88,19 +88,19 @@ Install **one** loader jar that matches your client:
 
 | Loader | Minecraft | Artifact |
 |---|---|---|
-| **NeoForge** 21.1.x | 1.21.1 | `eventlens-neoforge/build/libs/eventlens-neoforge-1.4.0.jar` |
-| **Minecraft Forge** 52.1.x | 1.21.1 | `eventlens-forge/build/libs/eventlens-forge-1.4.0.jar` |
-| **Fabric** Loader 0.16 + Fabric API | 1.21.1 | `eventlens-fabric/build/libs/eventlens-fabric-1.4.0.jar` |
+| **NeoForge** 21.1.x | 1.21.1 | `eventlens-neoforge/build/libs/eventlens-neoforge-1.4.1.jar` |
+| **Minecraft Forge** 52.1.x | 1.21.1 | `eventlens-forge/build/libs/eventlens-forge-1.4.1.jar` |
+| **Fabric** Loader 0.16 + Fabric API | 1.21.1 | `eventlens-fabric/build/libs/eventlens-fabric-1.4.1.jar` |
 
 Put the jar in the client `mods/` folder. Chat commands work on all three. Screen, HUD, and keybinds work on all three (Fabric’s Screen is a lighter list UI). Precise per-mod timing needs the **client agent** on NeoForge and Forge only.
 
 **Client Java agent (NeoForge and Forge)**
 
 ```
--javaagent:eventlens-client-agent-1.4.0.jar
+-javaagent:eventlens-client-agent-1.4.1.jar
 ```
 
-Place `eventlens-observability-1.4.0.jar` in the **same folder** as the agent jar. Dev tasks `:eventlens-neoforge:runClient` and `:eventlens-forge:runClient` attach it automatically. Fabric `runClient` does not — Fabric stays `dispatch-only` until a stable invoker exists.
+Place `eventlens-observability-1.4.1.jar` in the **same folder** as the agent jar. Dev tasks `:eventlens-neoforge:runClient` and `:eventlens-forge:runClient` attach it automatically. Fabric `runClient` does not — Fabric stays `dispatch-only` until a stable invoker exists.
 
 </details>
 
@@ -114,7 +114,7 @@ Alias: `/el`. All commands default to **op**.
 |---|---|---|
 | `/eventlens` or `/eventlens status` | Version, platform, tracing state, agent (`precise` / `dispatch-only` / degraded) | `eventlens.command.status` |
 | `/eventlens listeners <event> [page] [--detail brief\|normal\|verbose]` | Registered listeners for **any** Bukkit event | `eventlens.command.listeners` |
-| `/eventlens events [prefix]` | Catalog: `traceable` / `generic-only` / `hot` | `eventlens.command.listeners` |
+| `/eventlens events [text]` | Catalog filter (matches any part of the name): `traceable` / `generic-only` / `hot` | `eventlens.command.listeners` |
 | `/eventlens plugin <plugin> [--detail …]` | Listener counts, timing, exceptions, deps | `eventlens.command.plugin` |
 | `/eventlens plugin <plugin> listeners [event] [page]` | That plugin’s handlers | same |
 | `/eventlens plugin compare <a> <b>` | Compare two **loaded** plugins | same |
@@ -307,7 +307,7 @@ Not traced: per-frame render events (`RenderGuiEvent`, `RenderLivingEvent`, and 
 | `ClientItemTossEvent` | | You dropped an item |
 | `ClientItemPickupEvent` | yes | You picked up an item |
 | `ClientDeathEvent` | | A living entity died on the client |
-| `ClientHurtEvent` | yes | A living entity took damage on the client |
+| `ClientHurtEvent` | yes | You took damage |
 | `ClientUseEntityAtEvent` | | Right-click a specific point on an entity |
 | `ClientUseItemFinishEvent` | | Finished using an item |
 | `ClientContainerOpenEvent` / `ClientContainerCloseEvent` | | Container menu opened / closed |

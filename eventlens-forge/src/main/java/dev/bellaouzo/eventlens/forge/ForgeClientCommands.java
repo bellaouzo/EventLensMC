@@ -7,7 +7,6 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import dev.bellaouzo.eventlens.modcommon.ModTraceCoordinator;
-import dev.bellaouzo.eventlens.modcommon.SupportedModEventTypes;
 import dev.bellaouzo.eventlens.modcommon.chat.ModChatLine;
 import dev.bellaouzo.eventlens.modcommon.command.ModClientCommands;
 import dev.bellaouzo.eventlens.modcommon.command.ModClientTabCompleter;
@@ -129,7 +128,12 @@ public final class ForgeClientCommands {
     }
 
     private SuggestionProvider<CommandSourceStack> suggestEvents() {
-        return (context, builder) -> SharedSuggestionProvider.suggest(SupportedModEventTypes.simpleNames(), builder);
+        return (context, builder) -> {
+            for (String name : ModClientTabCompleter.matchingEventNames(builder.getRemaining())) {
+                builder.suggest(name);
+            }
+            return builder.buildFuture();
+        };
     }
 
     private SuggestionProvider<CommandSourceStack> suggestSessions() {

@@ -115,6 +115,10 @@ class ModClientCommandsTest {
         assertTrue(ModClientTabCompleter.complete(coordinator, List.of("trace"), "r").contains("restart"));
         assertTrue(ModClientTabCompleter.complete(coordinator, List.of("trace", "start"), "ClientC")
                 .contains("ClientChatEvent"));
+        assertTrue(ModClientTabCompleter.complete(coordinator, List.of("trace", "start"), "hurt")
+                .contains("ClientHurtEvent"));
+        assertTrue(ModClientTabCompleter.matchingEventNames("explode").isEmpty());
+        assertTrue(ModClientTabCompleter.matchingEventNames("hurt").contains("ClientHurtEvent"));
         assertTrue(ModClientTabCompleter.complete(
                         coordinator, List.of("trace", "start", "ClientTickEvent"), "--c")
                 .contains("--confirm-hot"));

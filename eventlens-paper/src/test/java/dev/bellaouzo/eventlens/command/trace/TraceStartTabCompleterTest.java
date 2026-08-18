@@ -25,4 +25,14 @@ class TraceStartTabCompleterTest {
         assertTrue(suggestions.contains("PlayerInteractEvent,BlockBreakEvent"));
         assertTrue(suggestions.stream().noneMatch(value -> value.contains("BlockPlaceEvent")));
     }
+
+    @Test
+    void completesEventFromContainedWord() {
+        List<String> suggestions = TraceStartTabCompleter.completeEventQuery(
+                List.of("PlayerInteractEvent", "EntityExplodeEvent", "BlockExplodeEvent"), "explode");
+
+        assertTrue(suggestions.contains("EntityExplodeEvent"));
+        assertTrue(suggestions.contains("BlockExplodeEvent"));
+        assertTrue(suggestions.stream().noneMatch(value -> value.contains("PlayerInteractEvent")));
+    }
 }

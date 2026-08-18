@@ -1,5 +1,6 @@
 package dev.bellaouzo.eventlens.command;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import org.jspecify.annotations.NonNull;
@@ -17,9 +18,21 @@ public final class CommandText {
     }
 
     public static List<String> filterPrefix(List<String> values, String prefix) {
-        String lowerPrefix = prefix.toLowerCase(Locale.ROOT);
-        return values.stream()
-                .filter(value -> value.toLowerCase(Locale.ROOT).startsWith(lowerPrefix))
-                .toList();
+        String needle = prefix == null ? "" : prefix.toLowerCase(Locale.ROOT);
+        if (needle.isEmpty()) {
+            return List.copyOf(values);
+        }
+        List<String> startsWith = new ArrayList<>();
+        List<String> contains = new ArrayList<>();
+        for (String value : values) {
+            String lower = value.toLowerCase(Locale.ROOT);
+            if (lower.startsWith(needle)) {
+                startsWith.add(value);
+            } else if (lower.contains(needle)) {
+                contains.add(value);
+            }
+        }
+        startsWith.addAll(contains);
+        return startsWith;
     }
 }

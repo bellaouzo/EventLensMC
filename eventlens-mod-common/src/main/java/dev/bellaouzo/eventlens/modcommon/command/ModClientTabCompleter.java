@@ -91,16 +91,25 @@ public final class ModClientTabCompleter {
         return false;
     }
 
+    public static List<String> matchingEventNames(String prefix) {
+        return filter(SupportedModEventTypes.simpleNames(), prefix == null ? "" : prefix.toLowerCase(Locale.ROOT));
+    }
+
     private static List<String> filter(List<String> values, String prefix) {
         if (prefix.isEmpty()) {
             return values;
         }
-        List<String> matches = new ArrayList<>();
+        List<String> startsWith = new ArrayList<>();
+        List<String> contains = new ArrayList<>();
         for (String value : values) {
-            if (value.toLowerCase(Locale.ROOT).startsWith(prefix)) {
-                matches.add(value);
+            String lower = value.toLowerCase(Locale.ROOT);
+            if (lower.startsWith(prefix)) {
+                startsWith.add(value);
+            } else if (lower.contains(prefix)) {
+                contains.add(value);
             }
         }
-        return matches;
+        startsWith.addAll(contains);
+        return startsWith;
     }
 }

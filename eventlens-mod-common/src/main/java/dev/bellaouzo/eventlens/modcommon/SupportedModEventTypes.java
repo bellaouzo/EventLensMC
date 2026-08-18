@@ -91,7 +91,7 @@ public final class SupportedModEventTypes {
         register(new EventType("ClientItemTossEvent", CLIENT_ITEM_TOSS_EVENT, false, "You dropped an item"));
         register(new EventType("ClientItemPickupEvent", CLIENT_ITEM_PICKUP_EVENT, true, "You picked up an item"));
         register(new EventType("ClientDeathEvent", CLIENT_DEATH_EVENT, false, "A living entity died on the client"));
-        register(new EventType("ClientHurtEvent", CLIENT_HURT_EVENT, true, "A living entity took damage on the client"));
+        register(new EventType("ClientHurtEvent", CLIENT_HURT_EVENT, true, "You took damage"));
         register(new EventType("ClientUseEntityAtEvent", CLIENT_USE_ENTITY_AT_EVENT, false, "Right-click a specific point on an entity"));
         register(new EventType("ClientUseItemFinishEvent", CLIENT_USE_ITEM_FINISH_EVENT, false, "Finished using an item"));
         register(new EventType("ClientContainerOpenEvent", CLIENT_CONTAINER_OPEN_EVENT, false, "A container menu opened"));
