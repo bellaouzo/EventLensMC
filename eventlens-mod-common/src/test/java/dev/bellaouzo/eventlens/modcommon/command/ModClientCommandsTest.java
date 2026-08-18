@@ -48,6 +48,8 @@ class ModClientCommandsTest {
         assertTrue(lines.stream().anyMatch(line -> contains(line, "[Sessions]")));
         assertTrue(lines.stream().anyMatch(line -> contains(line, "[Open UI]")));
         assertTrue(lines.stream().anyMatch(line -> contains(line, "dispatch-only")));
+        assertTrue(lines.stream().anyMatch(line -> contains(line, "Client agent not attached")));
+        assertTrue(lines.stream().anyMatch(line -> contains(line, "[Copy JVM arg]") || contains(line, "[Agent guide]")));
     }
 
     @Test
@@ -173,6 +175,7 @@ class ModClientCommandsTest {
         var status = coordinator.status();
         assertTrue(ModStatusHover.tracingLines(status).stream().anyMatch(line -> line.contains("idle")));
         assertTrue(ModStatusHover.instrumentationLines(status).stream().anyMatch(line -> line.contains("not attached")));
+        assertTrue(ModStatusHover.instrumentationLines(status).stream().anyMatch(line -> line.contains("JVM args")));
         assertTrue(ModStatusHover.instrumentationLines(status).stream().anyMatch(line -> line.contains("1.0.0")));
     }
 

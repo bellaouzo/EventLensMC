@@ -1,6 +1,7 @@
 package dev.bellaouzo.eventlens.neoforge.ui;
 
 import dev.bellaouzo.eventlens.domain.trace.TraceSessionSummary;
+import dev.bellaouzo.eventlens.domain.runtime.ModRuntimeKind;
 import dev.bellaouzo.eventlens.modcommon.ModTraceResults;
 import dev.bellaouzo.eventlens.modcommon.command.ModStatusHover;
 import java.util.ArrayList;
@@ -119,7 +120,7 @@ final class EventLensUi {
         }
     }
 
-    static void header(GuiGraphicsExtractor graphics, Font font, Frame frame, ModTraceResults.Status status) {
+    static void header(GuiGraphicsExtractor graphics, Font font, Frame frame, ModTraceResults.Status status, ModRuntimeKind runtimeKind) {
         graphics.text(font, "EventLens", frame.x + 12, frame.y + 8, PAPER, false);
         int pillX = frame.x + frame.width - 12;
         String agentLabel = status.agentPresent() ? "precise" : "dispatch";
@@ -132,7 +133,7 @@ final class EventLensUi {
                 status.agentPresent() ? PILL_LENS : PILL_WARN,
                 status.agentPresent() ? LENS : BRASS,
                 true);
-        addHit(pillX - agentW, frame.y + 6, agentW, 13, ModStatusHover.instrumentationLines(status));
+        addHit(pillX - agentW, frame.y + 6, agentW, 13, ModStatusHover.instrumentationLines(status, runtimeKind));
         pillX -= agentW + 4;
         String tracingLabel = ModStatusHover.tracingLabel(status);
         int fill = "live".equals(tracingLabel) ? PILL_LIVE : "paused".equals(tracingLabel) ? PILL_WARN : PILL_OFF;

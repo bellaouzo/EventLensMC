@@ -119,7 +119,7 @@ final class EventLensHomeTab {
                 "Instrumentation",
                 status.agentPresent() ? "precise" : "dispatch-only",
                 status.agentPresent() ? EventLensUi.LENS : EventLensUi.BRASS,
-                ModStatusHover.instrumentationLines(status));
+                ModStatusHover.instrumentationLines(status, screen.coordinator().environmentPort().runtimeKind()));
         EventLensUi.section(graphics, screen.textFont(), "Live sessions", x, y + 102);
         if (status.sessions().isEmpty()) {
             graphics.text(

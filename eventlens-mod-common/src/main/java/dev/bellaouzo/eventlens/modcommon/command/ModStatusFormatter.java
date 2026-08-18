@@ -1,5 +1,7 @@
 package dev.bellaouzo.eventlens.modcommon.command;
 
+import dev.bellaouzo.eventlens.domain.instrumentation.AgentInstallHints;
+import dev.bellaouzo.eventlens.domain.runtime.ModRuntimeKind;
 import dev.bellaouzo.eventlens.domain.trace.TraceSessionSummary;
 import dev.bellaouzo.eventlens.modcommon.ModTraceResults;
 import dev.bellaouzo.eventlens.modcommon.chat.ModChatColor;
@@ -12,7 +14,7 @@ public final class ModStatusFormatter {
 
     private ModStatusFormatter() {}
 
-    public static List<ModChatLine> render(ModTraceResults.Status status) {
+    public static List<ModChatLine> render(ModTraceResults.Status status, ModRuntimeKind runtimeKind) {
         List<ModChatLine> lines = new ArrayList<>();
         lines.add(ModChatLine.builder()
                 .add("◆ ", ModChatColor.GOLD)
@@ -39,8 +41,7 @@ public final class ModStatusFormatter {
             lines.add(ModChatLine.text(
                     "The client agent times other mods' game-bus handlers.", ModChatColor.WHITE));
         } else {
-            lines.add(ModChatLine.text(
-                    "It cannot time another mod's handler without the client Java agent.", ModChatColor.YELLOW));
+            lines.addAll(agentSetupLines(status, runtimeKind));
         }
         if (!status.sessions().isEmpty()) {
             lines.add(ModChatLine.blank());
@@ -50,13 +51,45 @@ public final class ModStatusFormatter {
             }
         }
         lines.add(ModChatLine.blank());
-        lines.add(ModChatLine.builder()
+        ModChatLine.Builder actions = ModChatLine.builder()
                 .click("[Open UI]", ModChatColor.AQUA, "/eventlens ui", "Open the EventLens screen")
                 .add("   ", ModChatColor.DARK_GRAY)
                 .click("[Events]", ModChatColor.AQUA, "/eventlens listeners", "Browse client events and mod overlap")
                 .add("   ", ModChatColor.DARK_GRAY)
-                .click("[Sessions]", ModChatColor.AQUA, "/eventlens trace list", "Open captured sessions")
-                .build());
+                .click("[Sessions]", ModChatColor.AQUA, "/eventlens trace list", "Open captured sessions");
+        if (!status.agentPresent()) {
+            if (runtimeKind != ModRuntimeKind.FABRIC) {
+                String jvmArg = AgentInstallHints.clientJvmArgument(status.version());
+                actions.add("   ", ModChatColor.DARK_GRAY)
+                        .copy("[Copy JVM arg]", ModChatColor.AQUA, jvmArg, "Copy client -javaagent argument");
+            }
+            actions.add("   ", ModChatColor.DARK_GRAY)
+                    .copy("[Agent guide]", ModChatColor.AQUA, AgentInstallHints.README_URL, "Copy README install link");
+        }
+        lines.add(actions.build());
+        return lines;
+    }
+
+    private static List<ModChatLine> agentSetupLines(ModTraceResults.Status status, ModRuntimeKind runtimeKind) {
+        List<ModChatLine> lines = new ArrayList<>();
+        lines.add(ModChatLine.text("Client agent not attached — per-mod handler timing unavailable.", ModChatColor.YELLOW));
+        if (runtimeKind == ModRuntimeKind.FABRIC) {
+            lines.add(ModChatLine.text(
+                    "Fabric client agent is not supported yet. Dispatch timing still works.", ModChatColor.GRAY));
+        } else {
+            String jvmArg = AgentInstallHints.clientJvmArgument(status.version());
+            lines.add(ModChatLine.builder()
+                    .add("Launcher JVM arg: ", ModChatColor.WHITE)
+                    .copy(jvmArg, ModChatColor.AQUA, jvmArg, "Copy client -javaagent argument")
+                    .build());
+            lines.add(ModChatLine.text(
+                    "Also place "
+                            + AgentInstallHints.observabilityJarName(status.version())
+                            + " next to the agent jar, then restart Minecraft.",
+                    ModChatColor.GRAY));
+        }
+        lines.add(ModChatLine.text(
+                "After restart, /eventlens status should show precise.", ModChatColor.GRAY));
         return lines;
     }
 

@@ -1,6 +1,8 @@
 package dev.bellaouzo.eventlens.modcommon.command;
 
 import dev.bellaouzo.eventlens.domain.trace.TraceSessionState;
+import dev.bellaouzo.eventlens.domain.instrumentation.AgentInstallHints;
+import dev.bellaouzo.eventlens.domain.runtime.ModRuntimeKind;
 import dev.bellaouzo.eventlens.modcommon.ModTraceResults;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +41,10 @@ public final class ModStatusHover {
     }
 
     public static List<String> instrumentationLines(ModTraceResults.Status status) {
+        return instrumentationLines(status, ModRuntimeKind.NEOFORGE);
+    }
+
+    public static List<String> instrumentationLines(ModTraceResults.Status status, ModRuntimeKind runtimeKind) {
         List<String> lines = new ArrayList<>();
         if (status.agentPresent()) {
             lines.add("Client agent attached");
@@ -46,9 +52,7 @@ public final class ModStatusHover {
                     + (status.agentProtocolCompatible() ? " (compatible)" : " (incompatible)"));
             lines.add(status.snapshotsEnabled() ? "Per-mod handler timing on" : "Handler timing without snapshots");
         } else {
-            lines.add("Client agent not attached");
-            lines.add("Dispatch timing only");
-            lines.add("Launch with -javaagent for precise timing");
+            lines.addAll(AgentInstallHints.clientSetupLines(runtimeKind, status.version()));
         }
         lines.add("EventLens " + status.version());
         return lines;

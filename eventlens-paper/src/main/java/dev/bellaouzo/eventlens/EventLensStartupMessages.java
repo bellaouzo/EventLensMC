@@ -2,6 +2,7 @@ package dev.bellaouzo.eventlens;
 
 import dev.bellaouzo.eventlens.application.EventLensCommandConfig;
 import dev.bellaouzo.eventlens.application.port.InstrumentationPort;
+import dev.bellaouzo.eventlens.domain.instrumentation.AgentInstallHints;
 import org.bukkit.plugin.java.JavaPlugin;
 
 final class EventLensStartupMessages {
@@ -16,6 +17,8 @@ final class EventLensStartupMessages {
         } else {
             plugin.getLogger()
                     .warning("EventLens agent not detected. Per-listener timing unavailable; dispatch timing only.");
+            plugin.getLogger()
+                    .warning("Run /eventlens status for JVM args, or see " + AgentInstallHints.README_URL);
         }
         plugin.getLogger()
                 .info(() -> "EventLens v" + plugin.getPluginMeta().getVersion()

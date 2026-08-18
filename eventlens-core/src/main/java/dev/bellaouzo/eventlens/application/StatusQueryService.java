@@ -2,6 +2,7 @@ package dev.bellaouzo.eventlens.application;
 
 import dev.bellaouzo.eventlens.application.port.InstrumentationPort;
 import dev.bellaouzo.eventlens.application.port.InstrumentationTestPort;
+import dev.bellaouzo.eventlens.domain.instrumentation.AgentInstallHints;
 import dev.bellaouzo.eventlens.domain.instrumentation.InstrumentationDiagnostics;
 import dev.bellaouzo.eventlens.domain.instrumentation.InstrumentationMode;
 import dev.bellaouzo.eventlens.domain.status.EventLensStatus;
@@ -31,6 +32,10 @@ public final class StatusQueryService {
     public EventLensStatus queryStatus(String paperVersionReported, String bukkitVersionReported) {
         InstrumentationDiagnostics instrumentation =
                 instrumentationQueryService.query(paperVersionReported, bukkitVersionReported);
+        var agentArgument = instrumentationTestPort.resolveAgentArgument();
+        if (agentArgument.isEmpty() && !instrumentation.agentPresent()) {
+            agentArgument = java.util.Optional.of(AgentInstallHints.paperJvmArgument(version));
+        }
         return new EventLensStatus(
                 version,
                 targetPlatform,
@@ -40,7 +45,7 @@ public final class StatusQueryService {
                 instrumentation.agentProtocolVersion(),
                 timingMode(instrumentation.mode()),
                 instrumentation,
-                instrumentationTestPort.resolveAgentArgument());
+                agentArgument);
     }
 
     private static String timingMode(InstrumentationMode mode) {

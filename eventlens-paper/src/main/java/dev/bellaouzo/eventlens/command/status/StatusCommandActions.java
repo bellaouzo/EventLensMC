@@ -4,6 +4,7 @@ import dev.bellaouzo.eventlens.application.EventLensCommandConfig;
 import dev.bellaouzo.eventlens.command.CommandLiterals;
 import dev.bellaouzo.eventlens.command.CommandUi;
 import dev.bellaouzo.eventlens.command.EventLensPermissions;
+import dev.bellaouzo.eventlens.domain.instrumentation.AgentInstallHints;
 import dev.bellaouzo.eventlens.domain.status.EventLensStatus;
 import java.util.ArrayList;
 import java.util.List;
@@ -52,10 +53,23 @@ final class StatusCommandActions {
         if (EventLensPermissions.hasTrace(sender, "history") && status.activeSessionCount() == 0) {
             actions.add(CommandUi.runCommand("[History]", "/eventlens trace history", "View recent trace history"));
         }
-        status.agentArgument()
-                .ifPresent(argument -> actions.add(Component.text("[Copy agent arg]", NamedTextColor.AQUA)
-                        .clickEvent(ClickEvent.copyToClipboard(argument))
-                        .hoverEvent(HoverEvent.showText(Component.text(argument, NamedTextColor.GRAY)))));
+        if (!status.agentAttached()) {
+            status.agentArgument()
+                    .ifPresent(argument -> actions.add(Component.text("[Copy JVM arg]", NamedTextColor.AQUA)
+                            .clickEvent(ClickEvent.copyToClipboard(argument))
+                            .hoverEvent(HoverEvent.showText(Component.text(
+                                    "Copy Paper -javaagent argument.\nRestart the server after adding it.",
+                                    NamedTextColor.GRAY)))));
+            actions.add(Component.text("[Agent guide]", NamedTextColor.AQUA)
+                    .clickEvent(ClickEvent.copyToClipboard(AgentInstallHints.README_URL))
+                    .hoverEvent(HoverEvent.showText(Component.text(
+                            "Copy README link with Java agent install steps.", NamedTextColor.GRAY))));
+        } else {
+            status.agentArgument()
+                    .ifPresent(argument -> actions.add(Component.text("[Copy JVM arg]", NamedTextColor.AQUA)
+                            .clickEvent(ClickEvent.copyToClipboard(argument))
+                            .hoverEvent(HoverEvent.showText(Component.text(argument, NamedTextColor.GRAY)))));
+        }
         return CommandUi.actionBar(actions.toArray(Component[]::new));
     }
 }

@@ -5,6 +5,15 @@ All notable changes to EventLens are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.10.5-beta] - 2026-08-18
+
+### Changed
+
+- README adds a dedicated **[Java agents](#java-agents-optional)** section with copy-paste JVM args and release download steps (no longer buried in collapsed blocks)
+- `/eventlens status` on Paper and client mods now prints visible agent setup lines when instrumentation is `dispatch-only`, including **[Copy JVM arg]** and **[Agent guide]** actions
+- Server startup log and `trace view` timing header point operators to `/eventlens status` and the README when the Paper agent is missing
+- Screen **dispatch** pill hover lists full client agent install steps (Fabric notes agent is not supported yet)
+
 ## [1.10.4-beta] - 2026-08-18
 
 ### Fixed

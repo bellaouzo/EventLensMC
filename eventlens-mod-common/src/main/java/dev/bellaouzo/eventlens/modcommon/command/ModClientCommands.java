@@ -15,7 +15,8 @@ public final class ModClientCommands {
 
     public static List<ModChatLine> execute(ModTraceCoordinator coordinator, String ownerName, List<String> args) {
         if (args.isEmpty() || "status".equalsIgnoreCase(args.getFirst())) {
-            return ModStatusFormatter.render(coordinator.status());
+            return ModStatusFormatter.render(
+                    coordinator.status(), coordinator.environmentPort().runtimeKind());
         }
         return switch (args.getFirst().toLowerCase(Locale.ROOT)) {
             case "listeners" -> listeners(coordinator, args);

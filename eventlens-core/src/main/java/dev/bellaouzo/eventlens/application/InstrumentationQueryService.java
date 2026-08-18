@@ -1,6 +1,7 @@
 package dev.bellaouzo.eventlens.application;
 
 import dev.bellaouzo.eventlens.application.port.InstrumentationPort;
+import dev.bellaouzo.eventlens.domain.instrumentation.AgentInstallHints;
 import dev.bellaouzo.eventlens.domain.instrumentation.InstrumentationCapabilities;
 import dev.bellaouzo.eventlens.domain.instrumentation.InstrumentationDiagnosticLine;
 import dev.bellaouzo.eventlens.domain.instrumentation.InstrumentationDiagnostics;
@@ -83,11 +84,18 @@ public final class InstrumentationQueryService {
                     "warn",
                     "AGENT_ABSENT",
                     "Java agent not loaded. Using priority-band snapshots and dispatch timing only."));
-            lines.add(
-                    new InstrumentationDiagnosticLine(
-                            "info",
-                            "FALLBACK",
-                            "Attach -javaagent:eventlens-agent.jar for per-listener duration, snapshots, and cancellation timeline."));
+            lines.add(new InstrumentationDiagnosticLine(
+                    "info",
+                    "AGENT_SETUP",
+                    "Add to Paper JVM args: -javaagent:eventlens-agent-<version>.jar (see /eventlens status or README)."));
+            lines.add(new InstrumentationDiagnosticLine(
+                    "info",
+                    "FALLBACK",
+                    "Without the agent: dispatch timing and priority-band snapshots only."));
+            lines.add(new InstrumentationDiagnosticLine(
+                    "info",
+                    "AGENT_GUIDE",
+                    "Full install steps: " + AgentInstallHints.README_URL));
         } else {
             lines.add(new InstrumentationDiagnosticLine(
                     "info", "AGENT_ATTACHED", "Java agent attached (protocol " + protocolVersion + ")."));

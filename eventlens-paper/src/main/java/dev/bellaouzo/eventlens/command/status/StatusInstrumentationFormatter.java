@@ -1,6 +1,7 @@
 package dev.bellaouzo.eventlens.command.status;
 
 import dev.bellaouzo.eventlens.command.CommandUi;
+import dev.bellaouzo.eventlens.domain.instrumentation.AgentInstallHints;
 import dev.bellaouzo.eventlens.domain.instrumentation.InstrumentationCapabilities;
 import dev.bellaouzo.eventlens.domain.instrumentation.InstrumentationDiagnosticLine;
 import dev.bellaouzo.eventlens.domain.instrumentation.InstrumentationDiagnostics;
@@ -8,6 +9,7 @@ import dev.bellaouzo.eventlens.domain.instrumentation.InstrumentationMode;
 import dev.bellaouzo.eventlens.domain.status.EventLensStatus;
 import java.util.Locale;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.command.CommandSender;
 
@@ -19,6 +21,9 @@ final class StatusInstrumentationFormatter {
             CommandSender sender, EventLensStatus status, InstrumentationDiagnostics instrumentation) {
         sender.sendMessage(modeLine(instrumentation));
         sender.sendMessage(agentLine(status, instrumentation));
+        if (!status.agentAttached()) {
+            renderAgentSetup(sender, status);
+        }
         sender.sendMessage(capabilitiesLine(instrumentation.capabilities()));
         sender.sendMessage(CommandUi.divider());
         sender.sendMessage(CommandUi.sectionTitle("Diagnostics"));
@@ -60,10 +65,31 @@ final class StatusInstrumentationFormatter {
                 "Agent",
                 Component.text("not attached", NamedTextColor.RED)
                         .hoverEvent(net.kyori.adventure.text.event.HoverEvent.showText(CommandUi.hoverBlock(
-                                "Per-listener timing requires the Java agent.",
-                                "Dev runServer attaches it automatically.",
+                                "Per-listener timing requires the Paper Java agent.",
+                                "Dispatch timing and priority-band snapshots still work.",
                                 "",
-                                "Use priority-band fallback without agent"))));
+                                "See Agent setup below or README on GitHub"))));
+    }
+
+    private static void renderAgentSetup(CommandSender sender, EventLensStatus status) {
+        sender.sendMessage(Component.text("Agent setup", NamedTextColor.YELLOW));
+        String suggested = status.agentArgument().orElse(AgentInstallHints.paperJvmArgument(status.version()));
+        sender.sendMessage(Component.text("  JVM arg: ", NamedTextColor.GRAY)
+                .append(Component.text(suggested, NamedTextColor.AQUA)
+                        .clickEvent(ClickEvent.copyToClipboard(suggested))
+                        .hoverEvent(net.kyori.adventure.text.event.HoverEvent.showText(
+                                Component.text("Click to copy. Add to Paper startup, then restart.", NamedTextColor.GRAY)))));
+        sender.sendMessage(Component.text(
+                "  Download eventlens-agent-" + status.version() + ".jar from GitHub releases.",
+                NamedTextColor.GRAY));
+        sender.sendMessage(Component.text(
+                "  Restart the server (stop, then start). Status should show precise.",
+                NamedTextColor.GRAY));
+        sender.sendMessage(Component.text("  Guide: ", NamedTextColor.GRAY)
+                .append(Component.text(AgentInstallHints.README_URL, NamedTextColor.AQUA)
+                        .clickEvent(ClickEvent.copyToClipboard(AgentInstallHints.README_URL))
+                        .hoverEvent(net.kyori.adventure.text.event.HoverEvent.showText(
+                                Component.text("Click to copy the README link.", NamedTextColor.GRAY)))));
     }
 
     private static Component capabilitiesLine(InstrumentationCapabilities capabilities) {

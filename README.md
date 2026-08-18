@@ -2,7 +2,7 @@
 
 **See how Minecraft events travel through plugins and mods — without changing them.**
 
-[![Version](https://img.shields.io/badge/version-1.10.4--beta-1f6feb)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.10.5--beta-1f6feb)](CHANGELOG.md)
 [![Paper](https://img.shields.io/badge/Paper-26.2-00aa00)](#quick-start)
 [![Java](https://img.shields.io/badge/Java-25-orange)](#development)
 [![Minecraft](https://img.shields.io/badge/client-26.2%20(NeoForge)-green)](#client-mods)
@@ -16,7 +16,7 @@ It observes. It does not cancel, reorder, re-fire, or hide exceptions.
 |---|---|---|
 | Paper **26.2** · Java **25** · `/eventlens` (`/el`) | Minecraft **26.2** · NeoForge / Forge / Fabric client mods | [MIT](LICENSE) |
 
-**[Features](#features)** · **[Quick start](#quick-start)** · **[Commands](#commands)** · **[Client mods](#client-mods)** · **[Dashboard](#dashboard)** · **[Configuration](#configuration)** · **[Development](#development)**
+**[Features](#features)** · **[Quick start](#quick-start)** · **[Java agents](#java-agents-optional)** · **[Commands](#commands)** · **[Client mods](#client-mods)** · **[Dashboard](#dashboard)** · **[Configuration](#configuration)** · **[Development](#development)**
 
 ---
 
@@ -31,22 +31,24 @@ It observes. It does not cancel, reorder, re-fire, or hide exceptions.
 
 | Piece | Who it is for | Required? |
 |---|---|---|
-| **Paper plugin** `EventLens-1.10.4-beta.jar` | Server operators and plugin authors | Yes, for server traces |
-| **Paper Java agent** `eventlens-agent-1.10.4-beta.jar` | Per-listener timing and exception attribution | Optional |
+| **Paper plugin** `EventLens-1.10.5-beta.jar` | Server operators and plugin authors | Yes, for server traces |
+| **Paper Java agent** `eventlens-agent-1.10.5-beta.jar` | Per-listener timing and exception attribution | Optional |
 | **NeoForge client mod** (26.2) | Client-side traces, Screen, HUD | Optional; preview |
 | **Forge client mod** (26.2) | Client-side traces, Screen, HUD | Optional; preview |
 | **Fabric client mod** (26.2) | Client-side traces, Screen, HUD | Optional; preview |
-| **Client Java agent** `eventlens-client-agent-1.10.4-beta.jar` | Per-mod handler timing on NeoForge and Forge | Optional; not on Fabric yet |
+| **Client Java agent** `eventlens-client-agent-1.10.5-beta.jar` | Per-mod handler timing on NeoForge and Forge | Optional; not on Fabric yet |
 | **Dashboard** at `http://127.0.0.1:8765` | Live graphs, timeline, compare | Ships with the Paper plugin |
 | **Bundle export** | Share a self-contained `index.html` report | Paper command |
 
 The plugin is useful without any agent or client mod. Agents add precise timings. Client mods add what the client fired before the server saw it.
 
+> **No Java agent?** Run `/eventlens status` in-game (Paper or client mod). When instrumentation shows `dispatch-only`, the status output includes copy-paste JVM args and a link back to this README section.
+
 ---
 
 ## Quick start
 
-1. Run **Java 25**. Drop `eventlens-paper/build/libs/EventLens-1.10.4-beta.jar` into `plugins/`.
+1. Run **Java 25**. Drop `eventlens-paper/build/libs/EventLens-1.10.5-beta.jar` into `plugins/`.
 2. Restart the server (`stop`, then start — do not `/reload`). Commands default to **op**.
 3. Trace a click, then open the dashboard or an exported bundle.
 
@@ -65,46 +67,75 @@ Then open the exported folder’s `index.html`, or the live dashboard at [http:/
 Built artifact after `.\gradlew.bat build`:
 
 ```
-eventlens-paper/build/libs/EventLens-1.10.4-beta.jar
+eventlens-paper/build/libs/EventLens-1.10.5-beta.jar
 ```
+
+---
+
+## Java agents (optional)
+
+EventLens works without agents — listener lists, dispatch timing, snapshots (with priority-band fallback on Paper), and exports all still run. Agents unlock **per-listener** timing on Paper and **per-mod handler** timing on NeoForge and Forge clients.
+
+| Without agent | With agent |
+|---|---|
+| Paper: dispatch timing + priority-band snapshots | Paper: per-listener duration, snapshots, diffs, cancellation timeline |
+| Client: dispatch timing + mod overlap lists | NeoForge / Forge: times other mods' game-bus handlers |
+| `/eventlens status` shows `dispatch-only` | `/eventlens status` shows `precise` |
+
+Download matching JARs from [GitHub Releases](https://github.com/bellaouzo/EventLensMC/releases) (same version as the plugin or client mod).
+
+### Paper server agent
+
+1. Download `eventlens-agent-1.10.5-beta.jar` from releases.
+2. Add a **JVM argument** to the **Paper server process** (not the client):
+
+```
+-javaagent:eventlens-agent-1.10.5-beta.jar
+```
+
+Put the jar somewhere stable (for example next to the server jar) and use the full path if your launcher needs it.
+
+3. **Restart the server** (`stop`, then start — do not `/reload`).
+4. Confirm: `/eventlens status` → **Agent: attached**, **Mode: precise**. Use **[Copy JVM arg]** at the bottom of status if you need the exact flag again.
+
+Development `runServer` / `runServerDebug` attach the Paper agent automatically.
+
+### Client agent (NeoForge and Forge only)
+
+1. Download `eventlens-client-agent-1.10.5-beta.jar` and `eventlens-observability-1.10.5-beta.jar` from releases.
+2. Put **both** jars in the **same folder** (for example a `agents/` folder you point the launcher at).
+3. Add to your **Minecraft launcher JVM arguments**:
+
+```
+-javaagent:eventlens-client-agent-1.10.5-beta.jar
+```
+
+4. **Restart the client**. In chat, `/eventlens status` should show **Instr. precise** (not `dispatch-only`). The Screen **dispatch** pill hover lists the same steps.
+
+Development `:eventlens-neoforge:runClient` and `:eventlens-forge:runClient` attach the client agent automatically.
+
+**Fabric:** client Java agent is not supported yet; dispatch timing and the Screen still work. Status explains this when you run `/eventlens`.
 
 <details>
-<summary><strong>Optional Paper Java agent</strong></summary>
+<summary><strong>Why agents are separate JARs</strong></summary>
 
-Without the agent, EventLens still lists listeners and reports **dispatch-level** timing. With it, `/eventlens status` shows `precise` and `trace view` lists each listener’s time, field changes, and exceptions.
-
-Add a JVM argument on the **same** Paper process:
-
-```
--javaagent:eventlens-agent-1.10.4-beta.jar
-```
-
-Development `runServer` / `runServerDebug` attach this automatically.
+Agents load with `-javaagent:` before the game or server starts. They instrument listener invocation without changing event behavior. They are optional artifacts — never required for basic tracing.
 
 </details>
 
-<details>
-<summary><strong>Optional client mods (Minecraft 26.2)</strong></summary>
+---
+
+## Client mods (optional)
 
 Install **one** loader jar that matches your client:
 
 | Loader | Minecraft | Artifact |
 |---|---|---|
-| **NeoForge** 26.2.x | 26.2 | `eventlens-neoforge/build/libs/eventlens-neoforge-1.10.4-beta.jar` |
-| **Minecraft Forge** 65.1+ | 26.2 | `eventlens-forge/build/libs/eventlens-forge-1.10.4-beta.jar` |
-| **Fabric** Loader 0.19 + Fabric API 0.157+ | 26.2 | `eventlens-fabric/build/libs/eventlens-fabric-1.10.4-beta.jar` |
+| **NeoForge** 26.2.x | 26.2 | `eventlens-neoforge/build/libs/eventlens-neoforge-1.10.5-beta.jar` |
+| **Minecraft Forge** 65.1+ | 26.2 | `eventlens-forge/build/libs/eventlens-forge-1.10.5-beta.jar` |
+| **Fabric** Loader 0.19 + Fabric API 0.157+ | 26.2 | `eventlens-fabric/build/libs/eventlens-fabric-1.10.5-beta.jar` |
 
-Put the jar in the client `mods/` folder. Chat commands work on all three. Screen, HUD, and keybinds work on all three (Fabric’s Screen is a lighter list UI). Precise per-mod timing needs the **client agent** on NeoForge and Forge only.
-
-**Client Java agent (NeoForge and Forge)**
-
-```
--javaagent:eventlens-client-agent-1.10.4-beta.jar
-```
-
-Place `eventlens-observability-1.10.4-beta.jar` in the **same folder** as the agent jar. Dev tasks `:eventlens-neoforge:runClient` and `:eventlens-forge:runClient` attach it automatically.
-
-</details>
+Put the jar in the client `mods/` folder. Chat commands work on all three. Screen, HUD, and keybinds work on all three. Precise per-mod timing needs the **[client Java agent](#client-agent-neoforge-and-forge-only)** on NeoForge and Forge only.
 
 ---
 
@@ -210,7 +241,7 @@ Same `/eventlens` family in client chat, plus an in-game Screen.
 
 | | NeoForge | Forge | Fabric |
 |---|:---:|:---:|:---:|
-| Minecraft | 1.21.1 | 1.21.1 | 1.21.1 |
+| Minecraft | 26.2 | 26.2 | 26.2 |
 | Chat: status, listeners, trace | yes | yes | yes |
 | `/eventlens mod` profile + compare | yes | yes | yes |
 | `/eventlens exceptions` | yes | yes | yes |
@@ -221,7 +252,7 @@ Same `/eventlens` family in client chat, plus an in-game Screen.
 | `@SubscribeEvent` inventory + overlap | yes | yes | coarse loaded-mod list |
 | Client Java agent (`precise`) | yes | yes | **not yet** |
 
-`/eventlens` on the client shows `Instrumentation  precise` when the client agent loaded, otherwise `dispatch-only`. Chat stays a fallback if you never open the Screen.
+`/eventlens` on the client shows `Instrumentation  precise` when the client agent loaded, otherwise `dispatch-only`. When dispatch-only, status prints JVM setup steps and **[Copy JVM arg]** / **[Agent guide]** links. Chat stays a fallback if you never open the Screen.
 
 `/eventlens trace live` on a client does not start a Paper-style channelled feed. It tells you that the HUD and command toasts are the local equivalent.
 
@@ -267,7 +298,7 @@ Clickable chat: session ids, **[Open UI]**, **Saved to** / **Folder** (click cop
 | **Sessions** | Search, View, Pause / Resume, Restart (stopped), Stop, Export. Double-click opens. |
 | **Session** | Dispatch list (sequence, time, player, field preview, cancel, handlers) and Fields / Handlers detail |
 
-Hover the **live** / **paused** / **idle** and **precise** / **dispatch** pills for agent protocol, version, and session counts.
+Hover the **live** / **paused** / **idle** and **precise** / **dispatch** pills for full agent install steps when dispatch-only.
 
 **HUD** is off by default. Toggle on Home or `key.eventlens.hud`. While a session is active it shows event name, last dispatch, duration, handler count or slowest mod, cancel state, and `linked` when the last dispatch has a peer. Hidden while the Screen is open.
 

@@ -231,7 +231,7 @@ public final class EventLensScreen extends Screen {
         super.extractRenderState(graphics, mouseX, mouseY, partialTick);
         ModTraceResults.Status status = coordinator().status();
         EventLensUi.beginHits();
-        EventLensUi.header(graphics, font, frame, status);
+        EventLensUi.header(graphics, font, frame, status, coordinator().environmentPort().runtimeKind());
         int underlineX = frame.x() + 10;
         if (tab == Tab.EVENTS) {
             underlineX += 68;
