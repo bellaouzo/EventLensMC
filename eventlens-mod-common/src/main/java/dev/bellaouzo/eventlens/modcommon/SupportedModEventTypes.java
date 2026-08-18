@@ -41,6 +41,15 @@ public final class SupportedModEventTypes {
     public static final String CLIENT_CHUNK_LOAD_EVENT = "dev.bellaouzo.eventlens.runtime.ClientChunkLoadEvent";
     public static final String CLIENT_CHUNK_UNLOAD_EVENT = "dev.bellaouzo.eventlens.runtime.ClientChunkUnloadEvent";
     public static final String CLIENT_RECIPES_UPDATED_EVENT = "dev.bellaouzo.eventlens.runtime.ClientRecipesUpdatedEvent";
+    public static final String CLIENT_ITEM_TOSS_EVENT = "dev.bellaouzo.eventlens.runtime.ClientItemTossEvent";
+    public static final String CLIENT_ITEM_PICKUP_EVENT = "dev.bellaouzo.eventlens.runtime.ClientItemPickupEvent";
+    public static final String CLIENT_DEATH_EVENT = "dev.bellaouzo.eventlens.runtime.ClientDeathEvent";
+    public static final String CLIENT_HURT_EVENT = "dev.bellaouzo.eventlens.runtime.ClientHurtEvent";
+    public static final String CLIENT_USE_ENTITY_AT_EVENT = "dev.bellaouzo.eventlens.runtime.ClientUseEntityAtEvent";
+    public static final String CLIENT_USE_ITEM_FINISH_EVENT = "dev.bellaouzo.eventlens.runtime.ClientUseItemFinishEvent";
+    public static final String CLIENT_CONTAINER_OPEN_EVENT = "dev.bellaouzo.eventlens.runtime.ClientContainerOpenEvent";
+    public static final String CLIENT_CONTAINER_CLOSE_EVENT = "dev.bellaouzo.eventlens.runtime.ClientContainerCloseEvent";
+    public static final String CLIENT_BREAK_SPEED_EVENT = "dev.bellaouzo.eventlens.runtime.ClientBreakSpeedEvent";
 
     private static final Map<String, EventType> BY_SIMPLE_NAME = new LinkedHashMap<>();
     private static final Map<String, EventType> BY_CLASS_NAME = new LinkedHashMap<>();
@@ -79,6 +88,15 @@ public final class SupportedModEventTypes {
         register(new EventType("ClientChunkLoadEvent", CLIENT_CHUNK_LOAD_EVENT, true, "Chunk loaded on the client"));
         register(new EventType("ClientChunkUnloadEvent", CLIENT_CHUNK_UNLOAD_EVENT, true, "Chunk unloaded on the client"));
         register(new EventType("ClientRecipesUpdatedEvent", CLIENT_RECIPES_UPDATED_EVENT, false, "Recipe book synced"));
+        register(new EventType("ClientItemTossEvent", CLIENT_ITEM_TOSS_EVENT, false, "You dropped an item"));
+        register(new EventType("ClientItemPickupEvent", CLIENT_ITEM_PICKUP_EVENT, true, "You picked up an item"));
+        register(new EventType("ClientDeathEvent", CLIENT_DEATH_EVENT, false, "A living entity died on the client"));
+        register(new EventType("ClientHurtEvent", CLIENT_HURT_EVENT, true, "A living entity took damage on the client"));
+        register(new EventType("ClientUseEntityAtEvent", CLIENT_USE_ENTITY_AT_EVENT, false, "Right-click a specific point on an entity"));
+        register(new EventType("ClientUseItemFinishEvent", CLIENT_USE_ITEM_FINISH_EVENT, false, "Finished using an item"));
+        register(new EventType("ClientContainerOpenEvent", CLIENT_CONTAINER_OPEN_EVENT, false, "A container menu opened"));
+        register(new EventType("ClientContainerCloseEvent", CLIENT_CONTAINER_CLOSE_EVENT, false, "A container menu closed"));
+        register(new EventType("ClientBreakSpeedEvent", CLIENT_BREAK_SPEED_EVENT, true, "Mining speed calculated"));
     }
 
     private SupportedModEventTypes() {}

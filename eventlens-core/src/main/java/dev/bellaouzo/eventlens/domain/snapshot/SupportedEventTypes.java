@@ -29,7 +29,31 @@ public final class SupportedEventTypes {
             "org.bukkit.event.entity.ProjectileLaunchEvent",
             "org.bukkit.event.entity.ProjectileHitEvent",
             "org.bukkit.event.entity.CreatureSpawnEvent",
-            "org.bukkit.event.server.ServerCommandEvent");
+            "org.bukkit.event.server.ServerCommandEvent",
+            "org.bukkit.event.entity.EntityDamageByEntityEvent",
+            "org.bukkit.event.entity.EntityExplodeEvent",
+            "org.bukkit.event.block.BlockExplodeEvent",
+            "org.bukkit.event.entity.ExplosionPrimeEvent",
+            "org.bukkit.event.player.PlayerInteractEntityEvent",
+            "org.bukkit.event.player.PlayerInteractAtEntityEvent",
+            "org.bukkit.event.player.PlayerItemConsumeEvent",
+            "org.bukkit.event.player.PlayerRespawnEvent",
+            "org.bukkit.event.player.PlayerChangedWorldEvent",
+            "org.bukkit.event.player.PlayerBucketEmptyEvent",
+            "org.bukkit.event.player.PlayerBucketFillEvent",
+            "org.bukkit.event.block.SignChangeEvent",
+            "org.bukkit.event.inventory.CraftItemEvent",
+            "org.bukkit.event.entity.EntityChangeBlockEvent",
+            "org.bukkit.event.block.BlockIgniteEvent",
+            "org.bukkit.event.block.BlockBurnEvent",
+            "org.bukkit.event.vehicle.VehicleEnterEvent",
+            "org.bukkit.event.vehicle.VehicleExitEvent",
+            "org.bukkit.event.entity.EntityTargetEvent",
+            "org.bukkit.event.player.PlayerFishEvent",
+            "org.bukkit.event.player.PlayerPortalEvent",
+            "org.bukkit.event.player.PlayerKickEvent",
+            "org.bukkit.event.player.PlayerSwapHandItemsEvent",
+            "org.bukkit.event.entity.FoodLevelChangeEvent");
     private static final Set<String> additionalClassNames = new CopyOnWriteArraySet<>();
 
     private SupportedEventTypes() {}

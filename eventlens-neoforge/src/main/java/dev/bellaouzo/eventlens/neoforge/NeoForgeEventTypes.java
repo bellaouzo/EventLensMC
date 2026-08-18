@@ -44,8 +44,35 @@ final class NeoForgeEventTypes {
         if (contains(name, "RightClickBlock")) {
             return SupportedModEventTypes.CLIENT_USE_BLOCK_EVENT;
         }
+        if (contains(name, "EntityInteractSpecific")) {
+            return SupportedModEventTypes.CLIENT_USE_ENTITY_AT_EVENT;
+        }
         if (contains(name, "EntityInteract")) {
             return SupportedModEventTypes.CLIENT_USE_ENTITY_EVENT;
+        }
+        if (contains(name, "ItemTossEvent")) {
+            return SupportedModEventTypes.CLIENT_ITEM_TOSS_EVENT;
+        }
+        if (contains(name, "ItemEntityPickupEvent") || contains(name, "EntityItemPickupEvent")) {
+            return SupportedModEventTypes.CLIENT_ITEM_PICKUP_EVENT;
+        }
+        if (contains(name, "LivingDeathEvent")) {
+            return SupportedModEventTypes.CLIENT_DEATH_EVENT;
+        }
+        if (contains(name, "LivingIncomingDamageEvent") || contains(name, "LivingHurtEvent")) {
+            return SupportedModEventTypes.CLIENT_HURT_EVENT;
+        }
+        if (contains(name, "LivingEntityUseItemEvent")) {
+            return SupportedModEventTypes.CLIENT_USE_ITEM_FINISH_EVENT;
+        }
+        if (contains(name, "PlayerContainerEvent$Open") || contains(name, "PlayerContainerEvent.Open")) {
+            return SupportedModEventTypes.CLIENT_CONTAINER_OPEN_EVENT;
+        }
+        if (contains(name, "PlayerContainerEvent$Close") || contains(name, "PlayerContainerEvent.Close")) {
+            return SupportedModEventTypes.CLIENT_CONTAINER_CLOSE_EVENT;
+        }
+        if (contains(name, "BreakSpeed")) {
+            return SupportedModEventTypes.CLIENT_BREAK_SPEED_EVENT;
         }
         if (contains(name, "MovementInputUpdateEvent")) {
             return SupportedModEventTypes.CLIENT_MOVEMENT_INPUT_EVENT;

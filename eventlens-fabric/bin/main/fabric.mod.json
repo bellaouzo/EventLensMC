@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "id": "eventlens",
+  "version": "${version}",
+  "name": "EventLens",
+  "description": "Optional EventLens client mod for diagnosing mod event handlers.",
+  "authors": ["bellaouzo"],
+  "contact": {},
+  "license": "MIT",
+  "environment": "client",
+  "entrypoints": {
+    "client": ["dev.bellaouzo.eventlens.fabric.EventLensFabricMod"]
+  },
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "minecraft": "~1.21.1",
+    "fabric-api": "*"
+  }
+}

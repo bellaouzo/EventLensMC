@@ -5,6 +5,14 @@ All notable changes to EventLens are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2026-08-17
+
+### Added
+
+- First-class Paper snapshots for 24 more conflict-heavy events, including explosions, PvP damage, entity clicks, buckets, signs, crafting, fishing, portals, kicks, vehicles, and fire
+- Nine more client events on NeoForge and Forge: item toss/pickup, death, hurt, use-entity-at, finish using an item, container open/close, and mining speed
+- `/eventlens listeners` and `--player` / `--world` filters now resolve the acting player for inventory, sign, ignite, and vehicle events
+
 ## [1.3.2] - 2026-08-17
 
 ### Added

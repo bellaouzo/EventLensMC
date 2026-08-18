@@ -1,0 +1,66 @@
+name: EventLens
+version: '${version}'
+main: dev.bellaouzo.eventlens.EventLens
+api-version: '1.21'
+description: Diagnose how server events travel through registered plugin listeners.
+author: bellaouzo
+
+commands:
+  eventlens:
+    description: EventLens diagnostic commands
+    usage: /eventlens [status|listeners|events|exceptions|trace|plugin|instrumentation]
+    aliases: [el]
+
+permissions:
+  eventlens.command.status:
+    description: Allows use of /eventlens status
+    default: op
+  eventlens.command.listeners:
+    description: Allows use of /eventlens listeners
+    default: op
+  eventlens.command.plugin:
+    description: Allows use of /eventlens plugin
+    default: op
+  eventlens.command.instrumentation:
+    description: Allows use of /eventlens instrumentation
+    default: op
+  eventlens.command.trace:
+    description: Allows use of /eventlens trace subcommands
+    default: op
+    children:
+      eventlens.command.trace.start:
+        description: Start trace sessions
+        default: op
+      eventlens.command.trace.stop:
+        description: Stop your trace sessions, or one session by id
+        default: op
+      eventlens.command.trace.restart:
+        description: Restart a stopped trace session with the same filters
+        default: op
+      eventlens.command.trace.list:
+        description: List trace sessions
+        default: op
+      eventlens.command.trace.view:
+        description: View trace session output
+        default: op
+      eventlens.command.trace.export:
+        description: Export or copy trace reports (shareable by default permission)
+        default: op
+      eventlens.command.trace.export.full:
+        description: Export unredacted trace reports (--full)
+        default: op
+      eventlens.command.trace.hot-event:
+        description: Confirm and start traces on hot events such as PlayerMoveEvent
+        default: op
+      eventlens.command.trace.history:
+        description: View your recent trace history
+        default: op
+      eventlens.command.trace.favorite:
+        description: Manage favorite trace events
+        default: op
+      eventlens.command.trace.presets:
+        description: List configured trace presets
+        default: op
+      eventlens.command.trace.live:
+        description: Attach a live trace feed while sessions run
+        default: op

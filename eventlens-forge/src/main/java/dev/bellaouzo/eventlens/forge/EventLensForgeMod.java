@@ -48,6 +48,7 @@ public final class EventLensForgeMod {
         MinecraftForge.EVENT_BUS.register(new ForgeEventTracer(recorder));
         MinecraftForge.EVENT_BUS.register(new ForgeInputTracer(recorder));
         MinecraftForge.EVENT_BUS.register(new ForgeWorldTracer(recorder));
+        MinecraftForge.EVENT_BUS.register(new ForgeGameplayTracer(recorder));
         IEventBus modBus = context.getModEventBus();
         modBus.addListener(ForgeClientEvents::registerKeys);
         modBus.addListener(ForgeClientEvents::registerHud);

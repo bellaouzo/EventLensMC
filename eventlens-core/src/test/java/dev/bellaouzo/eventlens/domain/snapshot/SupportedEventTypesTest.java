@@ -9,18 +9,24 @@ class SupportedEventTypesTest {
 
     @Test
     void listsInitialSupportedEvents() {
-        assertEquals(22, SupportedEventTypes.classNames().size());
+        assertEquals(46, SupportedEventTypes.classNames().size());
         assertTrue(SupportedEventTypes.isSupported("org.bukkit.event.block.BlockBreakEvent"));
         assertTrue(SupportedEventTypes.isSupported("io.papermc.paper.event.player.AsyncChatEvent"));
         assertTrue(SupportedEventTypes.isSupported("org.bukkit.event.player.PlayerJoinEvent"));
         assertTrue(SupportedEventTypes.isSupported("org.bukkit.event.inventory.InventoryOpenEvent"));
         assertTrue(SupportedEventTypes.isSupported("org.bukkit.event.server.ServerCommandEvent"));
+        assertTrue(SupportedEventTypes.isSupported("org.bukkit.event.entity.EntityExplodeEvent"));
+        assertTrue(SupportedEventTypes.isSupported("org.bukkit.event.entity.EntityDamageByEntityEvent"));
+        assertTrue(SupportedEventTypes.isSupported("org.bukkit.event.player.PlayerInteractEntityEvent"));
+        assertTrue(SupportedEventTypes.isSupported("org.bukkit.event.player.PlayerFishEvent"));
     }
 
     @Test
     void simpleNamesAreSortedAndUnique() {
-        assertEquals(22, SupportedEventTypes.simpleNames().size());
+        assertEquals(46, SupportedEventTypes.simpleNames().size());
         assertTrue(SupportedEventTypes.simpleNames().contains("BlockBreakEvent"));
         assertTrue(SupportedEventTypes.simpleNames().contains("AsyncChatEvent"));
+        assertTrue(SupportedEventTypes.simpleNames().contains("EntityExplodeEvent"));
+        assertTrue(SupportedEventTypes.simpleNames().contains("PlayerKickEvent"));
     }
 }

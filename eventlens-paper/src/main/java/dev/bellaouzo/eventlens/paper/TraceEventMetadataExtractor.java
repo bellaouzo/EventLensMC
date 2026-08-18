@@ -9,8 +9,16 @@ import org.bukkit.Location;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.block.BlockEvent;
+import org.bukkit.event.block.BlockIgniteEvent;
+import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.entity.EntityEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerEvent;
+import org.bukkit.event.vehicle.VehicleEnterEvent;
+import org.bukkit.event.vehicle.VehicleEvent;
+import org.bukkit.event.vehicle.VehicleExitEvent;
 
 final class TraceEventMetadataExtractor {
 
@@ -66,6 +74,44 @@ final class TraceEventMetadataExtractor {
                 && entityEvent.getEntity() instanceof org.bukkit.entity.Player player) {
             return Optional.of(player);
         }
+        Optional<org.bukkit.entity.Player> inventoryPlayer = extractInventoryPlayer(event);
+        if (inventoryPlayer.isPresent()) {
+            return inventoryPlayer;
+        }
+        if (event instanceof SignChangeEvent signEvent) {
+            return Optional.of(signEvent.getPlayer());
+        }
+        if (event instanceof BlockIgniteEvent igniteEvent && igniteEvent.getPlayer() != null) {
+            return Optional.of(igniteEvent.getPlayer());
+        }
+        return extractVehiclePlayer(event);
+    }
+
+    private static Optional<org.bukkit.entity.Player> extractInventoryPlayer(Event event) {
+        if (event instanceof InventoryOpenEvent openEvent
+                && openEvent.getPlayer() instanceof org.bukkit.entity.Player player) {
+            return Optional.of(player);
+        }
+        if (event instanceof InventoryCloseEvent closeEvent
+                && closeEvent.getPlayer() instanceof org.bukkit.entity.Player player) {
+            return Optional.of(player);
+        }
+        if (event instanceof InventoryClickEvent clickEvent
+                && clickEvent.getWhoClicked() instanceof org.bukkit.entity.Player player) {
+            return Optional.of(player);
+        }
+        return Optional.empty();
+    }
+
+    private static Optional<org.bukkit.entity.Player> extractVehiclePlayer(Event event) {
+        if (event instanceof VehicleEnterEvent enterEvent
+                && enterEvent.getEntered() instanceof org.bukkit.entity.Player player) {
+            return Optional.of(player);
+        }
+        if (event instanceof VehicleExitEvent exitEvent
+                && exitEvent.getExited() instanceof org.bukkit.entity.Player player) {
+            return Optional.of(player);
+        }
         return Optional.empty();
     }
 
@@ -78,6 +124,9 @@ final class TraceEventMetadataExtractor {
         }
         if (event instanceof EntityEvent entityEvent) {
             return Optional.of(entityEvent.getEntity().getLocation());
+        }
+        if (event instanceof VehicleEvent vehicleEvent) {
+            return Optional.of(vehicleEvent.getVehicle().getLocation());
         }
         return Optional.empty();
     }

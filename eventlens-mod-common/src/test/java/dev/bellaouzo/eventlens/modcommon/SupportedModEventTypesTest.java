@@ -18,7 +18,9 @@ class SupportedModEventTypesTest {
         assertTrue(SupportedModEventTypes.simpleNames().contains("ClientRespawnEvent"));
         assertTrue(SupportedModEventTypes.simpleNames().contains("ClientEntityJoinEvent"));
         assertTrue(SupportedModEventTypes.simpleNames().contains("ClientSoundEvent"));
-        assertEquals(33, SupportedModEventTypes.simpleNames().size());
+        assertTrue(SupportedModEventTypes.simpleNames().contains("ClientItemTossEvent"));
+        assertTrue(SupportedModEventTypes.simpleNames().contains("ClientBreakSpeedEvent"));
+        assertEquals(42, SupportedModEventTypes.simpleNames().size());
         assertEquals(
                 SupportedModEventTypes.CLIENT_USE_ITEM_EVENT,
                 SupportedModEventTypes.resolveClassName("clientuseitemevent"));
@@ -26,6 +28,8 @@ class SupportedModEventTypesTest {
         assertTrue(SupportedModEventTypes.isHot(SupportedModEventTypes.CLIENT_PLAYER_MOVE_EVENT));
         assertTrue(SupportedModEventTypes.isHot("ClientTooltipEvent"));
         assertTrue(SupportedModEventTypes.isHot("ClientChunkLoadEvent"));
+        assertTrue(SupportedModEventTypes.isHot("ClientHurtEvent"));
+        assertTrue(SupportedModEventTypes.isHot("ClientBreakSpeedEvent"));
         assertEquals("Chat you send", SupportedModEventTypes.summary("ClientChatEvent"));
         assertFalse(SupportedModEventTypes.isHot("ClientChatEvent"));
         assertFalse(SupportedModEventTypes.isHot("ClientKeyEvent"));

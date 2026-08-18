@@ -33,7 +33,11 @@ public final class PaperEventSnapshotCapture {
             new ProjectileLaunchEventSnapshotAdapter(),
             new ProjectileHitEventSnapshotAdapter(),
             new CreatureSpawnEventSnapshotAdapter(),
-            new ServerCommandEventSnapshotAdapter());
+            new ServerCommandEventSnapshotAdapter(),
+            new CombatAndExplosionSnapshotAdapter(),
+            new PlayerActionSnapshotAdapter(),
+            new PlayerWorldSnapshotAdapter(),
+            new ProtectionAndMobSnapshotAdapter());
 
     public EventSnapshot capture(Event event, String checkpoint) {
         SnapshotFieldCollector collector = new SnapshotFieldCollector();

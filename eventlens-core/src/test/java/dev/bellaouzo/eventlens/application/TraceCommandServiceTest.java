@@ -25,11 +25,11 @@ class TraceCommandServiceTest {
     @Test
     void startTraceRejectsUnsupportedEvent() {
         StubListenerRegistry registry = new StubListenerRegistry();
-        registry.setSearchResult(EventSearchResult.found("org.bukkit.event.player.PlayerRespawnEvent"));
+        registry.setSearchResult(EventSearchResult.found("org.bukkit.event.player.PlayerLoginEvent"));
         TraceCommandService service =
                 new TraceCommandService(new TraceSessionManager(), registry, new NoOpTraceHookPort());
 
-        TraceStartResult result = service.startTrace("PlayerRespawnEvent", "admin", unrestrictedOptions());
+        TraceStartResult result = service.startTrace("PlayerLoginEvent", "admin", unrestrictedOptions());
 
         TraceStartResult.Failure failure = assertInstanceOf(TraceStartResult.Failure.class, result);
         assertEquals(TraceStartResult.Failure.Reason.UNSUPPORTED_EVENT, failure.reason());
@@ -127,8 +127,9 @@ class TraceCommandServiceTest {
         TraceCommandService service =
                 new TraceCommandService(new TraceSessionManager(), new StubListenerRegistry(), new NoOpTraceHookPort());
 
-        assertEquals(22, service.listSupportedEventSimpleNames().size());
+        assertEquals(46, service.listSupportedEventSimpleNames().size());
         assertTrueContains(service.listSupportedEventSimpleNames(), "BlockBreakEvent");
+        assertTrueContains(service.listSupportedEventSimpleNames(), "EntityExplodeEvent");
     }
 
     private static void assertTrueContains(List<String> values, String expected) {

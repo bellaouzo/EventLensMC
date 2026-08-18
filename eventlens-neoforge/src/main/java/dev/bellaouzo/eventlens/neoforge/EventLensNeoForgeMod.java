@@ -49,6 +49,7 @@ public final class EventLensNeoForgeMod {
         NeoForge.EVENT_BUS.register(new NeoForgeEventTracer(recorder));
         NeoForge.EVENT_BUS.register(new NeoForgeInputTracer(recorder));
         NeoForge.EVENT_BUS.register(new NeoForgeWorldTracer(recorder));
+        NeoForge.EVENT_BUS.register(new NeoForgeGameplayTracer(recorder));
         modContainer.getEventBus().addListener(EventLensClientEvents::registerKeys);
         modContainer.getEventBus().addListener(EventLensClientEvents::registerHud);
     }

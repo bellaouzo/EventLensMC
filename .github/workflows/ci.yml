@@ -24,7 +24,9 @@ jobs:
         uses: gradle/actions/wrapper-validation@v4
 
       - name: Run check
-        run: ./gradlew check --no-daemon --warning-mode all
+        run: |
+          chmod +x ./gradlew
+          ./gradlew check --no-daemon --warning-mode all
 
   smoke:
     runs-on: windows-latest
