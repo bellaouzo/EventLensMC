@@ -2,8 +2,10 @@ package dev.bellaouzo.eventlens;
 
 import dev.bellaouzo.eventlens.application.BaselineCommandService;
 import dev.bellaouzo.eventlens.application.DashboardQueryService;
+import dev.bellaouzo.eventlens.application.EventCatalogService;
 import dev.bellaouzo.eventlens.application.EventLensCommandConfig;
 import dev.bellaouzo.eventlens.application.EventLensCommandContext;
+import dev.bellaouzo.eventlens.application.ExceptionInboxService;
 import dev.bellaouzo.eventlens.application.ExportCommandService;
 import dev.bellaouzo.eventlens.application.InstrumentationTestService;
 import dev.bellaouzo.eventlens.application.ListenerQueryService;
@@ -13,6 +15,7 @@ import dev.bellaouzo.eventlens.application.PluginQueryService;
 import dev.bellaouzo.eventlens.application.ReportRetentionService;
 import dev.bellaouzo.eventlens.application.StatusQueryService;
 import dev.bellaouzo.eventlens.application.TraceCommandService;
+import dev.bellaouzo.eventlens.application.TraceCorrelateService;
 import dev.bellaouzo.eventlens.application.TraceLiveFeedService;
 import dev.bellaouzo.eventlens.command.EventLensCommand;
 import dev.bellaouzo.eventlens.paper.dashboard.PaperDashboardHttpServer;
@@ -36,7 +39,10 @@ final class EventLensServices {
             DashboardQueryService dashboardQueryService,
             PaperDashboardHttpServer dashboardHttpServer,
             EventLensCommandConfig commandConfig,
-            LiveFeedConfig liveFeedConfig) {}
+            LiveFeedConfig liveFeedConfig,
+            EventCatalogService eventCatalogService,
+            ExceptionInboxService exceptionInboxService,
+            TraceCorrelateService traceCorrelateService) {}
 
     static Context create(EventLensServiceFactory.BootstrapInput input) {
         return EventLensServiceFactory.create(input);
@@ -63,6 +69,9 @@ final class EventLensServices {
                 context.instrumentationTestService(),
                 context.playerPreferencesService(),
                 context.commandConfig(),
-                context.liveFeedConfig()));
+                context.liveFeedConfig(),
+                context.eventCatalogService(),
+                context.exceptionInboxService(),
+                context.traceCorrelateService()));
     }
 }

@@ -4,9 +4,11 @@ import dev.bellaouzo.eventlens.application.BaselineCommandService;
 import dev.bellaouzo.eventlens.application.DashboardQueryService;
 import dev.bellaouzo.eventlens.application.DashboardStreamHub;
 import dev.bellaouzo.eventlens.application.DashboardStreamNotifier;
+import dev.bellaouzo.eventlens.application.EventCatalogService;
 import dev.bellaouzo.eventlens.application.EventLensCommandConfig;
 import dev.bellaouzo.eventlens.application.EventLensDashboardConfig;
 import dev.bellaouzo.eventlens.application.EventLensReportConfig;
+import dev.bellaouzo.eventlens.application.ExceptionInboxService;
 import dev.bellaouzo.eventlens.application.ExportCommandService;
 import dev.bellaouzo.eventlens.application.InstrumentationTestService;
 import dev.bellaouzo.eventlens.application.ListenerQueryService;
@@ -16,6 +18,7 @@ import dev.bellaouzo.eventlens.application.PluginQueryService;
 import dev.bellaouzo.eventlens.application.ReportRetentionService;
 import dev.bellaouzo.eventlens.application.StatusQueryService;
 import dev.bellaouzo.eventlens.application.TraceCommandService;
+import dev.bellaouzo.eventlens.application.TraceCorrelateService;
 import dev.bellaouzo.eventlens.application.TraceLiveFeedService;
 import dev.bellaouzo.eventlens.application.TraceReportBuilder;
 import dev.bellaouzo.eventlens.application.port.InstrumentationPort;
@@ -81,13 +84,14 @@ final class EventLensServiceFactory {
 
         TraceLiveFeedService traceLiveFeedService = EventLensLiveFeedBootstrap.register(
                 input.plugin(), input.traceSessionManager(), input.liveFeedConfig());
+        ExceptionInboxService exceptionInboxService = new ExceptionInboxService();
 
         DashboardStreamHub dashboardStreamHub = new DashboardStreamHub();
         DashboardStreamNotifier dashboardStreamNotifier =
                 new DashboardStreamNotifier(dashboardStreamHub, input.traceSessionManager());
         input.traceSessionManager()
                 .setDispatchCaptureListener(new CompositeDispatchCaptureListener(
-                        List.of(traceLiveFeedService, dashboardStreamNotifier),
+                        List.of(traceLiveFeedService, dashboardStreamNotifier, exceptionInboxService),
                         List.of(traceLiveFeedService, dashboardStreamNotifier)));
 
         PaperExportAdapter exportAdapter = new PaperExportAdapter(input.plugin());
@@ -115,6 +119,10 @@ final class EventLensServiceFactory {
         PlayerPreferencesPort preferencesPort = new YamlPlayerPreferencesStore(input.plugin());
         PlayerPreferencesService playerPreferencesService =
                 new PlayerPreferencesService(preferencesPort, input.commandConfig());
+        EventCatalogService eventCatalogService =
+                new EventCatalogService(listenerRegistry, new PaperEventSnapshotRegistry());
+        TraceCorrelateService traceCorrelateService =
+                new TraceCorrelateService(input.traceSessionManager(), exportCommandService);
 
         return new EventLensServices.Context(
                 statusQueryService,
@@ -130,6 +138,9 @@ final class EventLensServiceFactory {
                 dashboardQueryService,
                 dashboardHttpServer,
                 input.commandConfig(),
-                input.liveFeedConfig());
+                input.liveFeedConfig(),
+                eventCatalogService,
+                exceptionInboxService,
+                traceCorrelateService);
     }
 }

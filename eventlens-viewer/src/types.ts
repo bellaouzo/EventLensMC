@@ -46,6 +46,14 @@ export interface TraceDispatch {
   blockZ?: number | null;
   listenerChain?: ListenerChainEntry[];
   listenerTimings: ListenerTiming[];
+  correlationKey?: string | null;
+  actionKind?: string | null;
+  peerSessionId?: string | null;
+  peerSequence?: number | null;
+  serverTick?: number | null;
+  tps?: number | null;
+  msptMillis?: number | null;
+  clientTick?: number | null;
 }
 
 export interface TraceReport {

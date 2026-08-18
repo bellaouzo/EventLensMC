@@ -1,9 +1,11 @@
 package dev.bellaouzo.eventlens.domain.report;
 
+import dev.bellaouzo.eventlens.domain.correlation.CorrelationKeyFactory;
 import dev.bellaouzo.eventlens.domain.diff.PropertyChange;
 import dev.bellaouzo.eventlens.domain.snapshot.EventSnapshot;
 import dev.bellaouzo.eventlens.domain.snapshot.SnapshotField;
 import dev.bellaouzo.eventlens.domain.snapshot.SnapshotValue;
+import dev.bellaouzo.eventlens.domain.trace.DispatchCorrelation;
 import dev.bellaouzo.eventlens.domain.trace.ListenerTimingRecord;
 import dev.bellaouzo.eventlens.domain.trace.TraceDispatchRecord;
 import dev.bellaouzo.eventlens.domain.trace.TraceFilter;
@@ -69,7 +71,17 @@ public final class TraceReportRedactor {
                 dispatch.listenerTimings().stream()
                         .map(TraceReportRedactor::redactTiming)
                         .toList(),
-                dispatch.partialReasons());
+                dispatch.partialReasons(),
+                redactCorrelation(dispatch.correlation()),
+                dispatch.ticks());
+    }
+
+    private static DispatchCorrelation redactCorrelation(DispatchCorrelation correlation) {
+        return new DispatchCorrelation(
+                correlation.correlationKey().map(CorrelationKeyFactory::shareSafe),
+                correlation.actionKind(),
+                correlation.peerSessionId(),
+                correlation.peerSequence());
     }
 
     private static ListenerTimingRecord redactTiming(ListenerTimingRecord timing) {

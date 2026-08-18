@@ -53,6 +53,9 @@ public final class ModDispatchSummary {
         } else if (handlers > 1) {
             text.append("  ·  ").append(handlers).append(" handlers");
         }
+        if (record.correlation().linked()) {
+            text.append("  ·  linked");
+        }
         return text.toString();
     }
 

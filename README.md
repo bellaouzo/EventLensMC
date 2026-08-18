@@ -29,7 +29,7 @@ Set `JAVA_HOME` to your Java 25 installation. Windows PowerShell is the primary 
 
 On first server start, accept the Minecraft EULA in `run/eula.txt` when prompted.
 
-Built plugin JAR: `eventlens-paper/build/libs/EventLens-1.1.2.jar`
+Built plugin JAR: `eventlens-paper/build/libs/EventLens-1.2.1.jar`
 
 Development server directory: `run/` (gitignored)
 
@@ -71,31 +71,39 @@ Permission: `eventlens.command.plugin`
 
 Bounded trace sessions capture event snapshots, listener-order diffs, timing, and cancellation transitions for supported event types.
 
-**Subcommands:** `start`, `stop`, `list`, `view`, `live`, `export`, `copy`, `compare`, `history`, `favorite`, `presets`
+**Subcommands:** `start`, `stop`, `list`, `view`, `live`, `export`, `copy`, `compare`, `correlate`, `history`, `favorite`, `presets`
 
 Permission: `eventlens.command.trace` (granular child permissions per subcommand in `plugin.yml`)
+
+Also: `/eventlens events [prefix]` (traceable vs generic-only vs hot) and `/eventlens exceptions [page]`.
 
 #### Trace start
 
 ```
-/eventlens trace start <EventSimpleName> [--plugin <name>] [--preset <name>]
-  [--max-duration 60s] [--max-events 256] [--slow-threshold 1ms] [--capture-stacks]
+/eventlens trace start <EventSimpleName[,EventSimpleName...]> [--plugin <name>] [--preset <name>]
+  [--generic] [--max-duration 60s] [--max-events 256] [--slow-threshold 1ms] [--capture-stacks]
 ```
 
-Tracing is limited to events declared in `SupportedEventTypes` (for example `PlayerInteractEvent`, `BlockBreakEvent`, `InventoryClickEvent`, `AsyncChatEvent`). `listeners` accepts any registered event; `trace start` rejects unsupported types.
+Allowlisted types get first-class snapshots. A registered event outside that list needs `--generic` (common fields only). `listeners` still resolves any registered Bukkit event.
 
-Hot events such as `PlayerMoveEvent` may require explicit confirmation (`eventlens.command.trace.hot-event`).
+Hot events such as `PlayerMoveEvent` may require explicit confirmation (`eventlens.command.trace.hot-event`) and a narrowing filter.
+
+```
+/eventlens trace correlate <serverSession> <clientSession>
+```
+
+Joins Paper and client reports by correlation key. Live linking uses the optional `eventlens:correlate` plugin channel when the client mod is present.
 
 #### Trace view and export
 
 ```
 /eventlens trace view <sessionId> [--detail brief|normal|verbose]
-/eventlens trace export <sessionId> [--format json|markdown] [--full]
+/eventlens trace export <sessionId> [--format json|markdown|bundle] [--full]
 /eventlens trace copy <sessionId>
 /eventlens trace compare <sessionA> <sessionB>
 ```
 
-Exports are redacted by default. `--full` requires `eventlens.command.trace.export.full`.
+Exports are redacted by default. `--full` requires `eventlens.command.trace.export.full`. A `bundle` export is a folder: open `index.html` in a browser (JS/CSS and a compact `report.json` are included).
 
 #### Live feed
 

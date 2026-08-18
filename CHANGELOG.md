@@ -5,6 +5,32 @@ All notable changes to EventLens are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.1] - 2026-08-17
+
+### Fixed
+
+- Tab-complete extra event names after a comma in `/eventlens trace start`
+- Multi-event start now traces every listed type, including names typed after a comma or space
+- Bundle export copies the dashboard JS/CSS and writes a compact `report.json` so `index.html` opens offline
+
+## [1.2.0] - 2026-08-17
+
+### Added
+
+- Client–server correlation keys, optional `eventlens:correlate` plugin channel, `/eventlens trace correlate`, and Linked lines when a dispatch has a peer
+- Multi-event sessions (`/eventlens trace start Interact,Break`) and `block-flow` / `inventory-flow` / `chat-flow` presets
+- Narrative summary on `trace view` (who cancelled, who threw, partial reasons)
+- Snapshot adapters for inventory open/close/drag, drop/pickup, projectile launch/hit, creature spawn, and server command
+- `/eventlens events` catalog (`traceable` / `generic-only` / `hot`) and `trace start --generic`
+- Client `--mod` / `--player` start filters, `/eventlens mod`, `/eventlens trace live` notice, and client baselines
+- `/eventlens exceptions` inbox and per-dispatch server tick / MSPT / client tick fields
+- `--format bundle` shareable viewer folder and a Compare tab in the dashboard viewer
+- Fabric Screen, HUD, keybinds, `trace pause|resume`, and `/eventlens ui`
+
+### Changed
+
+- Trace reports may include optional correlation, peer, and tick fields without changing `reportVersion` `2`
+
 ## [1.1.2] - 2026-08-17
 
 ### Changed

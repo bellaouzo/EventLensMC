@@ -23,7 +23,17 @@ public final class TraceViewFormatter {
         TraceSessionSummary summary = success.detail().summary();
         sender.sendMessage(
                 Component.text("Trace " + summary.sessionId() + " [" + summary.state() + "]", NamedTextColor.GOLD));
-        sender.sendMessage(Component.text(CommandText.simpleName(summary.eventClassName()), NamedTextColor.GRAY));
+        sender.sendMessage(Component.text(
+                summary.eventClassNames().stream()
+                        .map(CommandText::simpleName)
+                        .reduce((left, right) -> left + ", " + right)
+                        .orElse(CommandText.simpleName(summary.eventClassName())),
+                NamedTextColor.GRAY));
+        sender.sendMessage(Component.text(
+                dev.bellaouzo.eventlens.domain.narrative.NarrativeBuilder.session(
+                                success.detail().records())
+                        .summary(),
+                NamedTextColor.AQUA));
         sender.sendMessage(Component.text(
                 summary.capturedEvents() + " captured · " + summary.droppedEvents() + " dropped · "
                         + summary.sampledOutEvents() + " sampled · page "
@@ -105,6 +115,18 @@ public final class TraceViewFormatter {
                         + DurationStats.formatMillis(dispatchRecord.durationNanos()),
                 NamedTextColor.YELLOW));
         sender.sendMessage(summary);
+        if (dispatchRecord.correlation().linked()) {
+            sender.sendMessage(Component.text(
+                    "Linked "
+                            + dispatchRecord.correlation().peerSessionId().orElse("?")
+                            + " #"
+                            + dispatchRecord
+                                    .correlation()
+                                    .peerSequence()
+                                    .map(String::valueOf)
+                                    .orElse("?"),
+                    NamedTextColor.AQUA));
+        }
 
         if (detailLevel != OutputDetailLevel.BRIEF) {
             TraceTimingFormatter.renderDispatchTiming(sender, dispatchRecord, slowThresholdNanos);

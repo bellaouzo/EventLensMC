@@ -7,12 +7,12 @@ import dev.bellaouzo.eventlens.domain.observability.SessionTimingSummary;
 import java.util.List;
 import java.util.Optional;
 
-final class TraceReportJsonSupport {
+public final class TraceReportJsonSupport {
 
     private TraceReportJsonSupport() {}
 
     @SuppressWarnings("java:S135")
-    static String minifyJson(String json) {
+    public static String minifyJson(String json) {
         StringBuilder minified = new StringBuilder(json.length());
         boolean inString = false;
         boolean escaped = false;

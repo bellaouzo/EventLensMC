@@ -59,7 +59,23 @@ public final class FileModExportAdapter implements ExportPort {
 
     @Override
     public ExportWriteResult writeBaseline(String safeBaseName, String content) {
-        return ExportWriteResult.failure("Baselines are not supported in the client mod yet.");
+        try {
+            Files.createDirectories(baselinesRoot);
+            String fileName = sanitizeFileName(safeBaseName) + BASELINE_EXTENSION;
+            Path target = baselinesRoot.resolve(fileName).normalize();
+            if (!target.startsWith(baselinesRoot)) {
+                return ExportWriteResult.failure("Invalid baseline path.");
+            }
+            if (Files.exists(target)) {
+                return ExportWriteResult.failure("Baseline file already exists.");
+            }
+            Path temp = Files.createTempFile(baselinesRoot, "baseline-", ".tmp");
+            Files.writeString(temp, content, StandardCharsets.UTF_8);
+            Files.move(temp, target, StandardCopyOption.ATOMIC_MOVE);
+            return ExportWriteResult.success(target);
+        } catch (IOException ex) {
+            return ExportWriteResult.failure(ex.getMessage() == null ? "I/O error writing baseline." : ex.getMessage());
+        }
     }
 
     @Override
@@ -101,17 +117,51 @@ public final class FileModExportAdapter implements ExportPort {
 
     @Override
     public Optional<String> readBaseline(String safeBaseName) {
-        return Optional.empty();
+        Path path = baselinesRoot
+                .resolve(sanitizeFileName(safeBaseName) + BASELINE_EXTENSION)
+                .normalize();
+        if (!path.startsWith(baselinesRoot) || !Files.isRegularFile(path)) {
+            return Optional.empty();
+        }
+        try {
+            return Optional.of(Files.readString(path, StandardCharsets.UTF_8));
+        } catch (IOException ignored) {
+            return Optional.empty();
+        }
     }
 
     @Override
     public List<String> listBaselines() {
-        return List.of();
+        try {
+            if (!Files.isDirectory(baselinesRoot)) {
+                return List.of();
+            }
+            try (Stream<Path> paths = Files.list(baselinesRoot)) {
+                return paths.filter(Files::isRegularFile)
+                        .map(path -> path.getFileName().toString())
+                        .filter(name -> name.endsWith(BASELINE_EXTENSION))
+                        .map(name -> name.substring(0, name.length() - BASELINE_EXTENSION.length()))
+                        .sorted(String.CASE_INSENSITIVE_ORDER)
+                        .toList();
+            }
+        } catch (IOException ex) {
+            return List.of();
+        }
     }
 
     @Override
     public boolean deleteBaseline(String safeBaseName) {
-        return false;
+        Path path = baselinesRoot
+                .resolve(sanitizeFileName(safeBaseName) + BASELINE_EXTENSION)
+                .normalize();
+        if (!path.startsWith(baselinesRoot) || !Files.isRegularFile(path)) {
+            return false;
+        }
+        try {
+            return Files.deleteIfExists(path);
+        } catch (IOException ex) {
+            return false;
+        }
     }
 
     public Path rootDirectory() {

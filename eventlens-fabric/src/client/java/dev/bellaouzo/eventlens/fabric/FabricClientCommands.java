@@ -36,7 +36,13 @@ final class FabricClientCommands {
                 .then(ClientCommandManager.literal("status")
                         .executes(context -> run(coordinator, context, List.of("status"))))
                 .then(listeners(coordinator))
-                .then(trace(coordinator));
+                .then(trace(coordinator))
+                .then(ClientCommandManager.literal("ui")
+                        .executes(context -> {
+                            net.minecraft.client.Minecraft.getInstance()
+                                    .execute(() -> dev.bellaouzo.eventlens.fabric.ui.EventLensScreen.open());
+                            return 1;
+                        }));
     }
 
     private static LiteralArgumentBuilder<FabricClientCommandSource> listeners(ModTraceCoordinator coordinator) {
@@ -55,6 +61,8 @@ final class FabricClientCommands {
                 .executes(context -> run(coordinator, context, List.of("trace")))
                 .then(start(coordinator))
                 .then(sessionCommand(coordinator, "stop"))
+                .then(sessionCommand(coordinator, "pause"))
+                .then(sessionCommand(coordinator, "resume"))
                 .then(restart(coordinator))
                 .then(ClientCommandManager.literal("list")
                         .executes(context -> run(coordinator, context, List.of("trace", "list"))))

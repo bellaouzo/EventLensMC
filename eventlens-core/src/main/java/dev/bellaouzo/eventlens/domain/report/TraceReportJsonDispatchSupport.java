@@ -7,6 +7,7 @@ import dev.bellaouzo.eventlens.domain.snapshot.EventSnapshot;
 import dev.bellaouzo.eventlens.domain.snapshot.SnapshotField;
 import dev.bellaouzo.eventlens.domain.snapshot.SnapshotValue;
 import dev.bellaouzo.eventlens.domain.trace.ListenerTimingRecord;
+import dev.bellaouzo.eventlens.domain.trace.TraceDispatchRecord;
 import dev.bellaouzo.eventlens.domain.trace.TraceListenerSnapshot;
 import java.util.List;
 import java.util.Optional;
@@ -14,6 +15,45 @@ import java.util.Optional;
 final class TraceReportJsonDispatchSupport {
 
     private TraceReportJsonDispatchSupport() {}
+
+    static void appendEventClassNames(StringBuilder json, List<String> eventClassNames, int depth) {
+        TraceReportJsonSerializer.key(json, depth, "eventClassNames");
+        TraceReportJsonSerializer.appendStringList(json, eventClassNames, depth);
+        TraceReportJsonSerializer.comma(json);
+    }
+
+    static String compactDispatch(TraceDispatchRecord dispatch) {
+        StringBuilder json = new StringBuilder(2048);
+        TraceReportJsonSerializer.appendDispatch(json, dispatch, 0);
+        return TraceReportJsonSupport.minifyJson(json.toString());
+    }
+
+    static void appendCorrelationAndTicks(StringBuilder json, TraceDispatchRecord dispatch, int depth) {
+        TraceReportJsonSerializer.fieldOptionalString(
+                json, depth, "correlationKey", dispatch.correlation().correlationKey());
+        TraceReportJsonSerializer.comma(json);
+        TraceReportJsonSerializer.fieldOptionalString(
+                json, depth, "actionKind", dispatch.correlation().actionKind());
+        TraceReportJsonSerializer.comma(json);
+        TraceReportJsonSerializer.fieldOptionalString(
+                json, depth, "peerSessionId", dispatch.correlation().peerSessionId());
+        TraceReportJsonSerializer.comma(json);
+        TraceReportJsonSerializer.key(json, depth, "peerSequence");
+        json.append(dispatch.correlation().peerSequence().map(String::valueOf).orElse("null"));
+        TraceReportJsonSerializer.comma(json);
+        TraceReportJsonSerializer.key(json, depth, "serverTick");
+        json.append(dispatch.ticks().serverTick().map(String::valueOf).orElse("null"));
+        TraceReportJsonSerializer.comma(json);
+        TraceReportJsonSerializer.key(json, depth, "tps");
+        json.append(dispatch.ticks().tps().map(String::valueOf).orElse("null"));
+        TraceReportJsonSerializer.comma(json);
+        TraceReportJsonSerializer.key(json, depth, "msptMillis");
+        json.append(dispatch.ticks().msptMillis().map(String::valueOf).orElse("null"));
+        TraceReportJsonSerializer.comma(json);
+        TraceReportJsonSerializer.key(json, depth, "clientTick");
+        json.append(dispatch.ticks().clientTick().map(String::valueOf).orElse("null"));
+        TraceReportJsonSerializer.comma(json);
+    }
 
     static void appendSnapshot(StringBuilder json, EventSnapshot snapshot, int depth) {
         if (snapshot == null) {

@@ -24,6 +24,7 @@ final class TraceStartOptionsParser {
         boolean captureStacks = false;
         boolean confirmHot = false;
         Optional<OutputDetailLevel> detailLevel = Optional.empty();
+        boolean genericAllow = false;
 
         int index = 0;
         while (index < tokens.size()) {
@@ -74,6 +75,10 @@ final class TraceStartOptionsParser {
                     confirmHot = true;
                     index += 1;
                 }
+                case "generic" -> {
+                    genericAllow = true;
+                    index += 1;
+                }
                 case "detail" -> {
                     detailLevel = Optional.of(OutputDetailLevel.parse(requireValue(tokens, index, flag)));
                     index += 2;
@@ -90,7 +95,8 @@ final class TraceStartOptionsParser {
                 slowThresholdNanos,
                 captureStacks,
                 confirmHot,
-                detailLevel);
+                detailLevel,
+                genericAllow);
     }
 
     private static String requireValue(List<String> tokens, int index, String flag) {
@@ -101,7 +107,7 @@ final class TraceStartOptionsParser {
     }
 
     private static TraceRegion parseRegion(String value) {
-        String[] parts = value.split(",");
+        String[] parts = value.split(",", -1);
         if (parts.length != 4) {
             throw new IllegalArgumentException("Region must be x1,z1,x2,z2");
         }

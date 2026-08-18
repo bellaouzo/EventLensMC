@@ -40,6 +40,7 @@ final class TraceCommandTabCompleter {
             SUBCOMMAND_EXPORT,
             SUBCOMMAND_COPY,
             SUBCOMMAND_COMPARE,
+            "correlate",
             SUBCOMMAND_BASELINE,
             "history",
             SUBCOMMAND_FAVORITE,
@@ -61,7 +62,7 @@ final class TraceCommandTabCompleter {
     @SuppressWarnings("java:S3776")
     static List<String> complete(TraceCommandService traceCommandService, String[] args, String prefix) {
         if (args.length == 2) {
-            return completeSecondToken(traceCommandService, args, prefix);
+            return completeSecondToken(prefix);
         }
         if (args.length >= 3 && args[1].equalsIgnoreCase(SUBCOMMAND_LIVE)) {
             return TraceLiveTabCompleter.complete(traceCommandService, args, prefix);
@@ -92,18 +93,14 @@ final class TraceCommandTabCompleter {
         return List.of();
     }
 
-    private static List<String> completeSecondToken(
-            TraceCommandService traceCommandService, String[] args, String prefix) {
-        if (args[1].equalsIgnoreCase(SUBCOMMAND_START)) {
-            return CommandText.filterPrefix(traceCommandService.listSupportedEventSimpleNames(), prefix);
-        }
+    private static List<String> completeSecondToken(String prefix) {
         return CommandText.filterPrefix(TRACE_SUBCOMMANDS, prefix);
     }
 
     private static List<String> completeThirdToken(
             TraceCommandService traceCommandService, String[] args, String prefix) {
         if (args[1].equalsIgnoreCase(SUBCOMMAND_START)) {
-            return CommandText.filterPrefix(traceCommandService.listSupportedEventSimpleNames(), prefix);
+            return TraceStartTabCompleter.complete(traceCommandService, args, prefix);
         }
         if (args[1].equalsIgnoreCase(SUBCOMMAND_FAVORITE)) {
             return CommandText.filterPrefix(FAVORITE_SUBCOMMANDS, prefix);
@@ -116,7 +113,9 @@ final class TraceCommandTabCompleter {
                             .toList(),
                     prefix);
         }
-        if (isSessionSubcommand(args[1]) || args[1].equalsIgnoreCase(SUBCOMMAND_COMPARE)) {
+        if (isSessionSubcommand(args[1])
+                || args[1].equalsIgnoreCase(SUBCOMMAND_COMPARE)
+                || args[1].equalsIgnoreCase("correlate")) {
             return CommandText.filterPrefix(traceCommandService.listSessionIds(), prefix);
         }
         return List.of();

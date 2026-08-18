@@ -2,6 +2,7 @@ package dev.bellaouzo.eventlens.forge;
 
 import dev.bellaouzo.eventlens.application.TraceReportBuilder;
 import dev.bellaouzo.eventlens.modcommon.FileModExportAdapter;
+import dev.bellaouzo.eventlens.modcommon.ModCorrelationBridge;
 import dev.bellaouzo.eventlens.modcommon.ModDispatchRecorder;
 import dev.bellaouzo.eventlens.modcommon.ModEnvironmentCollector;
 import dev.bellaouzo.eventlens.modcommon.ModTraceCoordinator;
@@ -38,6 +39,10 @@ public final class EventLensForgeMod {
         listenerRegistry = new ForgeListenerRegistry();
         coordinator = new ModTraceCoordinator(
                 sessionManager, reportBuilder, exportAdapter, listenerRegistry, environmentAdapter);
+        ForgeCorrelationChannel correlationChannel = new ForgeCorrelationChannel();
+        ModCorrelationBridge correlationBridge = new ModCorrelationBridge(sessionManager, correlationChannel);
+        correlationChannel.bind(correlationBridge);
+        sessionManager.setDispatchCaptureListener(correlationBridge);
         EventLensClientAccess.bind(coordinator, uiPreferences);
         ModDispatchRecorder recorder = instrumentation.recorder();
         MinecraftForge.EVENT_BUS.register(new ForgeEventTracer(recorder));

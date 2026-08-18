@@ -8,7 +8,7 @@ author: bellaouzo
 commands:
   eventlens:
     description: EventLens diagnostic commands
-    usage: /eventlens [status|listeners|trace|plugin|instrumentation]
+    usage: /eventlens [status|listeners|events|exceptions|trace|plugin|instrumentation]
     aliases: [el]
 
 permissions:

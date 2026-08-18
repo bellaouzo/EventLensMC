@@ -1,5 +1,8 @@
 package dev.bellaouzo.eventlens.trace;
 
+import dev.bellaouzo.eventlens.domain.correlation.CorrelationActionKind;
+import dev.bellaouzo.eventlens.domain.correlation.CorrelationKeyFactory;
+import dev.bellaouzo.eventlens.domain.trace.DispatchCorrelation;
 import dev.bellaouzo.eventlens.domain.trace.TraceDispatchRecord;
 import dev.bellaouzo.eventlens.domain.trace.TraceLimits;
 import dev.bellaouzo.eventlens.domain.trace.TraceListenerSnapshot;
@@ -7,6 +10,7 @@ import dev.bellaouzo.eventlens.domain.trace.TracePartialReason;
 import dev.bellaouzo.eventlens.domain.trace.TraceSessionConfig;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 final class TraceDispatchWriter {
@@ -38,13 +42,26 @@ final class TraceDispatchWriter {
             partialReasons.add(TracePartialReason.RECORD_LIMIT);
         }
 
+        String eventClassName = completion.endContext().eventClassName();
+        Optional<CorrelationActionKind> actionKind = CorrelationActionKind.fromEventClassName(eventClassName);
+        Optional<String> correlationKey = CorrelationKeyFactory.create(
+                actionKind,
+                completion.endContext().playerId(),
+                pending.playerName(),
+                pending.worldName(),
+                pending.blockX(),
+                pending.blockZ(),
+                pending.startedAtMillis());
+        DispatchCorrelation correlation =
+                new DispatchCorrelation(correlationKey, actionKind.map(Enum::name), Optional.empty(), Optional.empty());
+
         return new TraceDispatchRecord(
                 pending.sequence(),
                 pending.startedAtMillis(),
                 pending.startedAtNanos(),
                 durationNanos,
                 completion.eventLensOverheadNanos(),
-                config.eventClassName(),
+                eventClassName,
                 completion.synchronousDispatch(),
                 pending.cancellable(),
                 pending.cancelledAtStart(),
@@ -59,6 +76,8 @@ final class TraceDispatchWriter {
                 List.copyOf(completion.priorityCheckpoints()),
                 List.copyOf(boundedListeners),
                 List.copyOf(completion.listenerTimings()),
-                Set.copyOf(partialReasons));
+                Set.copyOf(partialReasons),
+                correlation,
+                completion.ticks());
     }
 }

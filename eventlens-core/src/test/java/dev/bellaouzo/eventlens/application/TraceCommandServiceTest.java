@@ -11,7 +11,10 @@ import dev.bellaouzo.eventlens.domain.listener.ListenerRegistration;
 import dev.bellaouzo.eventlens.domain.trace.TraceFilter;
 import dev.bellaouzo.eventlens.domain.trace.TraceStartResult;
 import dev.bellaouzo.eventlens.trace.TraceSessionManager;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
@@ -66,11 +69,30 @@ class TraceCommandServiceTest {
     }
 
     @Test
+    void startTraceRegistersHooksForEveryCommaSeparatedEvent() {
+        QueryListenerRegistry registry = new QueryListenerRegistry();
+        registry.put("PlayerInteractEvent", "org.bukkit.event.player.PlayerInteractEvent");
+        registry.put("BlockBreakEvent", "org.bukkit.event.block.BlockBreakEvent");
+        RecordingTraceHookPort hooks = new RecordingTraceHookPort();
+        TraceSessionManager manager = new TraceSessionManager();
+        TraceCommandService service = new TraceCommandService(manager, registry, hooks);
+
+        TraceStartResult result =
+                service.startTrace("PlayerInteractEvent,BlockBreakEvent", "admin", unrestrictedOptions());
+
+        TraceStartResult.Success success = assertInstanceOf(TraceStartResult.Success.class, result);
+        assertEquals(2, success.eventClassNames().size());
+        assertTrue(hooks.registered.contains("org.bukkit.event.player.PlayerInteractEvent"));
+        assertTrue(hooks.registered.contains("org.bukkit.event.block.BlockBreakEvent"));
+        assertEquals(2, manager.listSessions().getFirst().eventClassNames().size());
+    }
+
+    @Test
     void listSupportedEventSimpleNamesMatchesRegistry() {
         TraceCommandService service =
                 new TraceCommandService(new TraceSessionManager(), new StubListenerRegistry(), new NoOpTraceHookPort());
 
-        assertEquals(13, service.listSupportedEventSimpleNames().size());
+        assertEquals(22, service.listSupportedEventSimpleNames().size());
         assertTrueContains(service.listSupportedEventSimpleNames(), "BlockBreakEvent");
     }
 
@@ -109,6 +131,49 @@ class TraceCommandServiceTest {
         @Override
         public List<String> listKnownEventClassNames() {
             return List.of("org.bukkit.event.player.PlayerJoinEvent");
+        }
+    }
+
+    private static final class QueryListenerRegistry implements ListenerRegistryPort {
+        private final Map<String, String> classNames = new HashMap<>();
+
+        void put(String query, String className) {
+            classNames.put(query.toLowerCase(java.util.Locale.ROOT), className);
+        }
+
+        @Override
+        public EventSearchResult searchEvents(String query) {
+            String className = classNames.get(query.toLowerCase(java.util.Locale.ROOT));
+            return className == null ? EventSearchResult.notFound() : EventSearchResult.found(className);
+        }
+
+        @Override
+        public List<ListenerRegistration> getListeners(String eventClassName) {
+            return List.of();
+        }
+
+        @Override
+        public List<String> listKnownEventSimpleNames() {
+            return List.of();
+        }
+
+        @Override
+        public List<String> listKnownEventClassNames() {
+            return List.copyOf(classNames.values());
+        }
+    }
+
+    private static final class RecordingTraceHookPort implements TraceHookPort {
+        private final List<String> registered = new ArrayList<>();
+
+        @Override
+        public void registerHooksForEvent(String eventClassName) {
+            registered.add(eventClassName);
+        }
+
+        @Override
+        public void syncWithActiveSessions(TraceSessionManager traceSessionManager) {
+            // Test stub: registration list is the assertion target.
         }
     }
 

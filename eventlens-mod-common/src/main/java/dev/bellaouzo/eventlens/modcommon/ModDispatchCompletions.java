@@ -54,7 +54,8 @@ final class ModDispatchCompletions {
                 snapshot,
                 List.of(),
                 List.copyOf(timings),
-                reasons);
+                reasons,
+                dev.bellaouzo.eventlens.domain.trace.DispatchTickContext.client(endMillis / 50L));
     }
 
     static EventSnapshot snapshot(String eventClassName, long endMillis, long endNanos, List<SnapshotField> fields) {

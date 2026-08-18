@@ -38,6 +38,9 @@ public final class PaperExportAdapter implements ExportPort {
 
     @Override
     public ExportWriteResult writeReport(String safeBaseName, ExportFormat format, String content) {
+        if (format == ExportFormat.BUNDLE) {
+            return PaperBundleExporter.write(reportsDirectory, sanitizeFileName(safeBaseName), content);
+        }
         try {
             Files.createDirectories(reportsDirectory);
             String fileName = sanitizeFileName(safeBaseName) + "." + format.extension();

@@ -38,7 +38,7 @@ export function renderTimeline(container: HTMLElement, report: TraceReport): voi
       <header class="page-header">
         <h1>Timeline</h1>
         <p class="page-subtitle mono">
-          ${escapeHtml(simpleEventName(dispatch.eventClassName))}${location ? ` · ${escapeHtml(location)}` : ''} · tick #${dispatch.sequence} · total <span class="severity-${severity}">${formatMillis(dispatch.durationNanos)} (${tickPercent.toFixed(1)}% of tick budget)</span>
+          ${escapeHtml(simpleEventName(dispatch.eventClassName))}${location ? ` · ${escapeHtml(location)}` : ''}${dispatch.peerSessionId ? ` · linked ${escapeHtml(dispatch.peerSessionId)}` : ''}${dispatch.serverTick != null ? ` · server tick ${dispatch.serverTick}` : ''}${dispatch.msptMillis != null ? ` · ${dispatch.msptMillis.toFixed(1)} mspt` : ''} · #${dispatch.sequence} · total <span class="severity-${severity}">${formatMillis(dispatch.durationNanos)} (${tickPercent.toFixed(1)}% of tick budget)</span>
         </p>
       </header>
       ${banner}

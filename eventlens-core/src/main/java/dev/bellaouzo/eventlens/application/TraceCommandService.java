@@ -3,14 +3,9 @@ package dev.bellaouzo.eventlens.application;
 import dev.bellaouzo.eventlens.application.port.EventSnapshotRegistryPort;
 import dev.bellaouzo.eventlens.application.port.ListenerRegistryPort;
 import dev.bellaouzo.eventlens.application.port.TraceHookPort;
-import dev.bellaouzo.eventlens.domain.listener.EventSearchOutcome;
-import dev.bellaouzo.eventlens.domain.listener.EventSearchResult;
-import dev.bellaouzo.eventlens.domain.observability.SamplingPolicy;
 import dev.bellaouzo.eventlens.domain.preferences.OutputDetailLevel;
-import dev.bellaouzo.eventlens.domain.snapshot.SupportedEventTypes;
 import dev.bellaouzo.eventlens.domain.trace.TraceFilter;
 import dev.bellaouzo.eventlens.domain.trace.TraceRestartResult;
-import dev.bellaouzo.eventlens.domain.trace.TraceSessionConfig;
 import dev.bellaouzo.eventlens.domain.trace.TraceSessionDetail;
 import dev.bellaouzo.eventlens.domain.trace.TraceSessionSummary;
 import dev.bellaouzo.eventlens.domain.trace.TraceStartResult;
@@ -69,67 +64,16 @@ public final class TraceCommandService {
     }
 
     public TraceStartResult startTrace(String eventQuery, String ownerName, TraceStartOptions options) {
-        EventSearchResult search = listenerRegistryPort.searchEvents(eventQuery);
-        if (search.outcome() == EventSearchOutcome.NOT_FOUND) {
-            return new TraceStartResult.Failure(
-                    TraceStartResult.Failure.Reason.EVENT_NOT_FOUND, "No event matches \"" + eventQuery + "\".");
-        }
-        if (search.outcome() == EventSearchOutcome.AMBIGUOUS) {
-            return new TraceStartResult.Failure(
-                    TraceStartResult.Failure.Reason.EVENT_AMBIGUOUS,
-                    "Multiple events match that query: " + String.join(", ", search.candidateClassNames()));
-        }
-
-        if (!eventSnapshotRegistryPort.supportsTrace(search.resolvedEventClassName())) {
-            return new TraceStartResult.Failure(
-                    TraceStartResult.Failure.Reason.UNSUPPORTED_EVENT,
-                    SupportedEventTypes.displaySimpleName(search.resolvedEventClassName())
-                            + " is not supported for tracing. Supported events: "
-                            + SupportedEventTypes.formatSimpleNameList());
-        }
-
-        boolean hotEvent = SamplingPolicy.requiresNarrowingFilter(search.resolvedEventClassName());
-        boolean narrowed = hasNarrowingFilter(options.filter());
-        if (hotEvent && !narrowed) {
-            return new TraceStartResult.Failure(
-                    TraceStartResult.Failure.Reason.INVALID_OPTIONS,
-                    SamplingPolicy.hotEventDisplayName()
-                            + " requires a narrowing filter (--plugin, --player, --world, or --region).");
-        }
-
-        if (hotEvent && commandConfig.requireHotEventConfirmation() && !options.confirmHot()) {
-            String simpleName = SupportedEventTypes.displaySimpleName(search.resolvedEventClassName());
-            return new TraceStartResult.Failure(
-                    TraceStartResult.Failure.Reason.HOT_EVENT_CONFIRMATION,
-                    simpleName
-                            + " is a hot event. Tracing it can affect server performance even with a narrowing filter.",
-                    Optional.of(TraceStartConfirmCommands.hotEventConfirmCommand(simpleName, options)
-                            .orElseThrow()));
-        }
-
-        if (options.captureStacks() && options.slowThresholdNanos() <= 0L) {
-            return new TraceStartResult.Failure(
-                    TraceStartResult.Failure.Reason.INVALID_OPTIONS,
-                    "--capture-stacks requires a positive --slow-threshold.");
-        }
-
-        try {
-            TraceSessionConfig config = new TraceSessionConfig(
-                    search.resolvedEventClassName(),
-                    options.filter(),
-                    options.maxDurationMillis(),
-                    options.maxEventCount(),
-                    options.slowThresholdNanos(),
-                    options.captureStacks());
-            var sessionId = traceSessionManager.startSession(config, ownerName, System.currentTimeMillis());
-            traceHookPort.registerHooksForEvent(config.eventClassName());
-            traceHookPort.syncWithActiveSessions(traceSessionManager);
-            return new TraceStartResult.Success(sessionId, config.eventClassName());
-        } catch (IllegalStateException ex) {
-            return new TraceStartResult.Failure(TraceStartResult.Failure.Reason.SESSION_LIMIT, ex.getMessage());
-        } catch (IllegalArgumentException ex) {
-            return new TraceStartResult.Failure(TraceStartResult.Failure.Reason.INVALID_OPTIONS, ex.getMessage());
-        }
+        return TraceStartExecutor.start(
+                new TraceStartExecutor.StartContext(
+                        traceSessionManager,
+                        listenerRegistryPort,
+                        traceHookPort,
+                        eventSnapshotRegistryPort,
+                        commandConfig,
+                        options),
+                eventQuery,
+                ownerName);
     }
 
     public TraceStopResult stopTrace(String ownerName) {
@@ -216,13 +160,6 @@ public final class TraceCommandService {
         traceHookPort.syncWithActiveSessions(traceSessionManager);
     }
 
-    private static boolean hasNarrowingFilter(TraceFilter filter) {
-        return filter.pluginName().isPresent()
-                || filter.playerName().isPresent()
-                || filter.worldName().isPresent()
-                || filter.region().isPresent();
-    }
-
     public record TraceStartOptions(
             TraceFilter filter,
             Optional<Long> maxDurationMillis,
@@ -230,7 +167,27 @@ public final class TraceCommandService {
             long slowThresholdNanos,
             boolean captureStacks,
             boolean confirmHot,
-            Optional<OutputDetailLevel> detailLevel) {
+            Optional<OutputDetailLevel> detailLevel,
+            boolean genericAllow) {
+
+        public TraceStartOptions(
+                TraceFilter filter,
+                Optional<Long> maxDurationMillis,
+                Optional<Integer> maxEventCount,
+                long slowThresholdNanos,
+                boolean captureStacks,
+                boolean confirmHot,
+                Optional<OutputDetailLevel> detailLevel) {
+            this(
+                    filter,
+                    maxDurationMillis,
+                    maxEventCount,
+                    slowThresholdNanos,
+                    captureStacks,
+                    confirmHot,
+                    detailLevel,
+                    false);
+        }
 
         public static TraceStartOptions parse(List<String> tokens) {
             return TraceStartOptionsParser.parse(tokens);

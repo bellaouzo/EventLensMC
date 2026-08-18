@@ -1,11 +1,7 @@
 package dev.bellaouzo.eventlens.trace;
 
 import dev.bellaouzo.eventlens.application.PerformanceBudgetController;
-import dev.bellaouzo.eventlens.application.SessionConflictAnalyzer;
-import dev.bellaouzo.eventlens.application.SessionTimingAnalyzer;
-import dev.bellaouzo.eventlens.domain.conflict.SessionConflictSummary;
 import dev.bellaouzo.eventlens.domain.observability.SamplingPolicy;
-import dev.bellaouzo.eventlens.domain.observability.SessionTimingSummary;
 import dev.bellaouzo.eventlens.domain.trace.EventFilterContext;
 import dev.bellaouzo.eventlens.domain.trace.TraceDispatchRecord;
 import dev.bellaouzo.eventlens.domain.trace.TraceSessionConfig;
@@ -56,6 +52,10 @@ final class TraceSession {
         return config.eventClassName();
     }
 
+    List<String> getEventClassNames() {
+        return config.eventClassNames();
+    }
+
     TraceSessionConfig getConfig() {
         return config;
     }
@@ -94,45 +94,39 @@ final class TraceSession {
         }
     }
 
+    Optional<TraceDispatchRecord> stampPeer(String correlationKey, String peerSessionId, long peerSequence) {
+        synchronized (records) {
+            return TraceSessionPeers.stamp(records, correlationKey, peerSessionId, peerSequence);
+        }
+    }
+
+    int droppedEvents() {
+        return droppedEvents;
+    }
+
+    int sampledOutEvents() {
+        return sampledOutEvents;
+    }
+
     TraceSessionSummary toSummary(boolean agentAttached) {
-        List<TraceDispatchRecord> recordsSnapshot = getRecordsSnapshot();
-        SessionTimingSummary timingSummary = SessionTimingAnalyzer.analyze(
-                recordsSnapshot, sampledOutEvents, config.slowThresholdNanos(), agentAttached);
-        SessionConflictSummary conflictSummary =
-                SessionConflictAnalyzer.analyze(recordsSnapshot, config.slowThresholdNanos());
-        return new TraceSessionSummary(
-                sessionId,
-                config.eventClassName(),
-                state,
-                ownerName,
-                startedAtMillis,
-                lastActivityAtMillis,
-                records.size(),
-                droppedEvents,
-                sampledOutEvents,
-                config.effectiveMaxEventCount(),
-                config.effectiveMaxDurationMillis(),
-                config.slowThresholdNanos(),
-                config.captureStacks(),
-                timingSummary,
-                conflictSummary,
-                restartCount);
+        return TraceSessionSummaries.create(this, agentAttached);
     }
 
     boolean shouldAccept(EventFilterContext context, long nowMillis) {
         if (!isActive()) {
             return false;
         }
-        if (!config.eventClassName().equals(context.eventClassName())) {
+        if (!config.acceptsEvent(context.eventClassName())) {
             return false;
         }
         if (!config.filter().matches(context)) {
             return false;
         }
-        if (SamplingPolicy.requiresNarrowingFilter(config.eventClassName()) && !hasNarrowingFilter()) {
+        if (config.eventClassNames().stream().anyMatch(SamplingPolicy::requiresNarrowingFilter)
+                && !hasNarrowingFilter()) {
             return false;
         }
-        if (!samplingPolicy.accepts(config.eventClassName(), config.filter())) {
+        if (!samplingPolicy.accepts(context.eventClassName(), config.filter())) {
             sampledOutEvents++;
             return false;
         }

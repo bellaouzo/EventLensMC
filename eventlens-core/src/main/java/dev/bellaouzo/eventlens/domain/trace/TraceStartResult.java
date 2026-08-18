@@ -1,15 +1,24 @@
 package dev.bellaouzo.eventlens.domain.trace;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import org.jspecify.annotations.NonNull;
 
 public sealed interface TraceStartResult permits TraceStartResult.Success, TraceStartResult.Failure {
 
-    record Success(@NonNull String sessionId, @NonNull String eventClassName) implements TraceStartResult {
+    record Success(@NonNull String sessionId, @NonNull String eventClassName, @NonNull List<String> eventClassNames)
+            implements TraceStartResult {
+        public Success(@NonNull String sessionId, @NonNull String eventClassName) {
+            this(sessionId, eventClassName, List.of(eventClassName));
+        }
+
         public Success {
             Objects.requireNonNull(sessionId, "sessionId");
             Objects.requireNonNull(eventClassName, "eventClassName");
+            eventClassNames = eventClassNames == null || eventClassNames.isEmpty()
+                    ? List.of(eventClassName)
+                    : List.copyOf(eventClassNames);
         }
     }
 

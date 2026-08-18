@@ -35,6 +35,7 @@ public final class ModTraceCoordinator {
     private final ModListenerRegistryPort listenerRegistryPort;
     private final ModEnvironmentPort environmentPort;
     private String lastSessionId = "";
+    private TraceFilter startFilter = TraceFilter.Builder.unrestricted().build();
 
     public ModTraceCoordinator(
             TraceSessionManager sessionManager,
@@ -59,6 +60,10 @@ public final class ModTraceCoordinator {
 
     public ModEnvironmentPort environmentPort() {
         return environmentPort;
+    }
+
+    public void setStartFilter(TraceFilter filter) {
+        this.startFilter = filter == null ? TraceFilter.Builder.unrestricted().build() : filter;
     }
 
     public ModTraceResults.Status status() {
@@ -93,7 +98,7 @@ public final class ModTraceCoordinator {
             int limit = maxEvents.orElse(eventType.hot() ? 64 : 256);
             TraceSessionConfig config = new TraceSessionConfig(
                     eventType.className(),
-                    TraceFilter.Builder.unrestricted().build(),
+                    startFilter,
                     Optional.empty(),
                     Optional.of(limit));
             String sessionId = sessionManager.startSession(config, ownerName, System.currentTimeMillis());

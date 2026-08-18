@@ -27,6 +27,7 @@ import { renderTimeline, resetTimelineSelection } from './views/timeline';
 import { renderFlameGraph } from './views/flame';
 import { renderEventGraph } from './views/eventGraph';
 import { renderPluginGraph } from './views/pluginGraph';
+import { renderCompare } from './views/compare';
 import { liveSessionDuration } from './utils/metrics';
 import { isLiveSessionState } from './utils/sessionState';
 import { formatUptime } from './utils/format';
@@ -34,6 +35,7 @@ import { formatUptime } from './utils/format';
 const app = document.querySelector<HTMLDivElement>('#app')!;
 
 let currentReport: TraceReport | null = null;
+let compareReport: TraceReport | null = null;
 let activeView: ViewId = 'overview';
 let selectedSessionId = '';
 let selectedReportFile = '';
@@ -281,6 +283,36 @@ async function selectReport(fileName: string): Promise<void> {
   applyReportMetadata(currentReport);
   updateStatusBar(app, shellContext());
   await renderActiveView(false);
+}
+
+async function maybeLoadBundledReport(): Promise<void> {
+  if (isLiveMode()) {
+    return;
+  }
+  const injected = (window as Window & { __EVENTLENS_REPORT__?: unknown }).__EVENTLENS_REPORT__;
+  if (injected && typeof injected === 'object') {
+    currentReport = injected as TraceReport;
+    dataSource = 'offline';
+    applyReportMetadata(currentReport);
+    ensureShell();
+    await renderActiveView(false);
+    return;
+  }
+  const query = new URLSearchParams(window.location.search).get('report');
+  const url = query && query.length > 0 ? query : './report.json';
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      return;
+    }
+    currentReport = parseReportJson(await response.text());
+    dataSource = 'offline';
+    applyReportMetadata(currentReport);
+    ensureShell();
+    await renderActiveView(false);
+  } catch {
+    // file picker remains available
+  }
 }
 
 async function loadOfflineFile(file: File): Promise<void> {
@@ -558,11 +590,19 @@ function renderActiveView(showLoading = true): Promise<void> {
       renderTimeline(root, currentReport);
     } else if (activeView === 'flame') {
       renderFlameGraph(root, currentReport);
+    } else if (activeView === 'compare') {
+      renderCompare(root, currentReport, compareReport, (file) => {
+        void file.text().then((text) => {
+          compareReport = parseReportJson(text);
+          void renderActiveView(false);
+        });
+      });
     }
   });
 }
 
 ensureShell();
+void maybeLoadBundledReport();
 bootstrapLiveData()
   .then(() => renderActiveView(false))
   .catch((error) => {

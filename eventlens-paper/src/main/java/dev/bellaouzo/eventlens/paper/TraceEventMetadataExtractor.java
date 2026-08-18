@@ -46,16 +46,25 @@ final class TraceEventMetadataExtractor {
                 blockX,
                 blockY,
                 blockZ,
-                List.copyOf(listenerPluginNames));
+                List.copyOf(listenerPluginNames),
+                extractPlayerId(event));
     }
 
     private static Optional<String> extractPlayerName(Event event) {
+        return extractPlayer(event).map(org.bukkit.entity.Player::getName);
+    }
+
+    private static Optional<String> extractPlayerId(Event event) {
+        return extractPlayer(event).map(player -> player.getUniqueId().toString());
+    }
+
+    private static Optional<org.bukkit.entity.Player> extractPlayer(Event event) {
         if (event instanceof PlayerEvent playerEvent) {
-            return Optional.of(playerEvent.getPlayer().getName());
+            return Optional.of(playerEvent.getPlayer());
         }
         if (event instanceof EntityEvent entityEvent
                 && entityEvent.getEntity() instanceof org.bukkit.entity.Player player) {
-            return Optional.of(player.getName());
+            return Optional.of(player);
         }
         return Optional.empty();
     }

@@ -3,8 +3,11 @@ package dev.bellaouzo.eventlens.command.trace;
 import dev.bellaouzo.eventlens.application.TraceCommandService;
 import dev.bellaouzo.eventlens.command.CommandText;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
+import java.util.Set;
 import org.bukkit.Bukkit;
 
 final class TraceStartTabCompleter {
@@ -60,9 +63,31 @@ final class TraceStartTabCompleter {
                             "--slow-threshold",
                             "--capture-stacks",
                             "--confirm-hot",
+                            "--generic",
                             "--detail"),
                     prefix);
         }
-        return List.of();
+        return completeEventQuery(traceCommandService.listSupportedEventSimpleNames(), prefix);
+    }
+
+    static List<String> completeEventQuery(List<String> eventNames, String prefix) {
+        int comma = prefix.lastIndexOf(',');
+        String head = comma < 0 ? "" : prefix.substring(0, comma + 1);
+        String fragment = comma < 0 ? prefix : prefix.substring(comma + 1);
+        Set<String> selected = new HashSet<>();
+        if (comma >= 0) {
+            for (String part : head.split(",", -1)) {
+                String name = part.trim();
+                if (!name.isEmpty()) {
+                    selected.add(name.toLowerCase(Locale.ROOT));
+                }
+            }
+        }
+        String lowerFragment = fragment.toLowerCase(Locale.ROOT);
+        return eventNames.stream()
+                .filter(name -> !selected.contains(name.toLowerCase(Locale.ROOT)))
+                .filter(name -> name.toLowerCase(Locale.ROOT).startsWith(lowerFragment))
+                .map(name -> head + name)
+                .toList();
     }
 }

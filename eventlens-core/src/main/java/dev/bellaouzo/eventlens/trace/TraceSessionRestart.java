@@ -26,7 +26,7 @@ final class TraceSessionRestart {
         TraceSessionConfig config = session.getConfig();
         String ownerName = session.getOwnerName();
         String eventClassName = session.getEventClassName();
-        manager.archiveCurrent(sessionId);
+        manager.archives.archive(session, TraceSessionInstrumentation.isAgentPresent(manager.getInstrumentationPort()));
         sessions.remove(sessionId);
         TraceSessionSlots.detach(manager, sessionId);
         TraceSessionSlots.insert(manager, sessionId, config, ownerName, nowMillis, restartCount);

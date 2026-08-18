@@ -95,7 +95,10 @@ final class EventLensSessionRows {
         TraceDispatchRecord record = result.records().getFirst();
         List<Row> rows = new ArrayList<>();
         rows.add(Row.title(
-                "Dispatch #" + record.sequence(),
+                "Dispatch #" + record.sequence()
+                        + (record.correlation().linked()
+                                ? "  linked " + record.correlation().peerSessionId().orElse("")
+                                : ""),
                 String.format(Locale.ROOT, "%.2f ms", record.durationNanos() / 1_000_000.0),
                 record.cancelledAtEnd()));
         rows.add(Row.section("Fields"));

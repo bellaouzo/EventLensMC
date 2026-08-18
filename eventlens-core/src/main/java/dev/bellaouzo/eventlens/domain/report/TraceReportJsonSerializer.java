@@ -81,6 +81,7 @@ public final class TraceReportJsonSerializer {
         comma(json);
         fieldString(json, depth + 1, "eventClassName", summary.eventClassName());
         comma(json);
+        TraceReportJsonDispatchSupport.appendEventClassNames(json, summary.eventClassNames(), depth + 1);
         fieldString(json, depth + 1, "state", summary.state().name());
         comma(json);
         fieldString(json, depth + 1, "ownerName", summary.ownerName());
@@ -172,6 +173,7 @@ public final class TraceReportJsonSerializer {
         comma(json);
         fieldOptionalInt(json, depth + 1, "blockZ", dispatch.blockZ());
         comma(json);
+        TraceReportJsonDispatchSupport.appendCorrelationAndTicks(json, dispatch, depth + 1);
         key(json, depth + 1, "snapshotBefore");
         TraceReportJsonDispatchSupport.appendSnapshot(json, dispatch.snapshotBefore(), depth + 1);
         comma(json);
@@ -292,8 +294,6 @@ public final class TraceReportJsonSerializer {
     }
 
     static String compactDispatch(TraceDispatchRecord dispatch) {
-        StringBuilder json = new StringBuilder(2048);
-        appendDispatch(json, dispatch, 0);
-        return TraceReportJsonSupport.minifyJson(json.toString());
+        return TraceReportJsonDispatchSupport.compactDispatch(dispatch);
     }
 }

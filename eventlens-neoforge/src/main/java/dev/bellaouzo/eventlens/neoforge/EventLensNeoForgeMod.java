@@ -2,6 +2,7 @@ package dev.bellaouzo.eventlens.neoforge;
 
 import dev.bellaouzo.eventlens.application.TraceReportBuilder;
 import dev.bellaouzo.eventlens.modcommon.FileModExportAdapter;
+import dev.bellaouzo.eventlens.modcommon.ModCorrelationBridge;
 import dev.bellaouzo.eventlens.modcommon.ModDispatchRecorder;
 import dev.bellaouzo.eventlens.modcommon.ModEnvironmentCollector;
 import dev.bellaouzo.eventlens.modcommon.ModTraceCoordinator;
@@ -38,6 +39,11 @@ public final class EventLensNeoForgeMod {
         listenerRegistry = new NeoForgeListenerRegistry();
         coordinator = new ModTraceCoordinator(
                 sessionManager, reportBuilder, exportAdapter, listenerRegistry, environmentAdapter);
+        NeoForgeCorrelationChannel correlationChannel = new NeoForgeCorrelationChannel();
+        ModCorrelationBridge correlationBridge = new ModCorrelationBridge(sessionManager, correlationChannel);
+        correlationChannel.bind(correlationBridge);
+        sessionManager.setDispatchCaptureListener(correlationBridge);
+        NeoForgeCorrelationChannel.register(modContainer.getEventBus(), correlationChannel);
         EventLensClientAccess.bind(coordinator, uiPreferences);
         ModDispatchRecorder recorder = instrumentation.recorder();
         NeoForge.EVENT_BUS.register(new NeoForgeEventTracer(recorder));

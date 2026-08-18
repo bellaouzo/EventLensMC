@@ -20,6 +20,8 @@ public final class ModClientCommands {
         return switch (args.getFirst().toLowerCase(Locale.ROOT)) {
             case "listeners" -> listeners(coordinator, args);
             case "trace" -> trace(coordinator, ownerName, args);
+            case "mod" -> ModProfileCommands.handle(coordinator, args);
+            case "exceptions" -> ModProfileCommands.exceptions(coordinator);
             case "ui" -> ModTraceFormatter.uiUnavailable();
             default -> ModTraceFormatter.usage();
         };
@@ -50,6 +52,9 @@ public final class ModClientCommands {
             case "list" -> ModTraceFormatter.list(coordinator.listSessions());
             case "view" -> view(coordinator, args);
             case "export" -> export(coordinator, args);
+            case "live" -> List.of(ModChatLine.text(
+                    "Live alerts use the HUD and toasts on this client.",
+                    ModChatColor.YELLOW));
             default -> ModTraceFormatter.traceUsage();
         };
     }
@@ -60,6 +65,7 @@ public final class ModClientCommands {
         }
         boolean confirmHot = false;
         Optional<Integer> maxEvents = Optional.empty();
+        var filter = dev.bellaouzo.eventlens.domain.trace.TraceFilter.Builder.unrestricted();
         for (int i = 3; i < args.size(); i++) {
             String token = args.get(i);
             if ("--confirm-hot".equalsIgnoreCase(token)) {
@@ -70,8 +76,17 @@ public final class ModClientCommands {
                 } catch (NumberFormatException ignored) {
                     return List.of(ModChatLine.text("--max-events requires a number.", ModChatColor.RED));
                 }
+            } else if (("--mod".equalsIgnoreCase(token) || "--player".equalsIgnoreCase(token))
+                    && i + 1 < args.size()) {
+                String value = args.get(++i);
+                if ("--mod".equalsIgnoreCase(token)) {
+                    filter.pluginName(value);
+                } else {
+                    filter.playerName(value);
+                }
             }
         }
+        coordinator.setStartFilter(filter.build());
         return ModTraceFormatter.start(coordinator.startTrace(args.get(2), ownerName, confirmHot, maxEvents));
     }
 

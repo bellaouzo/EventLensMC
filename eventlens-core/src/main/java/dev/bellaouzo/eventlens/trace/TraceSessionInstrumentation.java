@@ -8,6 +8,16 @@ final class TraceSessionInstrumentation {
 
     private TraceSessionInstrumentation() {}
 
+    static void notifyLifecycle(DispatchCaptureListener listener, String sessionId, boolean started) {
+        if (listener instanceof SessionLifecycleListener lifecycle) {
+            if (started) {
+                lifecycle.onSessionStarted(sessionId);
+            } else {
+                lifecycle.onSessionStopped(sessionId);
+            }
+        }
+    }
+
     static boolean isAgentPresent(InstrumentationPort instrumentationPort) {
         return instrumentationPort != null && instrumentationPort.isAgentPresent();
     }

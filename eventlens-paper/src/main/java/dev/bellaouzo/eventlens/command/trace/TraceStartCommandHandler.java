@@ -40,17 +40,19 @@ final class TraceStartCommandHandler {
         }
         if (args.length < 3) {
             sender.sendMessage(Component.text(
-                    "Usage: /eventlens trace start <event> [--preset name] [--plugin name] [--player name] "
+                    "Usage: /eventlens trace start <event[,event]> [--preset name] [--plugin name] [--player name] "
                             + "[--world name] [--region x1,z1,x2,z2] [--cancelled any|yes|no] [--max-events n] "
                             + "[--max-duration ns|nm] [--slow-threshold 1ms] [--capture-stacks] [--confirm-hot] "
-                            + "[--detail brief|normal|verbose]",
+                            + "[--generic] [--detail brief|normal|verbose]",
                     NamedTextColor.YELLOW));
             return;
         }
 
         try {
+            int optionStart = optionStartIndex(args);
+            String eventQuery = String.join(",", Arrays.copyOfRange(args, 2, optionStart));
             List<String> optionTokens =
-                    new java.util.ArrayList<>(Arrays.asList(Arrays.copyOfRange(args, 3, args.length)));
+                    new java.util.ArrayList<>(Arrays.asList(Arrays.copyOfRange(args, optionStart, args.length)));
             TracePresetMerger.MergeResult mergeResult = TracePresetMerger.merge(commandConfig, optionTokens);
             if (mergeResult.hasError()) {
                 sender.sendMessage(
@@ -60,16 +62,21 @@ final class TraceStartCommandHandler {
 
             TraceCommandService.TraceStartOptions options =
                     TraceCommandService.TraceStartOptions.parse(mergeResult.tokens(), commandConfig);
-            TraceStartResult result = traceCommandService.startTrace(args[2], sender.getName(), options);
+            TraceStartResult result = traceCommandService.startTrace(eventQuery, sender.getName(), options);
             switch (result) {
-                case TraceStartResult.Success(var sessionId, var eventClassName) -> {
+                case TraceStartResult.Success(
+                        String sessionId,
+                        String eventClassName,
+                        List<String> eventClassNames) -> {
+                    String eventLabel = eventClassNames.stream()
+                            .map(CommandText::simpleName)
+                            .reduce((left, right) -> left + ", " + right)
+                            .orElse(CommandText.simpleName(eventClassName));
                     sender.sendMessage(Component.text("Trace session started: " + sessionId, NamedTextColor.GREEN));
                     sender.sendMessage(CommandUi.labeledLine(
                             "Event",
                             CommandUi.runCommand(
-                                    CommandText.simpleName(eventClassName),
-                                    "/eventlens trace view " + sessionId,
-                                    "View this trace session")));
+                                    eventLabel, "/eventlens trace view " + sessionId, "View this trace session")));
                     if (commandConfig.showPerformanceWarnings()) {
                         renderPerformanceWarning(sender, eventClassName);
                     }
@@ -84,6 +91,14 @@ final class TraceStartCommandHandler {
             @NonNull String errorMessage = rawMessage == null ? "Invalid trace start arguments." : rawMessage;
             sender.sendMessage(Component.text(errorMessage, NamedTextColor.RED));
         }
+    }
+
+    private static int optionStartIndex(String[] args) {
+        int index = 3;
+        while (index < args.length && !args[index].startsWith("--")) {
+            index++;
+        }
+        return index;
     }
 
     private void renderFailure(CommandSender sender, TraceStartResult.Failure failure) {

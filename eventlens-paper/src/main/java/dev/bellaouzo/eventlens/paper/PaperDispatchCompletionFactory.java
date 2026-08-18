@@ -52,6 +52,7 @@ final class PaperDispatchCompletionFactory {
                 context.capture().checkpoints.getLast(),
                 List.copyOf(context.capture().checkpoints),
                 listenerTimings,
-                partialReasons);
+                partialReasons,
+                PaperTickSampler.capture());
     }
 }

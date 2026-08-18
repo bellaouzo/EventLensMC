@@ -20,7 +20,16 @@ public final class SupportedEventTypes {
             "org.bukkit.event.player.PlayerQuitEvent",
             "org.bukkit.event.entity.EntitySpawnEvent",
             "org.bukkit.event.player.PlayerCommandPreprocessEvent",
-            "io.papermc.paper.event.player.AsyncChatEvent");
+            "io.papermc.paper.event.player.AsyncChatEvent",
+            "org.bukkit.event.inventory.InventoryOpenEvent",
+            "org.bukkit.event.inventory.InventoryCloseEvent",
+            "org.bukkit.event.inventory.InventoryDragEvent",
+            "org.bukkit.event.player.PlayerDropItemEvent",
+            "org.bukkit.event.entity.EntityPickupItemEvent",
+            "org.bukkit.event.entity.ProjectileLaunchEvent",
+            "org.bukkit.event.entity.ProjectileHitEvent",
+            "org.bukkit.event.entity.CreatureSpawnEvent",
+            "org.bukkit.event.server.ServerCommandEvent");
     private static final Set<String> additionalClassNames = new CopyOnWriteArraySet<>();
 
     private SupportedEventTypes() {}

@@ -8,9 +8,10 @@ public enum ExportFormat {
     JSON("json"),
     NDJSON("ndjson"),
     TEXT("txt"),
-    HTML("html");
+    HTML("html"),
+    BUNDLE("bundle");
 
-    public static final String VALID_TYPES_DESCRIPTION = "json, ndjson, text, txt, html";
+    public static final String VALID_TYPES_DESCRIPTION = "json, ndjson, text, txt, html, bundle";
 
     private final String extension;
 
@@ -39,7 +40,7 @@ public enum ExportFormat {
     }
 
     public static List<String> tabCompletionValues() {
-        return List.of("json", "ndjson", "text", "txt", "html");
+        return List.of("json", "ndjson", "text", "txt", "html", "bundle");
     }
 
     public static String validTypesDescription() {

@@ -10,8 +10,7 @@ final class TraceSessionQueries {
 
     static List<String> activeSessionIdsForEvent(Collection<TraceSession> sessions, String eventClassName) {
         return sessions.stream()
-                .filter(session ->
-                        session.isActive() && session.getEventClassName().equals(eventClassName))
+                .filter(session -> session.isActive() && session.getConfig().acceptsEvent(eventClassName))
                 .map(TraceSession::getSessionId)
                 .toList();
     }
@@ -19,7 +18,7 @@ final class TraceSessionQueries {
     static List<String> activeEventClassNames(Collection<TraceSession> sessions) {
         return sessions.stream()
                 .filter(TraceSession::isActive)
-                .map(TraceSession::getEventClassName)
+                .flatMap(session -> session.getEventClassNames().stream())
                 .distinct()
                 .toList();
     }
@@ -27,7 +26,7 @@ final class TraceSessionQueries {
     static boolean throttledCaptureForEvent(Collection<TraceSession> sessions, String eventClassName) {
         for (TraceSession session : sessions) {
             if (session.isActive()
-                    && session.getEventClassName().equals(eventClassName)
+                    && session.getConfig().acceptsEvent(eventClassName)
                     && session.isThrottledCapture()) {
                 return true;
             }
@@ -37,8 +36,7 @@ final class TraceSessionQueries {
 
     static long minSlowThresholdForEvent(Collection<TraceSession> sessions, String eventClassName) {
         return sessions.stream()
-                .filter(session ->
-                        session.isActive() && session.getEventClassName().equals(eventClassName))
+                .filter(session -> session.isActive() && session.getConfig().acceptsEvent(eventClassName))
                 .mapToLong(session -> session.getConfig().slowThresholdNanos())
                 .min()
                 .orElse(PerformanceBudget.DEFAULT_SLOW_THRESHOLD_NANOS);

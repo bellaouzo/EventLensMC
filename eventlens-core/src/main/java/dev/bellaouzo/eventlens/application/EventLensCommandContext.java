@@ -11,4 +11,7 @@ public record EventLensCommandContext(
         InstrumentationTestService instrumentationTestService,
         PlayerPreferencesService playerPreferencesService,
         EventLensCommandConfig commandConfig,
-        LiveFeedConfig liveFeedConfig) {}
+        LiveFeedConfig liveFeedConfig,
+        EventCatalogService eventCatalogService,
+        ExceptionInboxService exceptionInboxService,
+        TraceCorrelateService traceCorrelateService) {}

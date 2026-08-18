@@ -35,6 +35,15 @@ trace:
       slow-threshold-ns: 1000000
     plugin-focus:
       capture-stacks: false
+    block-flow:
+      max-duration-ms: 60000
+      max-events: 256
+    inventory-flow:
+      max-duration-ms: 60000
+      max-events: 256
+    chat-flow:
+      max-duration-ms: 60000
+      max-events: 128
 
 preferences:
   max-recent-traces: 20

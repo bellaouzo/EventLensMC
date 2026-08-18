@@ -24,7 +24,16 @@ public final class PaperEventSnapshotCapture {
             new PlayerQuitEventSnapshotAdapter(),
             new PlayerTeleportEventSnapshotAdapter(),
             new PlayerCommandPreprocessEventSnapshotAdapter(),
-            new AsyncChatEventSnapshotAdapter());
+            new AsyncChatEventSnapshotAdapter(),
+            new InventoryOpenEventSnapshotAdapter(),
+            new InventoryCloseEventSnapshotAdapter(),
+            new InventoryDragEventSnapshotAdapter(),
+            new PlayerDropItemEventSnapshotAdapter(),
+            new EntityPickupItemEventSnapshotAdapter(),
+            new ProjectileLaunchEventSnapshotAdapter(),
+            new ProjectileHitEventSnapshotAdapter(),
+            new CreatureSpawnEventSnapshotAdapter(),
+            new ServerCommandEventSnapshotAdapter());
 
     public EventSnapshot capture(Event event, String checkpoint) {
         SnapshotFieldCollector collector = new SnapshotFieldCollector();

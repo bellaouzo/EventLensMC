@@ -7,6 +7,7 @@ import dev.bellaouzo.eventlens.application.LiveFeedConfig;
 import dev.bellaouzo.eventlens.application.port.InstrumentationPort;
 import dev.bellaouzo.eventlens.domain.snapshot.SupportedEventTypes;
 import dev.bellaouzo.eventlens.paper.EventLensConfigLoader;
+import dev.bellaouzo.eventlens.paper.PaperCorrelationChannel;
 import dev.bellaouzo.eventlens.paper.instrumentation.AgentInstrumentationAdapter;
 import dev.bellaouzo.eventlens.paper.instrumentation.NoOpInstrumentationAdapter;
 import dev.bellaouzo.eventlens.trace.TraceSessionManager;
@@ -52,6 +53,7 @@ public final class EventLens extends JavaPlugin {
         }
 
         EventLensServices.registerSchedulers(this, services);
+        PaperCorrelationChannel.register(this, services.traceCorrelateService());
 
         int deleted = services.reportRetentionService().cleanupIfEnabled();
         if (deleted > 0) {
@@ -63,6 +65,7 @@ public final class EventLens extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        PaperCorrelationChannel.unregister(this);
         if (services != null) {
             services.dashboardHttpServer().close();
             services = null;

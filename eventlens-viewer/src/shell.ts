@@ -8,7 +8,7 @@ import {
   traceStatusIndicatorHtml,
 } from './utils/sessionState';
 
-export type ViewId = 'overview' | 'timeline' | 'flame' | 'events' | 'plugins';
+export type ViewId = 'overview' | 'timeline' | 'flame' | 'events' | 'plugins' | 'compare';
 
 export interface ShellContext {
   activeView: ViewId;
@@ -33,6 +33,7 @@ const NAV: Array<{ id: ViewId; label: string; icon: string }> = [
   { id: 'flame', label: 'Flame graph', icon: icons.flame },
   { id: 'events', label: 'Event graph', icon: icons.events },
   { id: 'plugins', label: 'Plugin graph', icon: icons.plugins },
+  { id: 'compare', label: 'Compare', icon: icons.overview },
 ];
 
 export function renderShell(app: HTMLElement, ctx: ShellContext): void {

@@ -20,11 +20,52 @@ public record TraceSessionSummary(
         boolean captureStacks,
         SessionTimingSummary timingSummary,
         SessionConflictSummary conflictSummary,
-        int restartCount) {
+        int restartCount,
+        java.util.List<String> eventClassNames) {
 
     public TraceSessionSummary {
         conflictSummary = conflictSummary == null ? SessionConflictSummary.empty() : conflictSummary;
         restartCount = Math.max(0, restartCount);
+        eventClassNames = eventClassNames == null || eventClassNames.isEmpty()
+                ? java.util.List.of(eventClassName)
+                : java.util.List.copyOf(eventClassNames);
+    }
+
+    public TraceSessionSummary(
+            String sessionId,
+            String eventClassName,
+            TraceSessionState state,
+            String ownerName,
+            long startedAtMillis,
+            long lastActivityAtMillis,
+            int capturedEvents,
+            int droppedEvents,
+            int sampledOutEvents,
+            int maxEventCount,
+            long maxDurationMillis,
+            long slowThresholdNanos,
+            boolean captureStacks,
+            SessionTimingSummary timingSummary,
+            SessionConflictSummary conflictSummary,
+            int restartCount) {
+        this(
+                sessionId,
+                eventClassName,
+                state,
+                ownerName,
+                startedAtMillis,
+                lastActivityAtMillis,
+                capturedEvents,
+                droppedEvents,
+                sampledOutEvents,
+                maxEventCount,
+                maxDurationMillis,
+                slowThresholdNanos,
+                captureStacks,
+                timingSummary,
+                conflictSummary,
+                restartCount,
+                java.util.List.of(eventClassName));
     }
 
     public boolean restarted() {

@@ -1,12 +1,10 @@
 package dev.bellaouzo.eventlens.command.trace;
 
-import dev.bellaouzo.eventlens.application.BaselineCommandService;
 import dev.bellaouzo.eventlens.application.EventLensCommandConfig;
+import dev.bellaouzo.eventlens.application.EventLensCommandContext;
 import dev.bellaouzo.eventlens.application.ExportCommandService;
-import dev.bellaouzo.eventlens.application.LiveFeedConfig;
-import dev.bellaouzo.eventlens.application.PlayerPreferencesService;
 import dev.bellaouzo.eventlens.application.TraceCommandService;
-import dev.bellaouzo.eventlens.application.TraceLiveFeedService;
+import dev.bellaouzo.eventlens.application.TraceCorrelateService;
 import dev.bellaouzo.eventlens.command.CommandLiterals;
 import dev.bellaouzo.eventlens.command.CommandMessages;
 import dev.bellaouzo.eventlens.command.EventLensPermissions;
@@ -29,23 +27,19 @@ public final class TraceCommandHandler {
     private final TraceLiveCommandHandler liveCommandHandler;
     private final TraceBaselineCommandHandler baselineCommandHandler;
     private final EventLensCommandConfig commandConfig;
+    private final TraceCorrelateService correlateService;
 
-    public TraceCommandHandler(
-            TraceCommandService traceCommandService,
-            TraceLiveFeedService traceLiveFeedService,
-            ExportCommandService exportCommandService,
-            BaselineCommandService baselineCommandService,
-            PlayerPreferencesService playerPreferencesService,
-            EventLensCommandConfig commandConfig,
-            LiveFeedConfig liveFeedConfig) {
-        this.traceCommandService = traceCommandService;
-        this.exportCommandService = exportCommandService;
-        this.commandConfig = commandConfig;
-        this.traceStartCommandHandler =
-                new TraceStartCommandHandler(traceCommandService, commandConfig, playerPreferencesService);
-        this.preferenceCommandHandler = new TracePreferenceCommandHandler(playerPreferencesService);
-        this.liveCommandHandler = new TraceLiveCommandHandler(traceLiveFeedService, commandConfig, liveFeedConfig);
-        this.baselineCommandHandler = new TraceBaselineCommandHandler(baselineCommandService);
+    public TraceCommandHandler(EventLensCommandContext context) {
+        this.traceCommandService = context.traceCommandService();
+        this.exportCommandService = context.exportCommandService();
+        this.commandConfig = context.commandConfig();
+        this.traceStartCommandHandler = new TraceStartCommandHandler(
+                context.traceCommandService(), context.commandConfig(), context.playerPreferencesService());
+        this.preferenceCommandHandler = new TracePreferenceCommandHandler(context.playerPreferencesService());
+        this.liveCommandHandler = new TraceLiveCommandHandler(
+                context.traceLiveFeedService(), context.commandConfig(), context.liveFeedConfig());
+        this.baselineCommandHandler = new TraceBaselineCommandHandler(context.baselineCommandService());
+        this.correlateService = context.traceCorrelateService();
     }
 
     public void handle(CommandSender sender, String[] args) {
@@ -56,7 +50,7 @@ public final class TraceCommandHandler {
 
         if (args.length < 2) {
             sender.sendMessage(Component.text(
-                    "Usage: /eventlens trace <start|stop|restart|list|view|live|export|copy|compare|baseline|history|favorite|presets>",
+                    "Usage: /eventlens trace <start|stop|restart|list|view|live|export|copy|compare|correlate|baseline|history|favorite|presets>",
                     NamedTextColor.YELLOW));
             return;
         }
@@ -71,13 +65,15 @@ public final class TraceCommandHandler {
             case CommandLiterals.SUBCOMMAND_EXPORT -> handleExport(sender, args);
             case "copy" -> handleCopy(sender, args);
             case "compare" -> handleCompare(sender, args);
+            case TraceCorrelateCommandHandler.SUBCOMMAND ->
+                TraceCorrelateCommandHandler.handle(sender, args, correlateService);
             case TraceBaselineCommandHandler.SUBCOMMAND -> baselineCommandHandler.handle(sender, args);
             case "history" -> preferenceCommandHandler.handleHistory(sender);
             case "favorite" -> preferenceCommandHandler.handleFavorite(sender, args);
             case "presets" -> preferenceCommandHandler.handlePresets(sender, commandConfig);
             default ->
                 sender.sendMessage(Component.text(
-                        "Usage: /eventlens trace <start|stop|restart|list|view|live|export|copy|compare|baseline|history|favorite|presets>",
+                        "Usage: /eventlens trace <start|stop|restart|list|view|live|export|copy|compare|correlate|baseline|history|favorite|presets>",
                         NamedTextColor.YELLOW));
         }
     }

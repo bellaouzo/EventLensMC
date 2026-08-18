@@ -9,10 +9,11 @@ import java.util.Locale;
 
 public final class ModClientTabCompleter {
 
-    private static final List<String> ROOT = List.of("status", "listeners", "trace", "ui");
+    private static final List<String> ROOT = List.of("status", "listeners", "trace", "mod", "exceptions", "ui");
     private static final List<String> TRACE =
-            List.of("start", "stop", "pause", "resume", "restart", "list", "view", "export");
-    private static final List<String> START_FLAGS = List.of("--confirm-hot", "--max-events");
+            List.of("start", "stop", "pause", "resume", "restart", "list", "view", "export", "live");
+    private static final List<String> START_FLAGS =
+            List.of("--confirm-hot", "--max-events", "--mod", "--player");
 
     private ModClientTabCompleter() {}
 

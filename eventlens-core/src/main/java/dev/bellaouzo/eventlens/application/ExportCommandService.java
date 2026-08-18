@@ -9,6 +9,7 @@ import dev.bellaouzo.eventlens.domain.report.TraceReportComparer;
 import dev.bellaouzo.eventlens.domain.report.TraceReportDocument;
 import dev.bellaouzo.eventlens.domain.report.TraceReportHtmlSerializer;
 import dev.bellaouzo.eventlens.domain.report.TraceReportJsonSerializer;
+import dev.bellaouzo.eventlens.domain.report.TraceReportJsonSupport;
 import dev.bellaouzo.eventlens.domain.report.TraceReportNdjsonSerializer;
 import dev.bellaouzo.eventlens.domain.report.TraceReportTextSerializer;
 import dev.bellaouzo.eventlens.domain.trace.TraceDispatchRecord;
@@ -137,6 +138,7 @@ public final class ExportCommandService {
             case NDJSON -> TraceReportNdjsonSerializer.serialize(document);
             case TEXT -> TraceReportTextSerializer.serialize(document);
             case HTML -> TraceReportHtmlSerializer.serialize(document);
+            case BUNDLE -> TraceReportJsonSupport.minifyJson(TraceReportJsonSerializer.serialize(document));
         };
     }
 

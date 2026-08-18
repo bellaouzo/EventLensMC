@@ -1,0 +1,21 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "ignoreBinaries": ["knip", "eslint", "prettier", "jest"],
+  "ignoreDependencies": ["d3", "@types/d3"],
+  "ignoreExportsUsedInFile": true,
+  "rules": {
+    "exports": "off",
+    "nsExports": "off",
+    "types": "off",
+    "nsTypes": "off",
+    "enumMembers": "off",
+    "namespaceMembers": "off"
+  },
+  "workspaces": {
+    ".": {
+      "entry": [],
+      "project": []
+    },
+    "eventlens-viewer": {}
+  }
+}

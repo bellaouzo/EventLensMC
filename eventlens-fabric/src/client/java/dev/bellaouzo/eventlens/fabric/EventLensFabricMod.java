@@ -3,6 +3,7 @@ package dev.bellaouzo.eventlens.fabric;
 import dev.bellaouzo.eventlens.application.TraceReportBuilder;
 import dev.bellaouzo.eventlens.domain.runtime.ModRuntimeKind;
 import dev.bellaouzo.eventlens.modcommon.FileModExportAdapter;
+import dev.bellaouzo.eventlens.modcommon.ModCorrelationBridge;
 import dev.bellaouzo.eventlens.modcommon.ModEnvironmentCollector;
 import dev.bellaouzo.eventlens.modcommon.ModNoOpInstrumentationAdapter;
 import dev.bellaouzo.eventlens.modcommon.ModDispatchRecorder;
@@ -33,9 +34,16 @@ public final class EventLensFabricMod implements ClientModInitializer {
         FabricListenerRegistry listenerRegistry = new FabricListenerRegistry();
         coordinator = new ModTraceCoordinator(
                 sessionManager, reportBuilder, exportAdapter, listenerRegistry, environmentAdapter);
+        FabricCorrelationChannel correlationChannel = new FabricCorrelationChannel();
+        ModCorrelationBridge correlationBridge = new ModCorrelationBridge(sessionManager, correlationChannel);
+        correlationChannel.bind(correlationBridge);
+        sessionManager.setDispatchCaptureListener(correlationBridge);
+        FabricCorrelationChannel.register(correlationChannel);
         FabricEventTracer.register(new ModDispatchRecorder(sessionManager));
         FabricClientCommands.register(coordinator);
         FabricChatClicks.register();
+        dev.bellaouzo.eventlens.fabric.ui.EventLensKeybinds.register();
+        dev.bellaouzo.eventlens.fabric.ui.EventLensHudOverlay.register();
     }
 
     public static ModTraceCoordinator coordinator() {

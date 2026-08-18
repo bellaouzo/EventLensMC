@@ -2,6 +2,7 @@ package dev.bellaouzo.eventlens.trace;
 
 import dev.bellaouzo.eventlens.application.port.InstrumentationPort;
 import dev.bellaouzo.eventlens.domain.trace.EventFilterContext;
+import dev.bellaouzo.eventlens.domain.trace.TraceDispatchRecord;
 import dev.bellaouzo.eventlens.domain.trace.TraceLimits;
 import dev.bellaouzo.eventlens.domain.trace.TraceRestartResult;
 import dev.bellaouzo.eventlens.domain.trace.TraceSessionConfig;
@@ -22,7 +23,7 @@ public final class TraceSessionManager {
 
     private final Map<String, TraceSession> sessions = new LinkedHashMap<>();
     private final Map<String, Map<Long, TraceSession.PendingDispatch>> pendingDispatches = new ConcurrentHashMap<>();
-    private final TraceSessionArchives archives = new TraceSessionArchives();
+    final TraceSessionArchives archives = new TraceSessionArchives();
     private InstrumentationPort instrumentationPort;
     private DispatchCaptureListener dispatchCaptureListener;
 
@@ -39,14 +40,17 @@ public final class TraceSessionManager {
         if (sessions.values().stream().filter(TraceSession::isOpen).count() >= TraceLimits.MAX_CONCURRENT_SESSIONS) {
             throw new IllegalStateException("Concurrent session limit reached.");
         }
-        String sessionId = UUID.randomUUID().toString().substring(0, 8);
-        return TraceSessionSlots.insert(this, sessionId, config, ownerName, nowMillis, 0);
+        return TraceSessionSlots.insert(
+                this, UUID.randomUUID().toString().substring(0, 8), config, ownerName, nowMillis, 0);
+    }
+
+    public synchronized Optional<TraceDispatchRecord> stampPeer(
+            String sessionId, String correlationKey, String peerSessionId, long peerSequence) {
+        return TraceSessionPeers.stampOpen(sessions.get(sessionId), correlationKey, peerSessionId, peerSequence);
     }
 
     public synchronized List<TraceSessionSummary> listSessions() {
-        return sessions.values().stream()
-                .map(session -> session.toSummary(agentPresent()))
-                .toList();
+        return sessions.values().stream().map(s -> s.toSummary(agentPresent())).toList();
     }
 
     public synchronized Optional<TraceSessionExportBundle> getExportBundle(
@@ -217,10 +221,6 @@ public final class TraceSessionManager {
         return instrumentationPort;
     }
 
-    void archiveCurrent(String sessionId) {
-        Optional.ofNullable(sessions.get(sessionId)).ifPresent(session -> archives.archive(session, agentPresent()));
-    }
-
     void refreshAfterMutation() {
         TraceSessionInstrumentation.refreshObservationState(instrumentationPort, sessions.values());
     }
@@ -238,10 +238,7 @@ public final class TraceSessionManager {
     }
 
     void notifyLifecycle(String sessionId, boolean started) {
-        if (dispatchCaptureListener instanceof SessionLifecycleListener listener) {
-            if (started) listener.onSessionStarted(sessionId);
-            else listener.onSessionStopped(sessionId);
-        }
+        TraceSessionInstrumentation.notifyLifecycle(dispatchCaptureListener, sessionId, started);
     }
 
     void clearPending(String sessionId) {

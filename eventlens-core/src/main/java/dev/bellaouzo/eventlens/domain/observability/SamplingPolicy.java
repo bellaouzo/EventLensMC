@@ -34,7 +34,7 @@ public final class SamplingPolicy {
         return HOT_EVENT_CLASS_NAMES.contains(eventClassName);
     }
 
-    private static boolean hasNarrowingFilter(TraceFilter filter) {
+    public static boolean hasNarrowingFilter(TraceFilter filter) {
         return filter.pluginName().isPresent()
                 || filter.playerName().isPresent()
                 || filter.worldName().isPresent()
