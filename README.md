@@ -56,7 +56,7 @@ Everything is on the same **[1.12.0 release](https://github.com/bellaouzo/EventL
 | **`eventlens-setup-1.12.0.jar`** | **Start here.** Desktop wizard — copies the right jars and can write Paper / Prism JVM args. See [Setup wizard](#setup-wizard). |
 | **`EventLens-1.12.0-manual.zip`** | All individual jars in one folder if you want to install by hand. Unzip, then follow [Paper](#paper-server), [Client](#minecraft-client), or [Agents](#java-agents-optional). |
 
-The same jars are also attached one-by-one on the release if you only need a single file:
+Unzip the manual zip and use these files:
 
 | File | Who | Where it goes |
 |---|---|---|
@@ -93,7 +93,7 @@ The wizard copies the matching jars. When it can, it also writes:
 
 The last page puts the `-javaagent:` line in a highlighted box with **Copy JVM argument** and a button that opens the [Java agents](#java-agents-optional) README (Prism, CurseForge, Modrinth, and start scripts). **CurseForge and Modrinth** still need that line pasted into JVM arguments by hand.
 
-Manual steps below if you prefer not to use the wizard. Download **`EventLens-1.12.0-manual.zip`** (or a single jar) from the same release, or build from source.
+Manual steps below if you prefer not to use the wizard. Download **`EventLens-1.12.0-manual.zip`** from the same release, or build from source.
 
 ### Paper server
 
@@ -431,7 +431,7 @@ Default limits: 4 concurrent sessions, 4,096 records per session, 256 listener r
 
 ## FAQ
 
-**Is there an installer?** Yes — download **`eventlens-setup-1.12.0.jar`** and see [Setup wizard](#setup-wizard). It copies jars and can patch Paper or Prism startup files. For hand install, use **`EventLens-1.12.0-manual.zip`** or the individual jars on the same release.
+**Is there an installer?** Yes — download **`eventlens-setup-1.12.0.jar`** and see [Setup wizard](#setup-wizard). It copies jars and can patch Paper or Prism startup files. For hand install, unzip **`EventLens-1.12.0-manual.zip`**.
 
 **Do I need a Java agent?** EventLens works without one (`dispatch-only`). Add the matching [agent](#java-agents-optional) if you want **precise** per-listener or per-mod times. The wizard can do this for you.
 

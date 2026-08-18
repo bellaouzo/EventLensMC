@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Setup wizard** (`eventlens-setup-1.12.0.jar`) copies the Paper plugin or a client mod, optionally installs the matching Java agent, and writes Paper `user_jvm_args.txt` / `start.bat` or Prism/MultiMC `instance.cfg` when those files are present
 - The last wizard page always shows the `-javaagent:` line so CurseForge, Modrinth, and other launchers can paste it by hand
-- GitHub Releases attach the setup jar, **`EventLens-1.12.0-manual.zip`** (all individual jars in one folder), and each jar on its own
+- GitHub Releases attach only **`eventlens-setup-1.12.0.jar`** and **`EventLens-1.12.0-manual.zip`** (all individual jars inside that folder)
 
 ### Changed
 

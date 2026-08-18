@@ -44,7 +44,6 @@ jobs:
             "eventlens-forge/build/libs/eventlens-forge-${VERSION}.jar" \
             "eventlens-fabric/build/libs/eventlens-fabric-${VERSION}.jar"
           do
-            cp "$f" dist/
             cp "$f" "dist/manual/EventLens-${VERSION}-manual/"
           done
           python3 - <<'PY'
@@ -97,7 +96,6 @@ jobs:
           print()
           print(f"- **Setup wizard (start here):** `eventlens-setup-{version}.jar`")
           print(f"- **Manual install folder:** `EventLens-{version}-manual.zip`")
-          print("- Individual jars are attached too if you only need one file")
           print()
           print(section.strip())
           PY
