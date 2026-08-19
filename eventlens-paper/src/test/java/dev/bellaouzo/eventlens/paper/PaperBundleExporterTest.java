@@ -1,11 +1,13 @@
 package dev.bellaouzo.eventlens.paper;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.zip.ZipFile;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -18,6 +20,12 @@ class PaperBundleExporterTest {
         var result = PaperBundleExporter.write(tempDir, "trace-test", json);
 
         assertTrue(result.success());
+        Path zip = result.path().orElseThrow();
+        assertTrue(zip.getFileName().toString().endsWith("-bundle.zip"));
+        try (ZipFile archive = new ZipFile(zip.toFile())) {
+            assertNotNull(archive.getEntry("index.html"));
+            assertNotNull(archive.getEntry("report.json"));
+        }
         Path bundle = tempDir.resolve("trace-test-bundle");
         String report = Files.readString(bundle.resolve("report.json"), StandardCharsets.UTF_8);
         String html = Files.readString(bundle.resolve("index.html"), StandardCharsets.UTF_8);

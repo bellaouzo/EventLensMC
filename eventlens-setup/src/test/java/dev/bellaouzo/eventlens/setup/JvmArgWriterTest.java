@@ -16,8 +16,10 @@ class JvmArgWriterTest {
 
     @Test
     void quotesPathsWithSpaces() {
-        String arg = JvmArgWriter.javaAgentArgument(Path.of("C:/My Agents/eventlens-agent-1.12.0.jar"));
-        assertEquals("-javaagent:\"C:/My Agents/eventlens-agent-1.12.0.jar\"", arg);
+        Path jar = temp.resolve("My Agents").resolve("eventlens-agent-1.12.0.jar");
+        String arg = JvmArgWriter.javaAgentArgument(jar);
+        String path = jar.toAbsolutePath().normalize().toString().replace('\\', '/');
+        assertEquals("-javaagent:\"" + path + "\"", arg);
     }
 
     @Test

@@ -46,6 +46,12 @@ public final class TraceExportCommandHandler {
                                 + fileName,
                         NamedTextColor.GREEN));
                 ExportPathMessages.sendSavedPath(sender, path);
+                if (fileName.endsWith("-bundle.zip")) {
+                    sender.sendMessage(Component.text(
+                            "Download that zip from the host file manager, unzip it, and open index.html"
+                                    + " on your computer.",
+                            NamedTextColor.GRAY));
+                }
             }
             case ExportCommandService.ExportResult.Failure failure ->
                 sender.sendMessage(Component.text(failure.message(), NamedTextColor.RED));

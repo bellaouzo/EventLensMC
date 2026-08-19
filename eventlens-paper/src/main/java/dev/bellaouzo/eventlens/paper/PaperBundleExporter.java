@@ -7,6 +7,9 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.stream.Stream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 final class PaperBundleExporter {
 
@@ -41,10 +44,37 @@ final class PaperBundleExporter {
                         buildIndex(css, reportJson, js, eventGraphJson),
                         StandardCharsets.UTF_8);
             }
-            return ExportPort.ExportWriteResult.success(target);
+            return successWithZip(reportsDirectory, safeBaseName, target);
         } catch (IOException ex) {
             return ExportPort.ExportWriteResult.failure(
                     ex.getMessage() == null ? "I/O error writing bundle." : ex.getMessage());
+        }
+    }
+
+    private static ExportPort.ExportWriteResult successWithZip(
+            Path reportsDirectory, String safeBaseName, Path folder) {
+        Path zip = reportsDirectory.resolve(safeBaseName + "-bundle.zip").normalize();
+        if (!zip.startsWith(reportsDirectory)) {
+            return ExportPort.ExportWriteResult.success(folder);
+        }
+        try {
+            writeZip(folder, zip);
+            return ExportPort.ExportWriteResult.success(zip);
+        } catch (IOException _) {
+            return ExportPort.ExportWriteResult.success(folder);
+        }
+    }
+
+    private static void writeZip(Path folder, Path zip) throws IOException {
+        Files.deleteIfExists(zip);
+        try (ZipOutputStream output = new ZipOutputStream(Files.newOutputStream(zip));
+                Stream<Path> walk = Files.walk(folder)) {
+            for (Path file : walk.filter(Files::isRegularFile).toList()) {
+                String name = folder.relativize(file).toString().replace('\\', '/');
+                output.putNextEntry(new ZipEntry(name));
+                Files.copy(file, output);
+                output.closeEntry();
+            }
         }
     }
 

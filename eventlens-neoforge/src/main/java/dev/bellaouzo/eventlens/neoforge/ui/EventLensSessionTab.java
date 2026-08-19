@@ -115,8 +115,9 @@ final class EventLensSessionTab {
 
             @Override
             public void extractContent(
-                    GuiGraphicsExtractor graphics, int index, int top, boolean hovering, float partialTick) {
+                    GuiGraphicsExtractor graphics, int mouseX, int mouseY, boolean hovering, float partialTick) {
                 int left = getContentX();
+                int top = getContentY();
                 int width = getContentWidth();
                 int height = getContentHeight();
                 boolean clickable = row.kind() == EventLensSessionRows.Kind.DISPATCH

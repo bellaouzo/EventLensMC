@@ -5,6 +5,21 @@ All notable changes to EventLens are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.12.2] - 2026-08-18
+
+### Added
+
+- Hosted and VPS servers can open the live dashboard by setting `dashboard.token` (12+ characters) and `dashboard.bind-address: 0.0.0.0`, then browsing `http://<host>:8765/?token=...`
+- Bundle export also writes a `.zip` next to the folder so panel/FTP hosts can download one file, unzip it, and open `index.html` at home
+
+### Changed
+
+- Remote dashboard bind is refused unless a token is set; localhost with an empty token stays open as before
+
+### Fixed
+
+- Client Screen event, session, and session-detail lists no longer draw every row on top of each other (NeoForge, Forge, and Fabric)
+
 ## [1.12.1] - 2026-08-18
 
 ### Fixed

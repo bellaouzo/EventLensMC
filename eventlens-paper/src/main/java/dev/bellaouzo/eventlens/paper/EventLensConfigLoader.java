@@ -53,7 +53,8 @@ public final class EventLensConfigLoader {
         return new EventLensDashboardConfig(
                 config.getBoolean("dashboard.enabled", defaults.enabled()),
                 config.getInt("dashboard.port", defaults.port()),
-                config.getString("dashboard.bind-address", defaults.bindAddress()));
+                config.getString("dashboard.bind-address", defaults.bindAddress()),
+                config.getString("dashboard.token", defaults.token()));
     }
 
     public static EventLensCommandConfig loadCommandConfig(FileConfiguration config) {

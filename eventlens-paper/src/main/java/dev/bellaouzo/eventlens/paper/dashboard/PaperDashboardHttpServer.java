@@ -32,16 +32,26 @@ public final class PaperDashboardHttpServer implements AutoCloseable {
         if (!config.enabled()) {
             return;
         }
-        if (!config.isLoopbackOnly()) {
-            plugin.getLogger().warning("Dashboard bind address must be loopback-only. Dashboard not started.");
+        if (!config.canBind()) {
+            plugin.getLogger()
+                    .warning("Dashboard bind-address is not localhost. Set dashboard.token to 12+ characters"
+                            + " in config.yml to allow remote access, or set dashboard.bind-address"
+                            + " back to 127.0.0.1. Hosts that cannot open a port should use"
+                            + " /eventlens trace export --format bundle and download the .zip.");
             return;
         }
 
         InetSocketAddress address = new InetSocketAddress(config.bindAddress(), config.port());
         httpServer = HttpServer.create(address, 0);
-        httpServer.createContext("/api/stream", new DashboardSseHandler(streamHub));
-        httpServer.createContext("/api/", new DashboardApiHandler(plugin, dashboardQueryService));
-        httpServer.createContext("/", new DashboardStaticHandler());
+        httpServer
+                .createContext("/api/stream", new DashboardSseHandler(streamHub))
+                .getFilters()
+                .add(new DashboardAuthFilter(config));
+        httpServer
+                .createContext("/api/", new DashboardApiHandler(plugin, dashboardQueryService))
+                .getFilters()
+                .add(new DashboardAuthFilter(config));
+        httpServer.createContext("/", new DashboardStaticHandler()).getFilters().add(new DashboardAuthFilter(config));
         httpServer.setExecutor(Executors.newCachedThreadPool(r -> {
             Thread thread = new Thread(r, "EventLens-Dashboard");
             thread.setDaemon(true);
@@ -49,8 +59,20 @@ public final class PaperDashboardHttpServer implements AutoCloseable {
         }));
         httpServer.start();
 
-        plugin.getLogger()
-                .info(() -> "EventLens dashboard listening on http://" + config.bindAddress() + ":" + config.port());
+        if (config.isLoopbackOnly()) {
+            plugin.getLogger()
+                    .info(() ->
+                            "EventLens dashboard listening on http://" + config.bindAddress() + ":" + config.port());
+        } else {
+            plugin.getLogger()
+                    .info(() -> "EventLens dashboard listening on http://"
+                            + config.bindAddress()
+                            + ":"
+                            + config.port()
+                            + " (token required; open http://<host>:"
+                            + config.port()
+                            + "/?token=...). dashboard.token is not printed here.");
+        }
     }
 
     @Override

@@ -20,6 +20,6 @@ Include the EventLens version, Paper (or client loader) version, and a minimal r
 
 ## Defaults that matter
 
-- The live dashboard binds to `127.0.0.1` unless an operator changes `dashboard.bind-address`.
+- The live dashboard binds to `127.0.0.1` by default. Binding beyond localhost requires `dashboard.token` (12+ characters). The token is never logged.
 - Shareable exports redact player names, world names, exact coordinates, and paths unless `--full` is used.
 - There is no external telemetry.

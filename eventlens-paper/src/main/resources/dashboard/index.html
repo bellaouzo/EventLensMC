@@ -10,10 +10,41 @@
       href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
+    <script>
+      (function () {
+        var token = new URLSearchParams(window.location.search).get("token");
+        if (!token) {
+          return;
+        }
+        var fetchImpl = window.fetch.bind(window);
+        window.fetch = function (input, init) {
+          if (typeof input === "string" && input.charAt(0) === "/") {
+            var url = new URL(input, window.location.origin);
+            if (!url.searchParams.has("token")) {
+              url.searchParams.set("token", token);
+            }
+            return fetchImpl(url.pathname + url.search + url.hash, init);
+          }
+          return fetchImpl(input, init);
+        };
+        var EventSourceImpl = window.EventSource;
+        window.EventSource = function (url, config) {
+          var next = url;
+          if (typeof url === "string") {
+            var parsed = new URL(url, window.location.origin);
+            if (!parsed.searchParams.has("token")) {
+              parsed.searchParams.set("token", token);
+            }
+            next = parsed.pathname + parsed.search + parsed.hash;
+          }
+          return new EventSourceImpl(next, config);
+        };
+      })();
+    </script>
     <script type="module" crossorigin src="./assets/index.js"></script>
     <link rel="stylesheet" crossorigin href="./assets/style.css">
   </head>
   <body>
-    <div id="app"></div>
+    <div id="app"></div>
   </body>
 </html>

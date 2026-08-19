@@ -8,6 +8,8 @@ dashboard:
   enabled: true
   port: 8765
   bind-address: 127.0.0.1
+  # Required (12+ characters) to bind beyond localhost. Leave empty for 127.0.0.1 only.
+  token: ""
 
 output:
   detail-level: normal
