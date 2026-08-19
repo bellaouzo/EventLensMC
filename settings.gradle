@@ -24,14 +24,20 @@ include(
         'eventlens-paper',
         'eventlens-observability',
         'eventlens-agent',
-        'eventlens-client-agent',
-        'eventlens-testkit',
-        'eventlens-mod-common',
-        'eventlens-neoforge',
-        'eventlens-forge',
-        'eventlens-fabric',
-        'eventlens-setup'
+        'eventlens-testkit'
 )
+
+boolean paperOnly = providers.gradleProperty('eventlens.paperOnly').getOrElse('false') == 'true'
+if (!paperOnly) {
+    include(
+            'eventlens-client-agent',
+            'eventlens-mod-common',
+            'eventlens-neoforge',
+            'eventlens-forge',
+            'eventlens-fabric',
+            'eventlens-setup'
+    )
+}
 
 dependencyResolutionManagement {
     repositories {

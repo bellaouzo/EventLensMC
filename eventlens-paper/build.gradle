@@ -381,10 +381,18 @@ tasks.register('paperSmokeTest') {
 
 List<String> smokeRunServerCommand() {
     boolean isWindows = System.getProperty('os.name').toLowerCase(java.util.Locale.ROOT).contains('win')
-    if (isWindows) {
-        return ['cmd', '/c', 'gradlew.bat', ':eventlens-paper:runServer', '--no-daemon', '--console=plain']
+    List<String> args = [':eventlens-paper:runServer', '--no-daemon', '--console=plain']
+    if (findProperty('eventlens.paperOnly') == 'true') {
+        args.add('-Peventlens.paperOnly=true')
     }
-    return ['./gradlew', ':eventlens-paper:runServer', '--no-daemon', '--console=plain']
+    if (isWindows) {
+        List<String> command = ['cmd', '/c', 'gradlew.bat']
+        command.addAll(args)
+        return command
+    }
+    List<String> command = ['./gradlew']
+    command.addAll(args)
+    return command
 }
 
 boolean waitForLogContent(File file, String token, long timeoutMs) {

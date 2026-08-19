@@ -48,4 +48,4 @@ jobs:
         uses: gradle/actions/wrapper-validation@v4
 
       - name: Run Paper smoke test
-        run: .\gradlew.bat paperSmokeTest --no-daemon --warning-mode all
+        run: .\gradlew.bat paperSmokeTest --no-daemon --warning-mode all "-Peventlens.paperOnly=true"
