@@ -18,9 +18,22 @@ java {
     }
 }
 
-tasks.withType(JavaCompile).configureEach {
+sourceSets {
+    bootstrap {
+        java.srcDir 'src/bootstrap/java'
+    }
+    test {
+        compileClasspath += sourceSets.bootstrap.output
+        runtimeClasspath += sourceSets.bootstrap.output
+    }
+}
+
+tasks.withType(JavaCompile).configureEach { task ->
     options.encoding = 'UTF-8'
-    options.release = 21
+    options.release = task.name == 'compileBootstrapJava' ? 8 : 21
+    if (task.name == 'compileBootstrapJava') {
+        options.compilerArgs << '-Xlint:-options'
+    }
 }
 
 dependencies {
@@ -90,13 +103,14 @@ tasks.register('stageSetupArtifacts', Copy) {
 }
 
 tasks.named('jar', Jar) {
-    dependsOn tasks.named('stageSetupArtifacts')
+    dependsOn tasks.named('stageSetupArtifacts'), sourceSets.bootstrap.output
+    from sourceSets.bootstrap.output
     from(layout.buildDirectory.dir('setup-artifacts')) {
         into 'setup-artifacts'
     }
     manifest {
         attributes(
-                'Main-Class': 'dev.bellaouzo.eventlens.setup.EventLensSetup',
+                'Main-Class': 'dev.bellaouzo.eventlens.setup.SetupBootstrap',
                 'Implementation-Title': 'EventLens Setup',
                 'Implementation-Version': project.version)
     }

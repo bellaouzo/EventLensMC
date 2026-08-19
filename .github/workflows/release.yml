@@ -63,6 +63,7 @@ jobs:
           Optional:      eventlens-observability-{version}.jar beside an agent (fat agents work alone)
 
           Prefer the wizard? Download eventlens-setup-{version}.jar from the same GitHub release.
+          The wizard needs Java 21+ (OpenJDK / Temurin). Do not open it with Java SE Platform Binary (Java 8).
 
           Full steps:  https://github.com/bellaouzo/EventLensMC#install
           JVM args:    https://github.com/bellaouzo/EventLensMC#java-agents-optional
@@ -95,6 +96,7 @@ jobs:
           print("## Downloads")
           print()
           print(f"- **Setup wizard (start here):** `eventlens-setup-{version}.jar`")
+          print("- Needs **Java 21+ OpenJDK** (Temurin / Microsoft OpenJDK). Not **Java SE Platform Binary** (Java 8).")
           print(f"- **Manual install folder:** `EventLens-{version}-manual.zip`")
           print()
           print(section.strip())

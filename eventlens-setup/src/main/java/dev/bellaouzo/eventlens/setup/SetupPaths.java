@@ -24,6 +24,6 @@ public final class SetupPaths {
         if (fromManifest != null && !fromManifest.isBlank()) {
             return fromManifest;
         }
-        return "1.12.0";
+        return "1.12.1";
     }
 }

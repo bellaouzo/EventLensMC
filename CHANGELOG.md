@@ -5,6 +5,16 @@ All notable changes to EventLens are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.12.1] - 2026-08-18
+
+### Fixed
+
+- Setup wizard double-clicked with **Java SE Platform Binary** (usually Java 8) no longer dies with a class-version error: it relaunches **OpenJDK 21+** when that is installed, or explains to use OpenJDK / Temurin instead of Java SE
+
+### Changed
+
+- README and the GitHub release say the wizard needs **Java 21+** (OpenJDK). Paper still needs **Java 25**.
+
 ## [1.12.0] - 2026-08-18
 
 ### Added
